@@ -1,0 +1,83 @@
+---
+description: Next.js + Tailwind CSS v4 프로젝트 규칙 (CSS Layer, 이미지 포맷 등)
+globs: '**/*.css,**/*.tsx,**/*.ts'
+alwaysApply: false
+---
+
+# Next.js + Tailwind CSS v4 규칙
+
+## Tailwind v4 CSS 작성 규칙 (가장 중요)
+
+### `globals.css`에서 커스텀 CSS는 반드시 `@layer base` 안에 작성한다.
+
+Tailwind v4는 CSS Cascade Layers를 사용한다.
+레이어 바깥에 작성된 CSS는 명시도와 무관하게 Tailwind 유틸리티 클래스를 **항상 덮어쓴다.**
+(`px-*`, `py-*`, `gap-*`, `m-*`, `h-*` 등 spacing 클래스 전부 무력화됨)
+
+```css
+/* ❌ BAD — 레이어 바깥의 * 리셋이 모든 Tailwind spacing 유틸리티를 덮어씀 */
+@import 'tailwindcss';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ✅ GOOD — @layer base 안에 넣어야 Tailwind utilities가 정상 동작 */
+@import 'tailwindcss';
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Pretendard', sans-serif;
+  }
+}
+```
+
+### Tailwind v4 import 문법
+
+```css
+/* ❌ BAD (v3 문법) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ GOOD (v4 문법) */
+@import 'tailwindcss';
+```
+
+---
+
+## 이미지 포맷
+
+- 모든 이미지는 `.webp`만 사용한다. `.png`, `.jpg`, `.jpeg`는 금지한다.
+- Next.js `<Image>` 컴포넌트를 사용하고, `width`와 `height`를 함께 지정한다.
+
+```tsx
+// ✅ GOOD
+<Image src="/img/logo.webp" alt="로고" width={200} height={48} />
+```
+
+---
+
+## 반응형 브레이크포인트
+
+- 데스크톱 전용 네비게이션: `md:flex` (768px 이상)
+- 모바일 전용 요소: `md:hidden`
+- `lg`(1024px)는 넓은 레이아웃에만 사용한다.
+
+---
+
+## Tailwind 클래스 디버깅 체크리스트
+
+Tailwind 클래스가 적용 안 될 때 순서대로 확인한다:
+
+1. `globals.css`의 커스텀 CSS가 `@layer base` 밖에 있지 않은지 확인
+2. `@import "tailwindcss"` 문법이 맞는지 확인 (v3의 `@tailwind` 사용 금지)
+3. 브레이크포인트(`md:`, `lg:`)가 현재 뷰포트 폭과 맞는지 확인
+4. 브라우저 강제 새로고침 (`Cmd+Shift+R`)
