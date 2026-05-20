@@ -16,9 +16,7 @@ export default function WhoWeAreSection() {
   return (
     <section className="bg-white" aria-labelledby="who-we-are-heading">
       <div className="mx-auto max-w-[1200px] px-6 py-16 md:px-12 md:py-24">
-        <p className="text-center text-lg font-bold tracking-tight text-[#023373] md:text-left">
-          {WHO_WE_ARE_LABEL}
-        </p>
+        <p className="text-center text-lg font-bold tracking-tight text-[#023373] md:text-left">{WHO_WE_ARE_LABEL}</p>
         <h2 id="who-we-are-heading" className="sr-only">
           {WHO_WE_ARE_TITLE}
         </h2>
@@ -32,7 +30,7 @@ export default function WhoWeAreSection() {
               <span className="block md:inline">{WHO_WE_ARE_TITLE_LINE2}</span>
             </p>
           </div>
-          <div className="mt-8 space-y-4 text-base leading-relaxed text-[#555] md:col-span-7 md:mt-0 md:text-lg">
+          <div className="mt-8 space-y-2 text-base leading-relaxed text-[#555] md:col-span-7 md:mt-0 md:text-lg">
             {WHO_WE_ARE_PARAGRAPHS.slice(0, 4).map(p => (
               <p key={p} className="font-bold">
                 {p}

@@ -8,16 +8,13 @@ export default function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section
-      className="relative hidden py-16 sm:block sm:py-24"
-      aria-labelledby="faq-heading"
-    >
+    <section className="relative hidden py-16 sm:block sm:py-24" aria-labelledby="faq-heading">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${FAQ_SECTION_BG_SRC})` }}
       />
       <div className="absolute inset-0 bg-black/45" aria-hidden />
-      <div className="relative z-[1] mx-auto max-w-[960px] px-6 lg:px-8">
+      <div className="relative z-[1] mx-auto max-w-[1050px] px-6 lg:px-8">
         <h2
           id="faq-heading"
           className="whitespace-pre-line text-4xl font-bold leading-tight tracking-tight text-white lg:text-5xl"
@@ -36,10 +33,7 @@ export default function FaqAccordion() {
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                 >
                   <span>{item.question}</span>
-                  <span
-                    className="relative mt-1 inline-block h-7 w-7 shrink-0"
-                    aria-hidden
-                  >
+                  <span className="relative mt-1 inline-block h-6 w-6 shrink-0" aria-hidden>
                     <span
                       className={`absolute left-1/2 top-0 h-7 w-px -translate-x-1/2 bg-[#333] transition-all ${
                         isOpen ? 'scale-y-0' : ''
