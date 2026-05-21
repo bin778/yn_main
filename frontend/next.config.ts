@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
         destination: '/field',
         permanent: true,
       },
+      {
+        source: '/contact.php',
+        destination: '/contact',
+        permanent: true,
+      },
+      {
+        source: '/privacy.php',
+        destination: '/privacy',
+        permanent: true,
+      },
     ];
   },
 };
