@@ -8,7 +8,7 @@ export default function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="relative hidden py-16 sm:block sm:py-24" aria-labelledby="faq-heading">
+    <section className="relative py-12 sm:py-24" aria-labelledby="faq-heading">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${FAQ_SECTION_BG_SRC})` }}
@@ -17,18 +17,18 @@ export default function FaqAccordion() {
       <div className="relative z-[1] mx-auto max-w-[1050px] px-6 lg:px-8">
         <h2
           id="faq-heading"
-          className="whitespace-pre-line text-4xl font-bold leading-tight tracking-tight text-white lg:text-5xl"
+          className="whitespace-pre-line text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
         >
           {FAQ_TITLE}
         </h2>
-        <ul className="mt-12 space-y-4">
+        <ul className="mt-8 space-y-2 sm:mt-12">
           {FAQ_ITEMS.map((item, index) => {
             const isOpen = openIndex === index;
             return (
-              <li key={item.question} className="list-none">
+              <li key={item.question} className="flex list-none flex-col gap-2">
                 <button
                   type="button"
-                  className="flex w-full items-start justify-between gap-4 rounded-[10px] bg-white px-6 py-6 text-left text-lg font-bold text-[#333] transition-colors hover:bg-gray-50"
+                  className="flex w-full items-start justify-between gap-3 rounded-[10px] bg-white px-4 py-5 text-left text-base font-bold text-[#333] transition-colors hover:bg-gray-50 sm:gap-4 sm:px-6 sm:py-6 sm:text-lg"
                   aria-expanded={isOpen}
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                 >
@@ -43,12 +43,12 @@ export default function FaqAccordion() {
                   </span>
                 </button>
                 <div
-                  className={`grid overflow-hidden rounded-[10px] bg-[#f2f2f2] text-base leading-[35px] text-[#666] transition-[grid-template-rows] duration-300 ${
+                  className={`grid overflow-hidden rounded-[10px] bg-[#f2f2f2] text-sm leading-relaxed text-[#666] transition-[grid-template-rows] duration-300 sm:text-base sm:leading-[35px] ${
                     isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                   }`}
                 >
                   <div className="min-h-0">
-                    <div className="px-8 py-6 whitespace-pre-line">{item.answer}</div>
+                    <div className="whitespace-pre-line px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-6">{item.answer}</div>
                   </div>
                 </div>
               </li>
