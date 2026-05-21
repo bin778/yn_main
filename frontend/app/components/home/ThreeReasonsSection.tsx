@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 
 import {
@@ -6,6 +5,8 @@ import {
   THREE_REASONS_CARDS,
   THREE_REASONS_TITLE,
 } from '@/app/constants/homeContent';
+
+import ReasonIcon from './ReasonIcons';
 
 export default function ThreeReasonsSection() {
   return (
@@ -21,16 +22,10 @@ export default function ThreeReasonsSection() {
           {THREE_REASONS_CARDS.map(card => (
             <article
               key={card.title}
-              className="overflow-hidden rounded-sm border border-gray-100 shadow-sm"
+              className="overflow-hidden rounded-sm border border-gray-100 bg-white shadow-sm"
             >
-              <div className="relative aspect-[4/3] w-full">
-                <Image
-                  src={card.imageSrc}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width:768px) 100vw, 33vw"
-                />
+              <div className="flex min-h-[140px] items-center justify-center bg-[#f5f7fa] px-6 py-10">
+                <ReasonIcon iconId={card.iconId} className="h-16 w-16 md:h-[72px] md:w-[72px]" />
               </div>
               <div className="px-6 py-6">
                 <h3 className="text-xl font-bold tracking-tight text-[#222]">{card.title}</h3>

@@ -3,7 +3,6 @@ import Link from 'next/link';
 
 import {
   CONTACT_HREF,
-  WHO_WE_ARE_DECOR_BG_SRC,
   WHO_WE_ARE_IMAGE_SRC,
   WHO_WE_ARE_LABEL,
   WHO_WE_ARE_PARAGRAPHS,
@@ -15,7 +14,7 @@ import {
 export default function WhoWeAreSection() {
   return (
     <section className="bg-white" aria-labelledby="who-we-are-heading">
-      <div className="mx-auto max-w-[1200px] px-6 py-16 md:px-12 md:py-24">
+      <div className="mx-auto max-w-[1200px] px-6 py-16 md:px-12 md:py-24 md:pb-28">
         <p className="text-center text-lg font-bold tracking-tight text-[#023373] md:text-left">{WHO_WE_ARE_LABEL}</p>
         <h2 id="who-we-are-heading" className="sr-only">
           {WHO_WE_ARE_TITLE}
@@ -50,17 +49,8 @@ export default function WhoWeAreSection() {
             className="h-auto w-full object-cover"
           />
         </div>
-      </div>
 
-      <div className="relative hidden min-h-[340px] w-full md:block" aria-hidden>
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${WHO_WE_ARE_DECOR_BG_SRC})` }}
-        />
-      </div>
-
-      <div className="mx-auto max-w-[1200px] px-6 pb-20 pt-8 md:px-12 md:pb-28">
-        <p className="text-center md:mt-8">
+        <p className="mt-12 text-center md:mt-16">
           <Link
             href={CONTACT_HREF}
             className="inline-block border border-[#023373] bg-white px-10 py-3 text-base font-bold text-[#023373] transition-colors hover:bg-[#023373] hover:text-white"
