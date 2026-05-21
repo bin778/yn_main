@@ -2,7 +2,7 @@
  * Footer + pre-footer CTA copy from legacy `www/inc.foot.php`.
  */
 
-export const CONTACT_HREF = '/contact';
+export { CONTACT_HREF } from '@/app/constants/sharedContent';
 export const BROCHURE_HREF = '/yeoon_brochure.pdf';
 export const KNAR_HREF = 'https://www.knar.kr';
 

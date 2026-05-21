@@ -3,7 +3,7 @@
  * Section order: Hero → WhoWeAre → Concerns → FAQ → ThreeReasons → Process/Social.
  */
 
-export const CONTACT_HREF = '/contact';
+export { CONTACT_HREF, CORE_VALUES_SHORT } from '@/app/constants/sharedContent';
 
 export type HeroSlideMobile = {
   backgroundSrc: string;
@@ -118,7 +118,6 @@ export const WHO_WE_ARE_TITLE = '여기, 온전한 당신 편';
 export const WHO_WE_ARE_TITLE_LINE1 = '여기,';
 export const WHO_WE_ARE_TITLE_LINE2 = '온전한 당신 편';
 export const WHO_WE_ARE_IMAGE_SRC = '/img/e6f3b4ca76dc2.webp';
-export const WHO_WE_ARE_DECOR_BG_SRC = '/img/ab57a0bbc95fb.webp';
 
 export const WHO_WE_ARE_PARAGRAPHS: readonly string[] = [
   '고민을 안고 출근하지 마세요.',
@@ -198,27 +197,29 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
 
 export const THREE_REASONS_TITLE = '여온을 찾는 3가지 이유';
 
+export type ReasonIconId = 'monthlyLimit' | 'guide' | 'strategy';
+
 export type ReasonCard = {
   title: string;
   body: string;
-  imageSrc: string;
+  iconId: ReasonIconId;
 };
 
 export const THREE_REASONS_CARDS: readonly ReasonCard[] = [
   {
     title: '월 수임건수 제한',
     body: '고객에게 더 집중하기 위해 법무법인\n여온은 월 수임건수를 제한합니다. 그렇기에\n조기에 월 수임건수가 마감 될 수 있습니다.',
-    imageSrc: '/img/fbf9e52218bff.webp',
+    iconId: 'monthlyLimit',
   },
   {
     title: '여정을 함께할 가이드',
     body: '여온은 당신의 휼룽한 여행가이드입니다.\n부담스럽지 않은 방법으로, 쉽고 빠르게\n여행을 마칠 수 있는 방법을\n찾아드리겠습니다.',
-    imageSrc: '/img/633a5ad3361b9.webp',
+    iconId: 'guide',
   },
   {
     title: '사건별 맞춤 전략',
     body: '똑같은 사건은 없습니다.\n여온은 각자의 상황에 맞는\n진짜 전략을 만듭니다.',
-    imageSrc: '/img/e10bae8fbc312.webp',
+    iconId: 'strategy',
   },
 ] as const;
 
