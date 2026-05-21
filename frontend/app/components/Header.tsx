@@ -1,23 +1,19 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import {
+  CONTACT_NAV_HREF,
+  CONTACT_NAV_LABEL,
+  MAIN_NAV_LINKS,
+  STORY_NAV_HREF,
+  STORY_NAV_LABEL,
+  STORY_SUBLINKS,
+} from '@/app/constants/navContent';
+
 const SCROLL_THRESHOLD = 100;
-
-const STORY_SUBLINKS = [
-  { href: '/board/bbs/board.php?bo_table=review', label: '후기' },
-  { href: '/board/bbs/board.php?bo_table=success', label: '성공사례' },
-  { href: '/board/bbs/board.php?bo_table=column', label: '칼럼' },
-  { href: '/board/bbs/board.php?bo_table=news', label: '여온소식' },
-] as const;
-
-const MAIN_LINKS = [
-  { href: '/about', label: '여온의 약속' },
-  { href: '/people', label: '여온의 사람들' },
-  { href: '/field', label: '여온이 하는 일' },
-] as const;
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -54,28 +50,28 @@ export default function Header() {
           scrolled ? 'border-b border-black/10 bg-white shadow-sm' : 'border-b border-black/10 bg-white shadow-none',
         ].join(' ')}
       >
-        <div className="mx-auto flex h-[80px] max-w-[1200px] items-center justify-between px-8 md:px-16">
+        <div className="mx-auto flex h-[80px] max-w-[1200px] items-center justify-between px-8 lg:px-16">
           <Link href="/" className="shrink-0 p-2.5" onClick={() => setMobileOpen(false)}>
             <Image
               src={logoSrc}
               alt="법무법인 여온"
               width={200}
               height={48}
-              className="h-auto max-w-[200px] w-[200px] max-md:w-[176px]"
+              className="h-auto max-w-[200px] w-[200px] max-lg:w-[176px]"
               priority
             />
           </Link>
 
-          <nav className="hidden items-center gap-12 md:flex">
-            {MAIN_LINKS.map(item => (
+          <nav className="hidden items-center gap-12 lg:flex">
+            {MAIN_NAV_LINKS.map(item => (
               <Link key={item.href} href={item.href} className={navLinkClass}>
                 {item.label}
               </Link>
             ))}
 
             <div className="group relative flex h-[80px] items-center">
-              <Link href="/board/bbs/board.php?bo_table=review" className={navLinkClass}>
-                여온의 이야기
+              <Link href={STORY_NAV_HREF} className={navLinkClass}>
+                {STORY_NAV_LABEL}
               </Link>
               <div className="pointer-events-none invisible absolute left-0 top-full z-[110] w-[170px] pt-2 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100">
                 <div className="border border-gray-100 bg-white shadow-xl">
@@ -88,14 +84,14 @@ export default function Header() {
               </div>
             </div>
 
-            <Link href="/contact" className={navLinkClass}>
-              오시는 길
+            <Link href={CONTACT_NAV_HREF} className={navLinkClass}>
+              {CONTACT_NAV_LABEL}
             </Link>
           </nav>
 
           <button
             type="button"
-            className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 md:hidden"
+            className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 lg:hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
             onClick={() => setMobileOpen(v => !v)}
@@ -109,7 +105,7 @@ export default function Header() {
       </header>
 
       {mobileOpen ? (
-        <div className="fixed inset-0 z-[110] md:hidden" id="mobile-nav">
+        <div className="fixed inset-0 z-[110] lg:hidden" id="mobile-nav">
           <button
             type="button"
             className="absolute inset-0 bg-black/40"
@@ -129,7 +125,7 @@ export default function Header() {
               </button>
             </div>
             <nav className="flex flex-1 flex-col overflow-y-auto py-2">
-              {MAIN_LINKS.map(item => (
+              {MAIN_NAV_LINKS.map(item => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -146,7 +142,7 @@ export default function Header() {
                   onClick={() => setMobileStoryOpen(v => !v)}
                   aria-expanded={mobileStoryOpen}
                 >
-                  여온의 이야기
+                  {STORY_NAV_LABEL}
                   <span className="text-sm text-gray-500">{mobileStoryOpen ? '−' : '+'}</span>
                 </button>
                 {mobileStoryOpen ? (
@@ -165,11 +161,11 @@ export default function Header() {
                 ) : null}
               </div>
               <Link
-                href="/contact"
+                href={CONTACT_NAV_HREF}
                 className="border-b border-gray-100 px-5 py-4 text-[16px] font-bold text-black"
                 onClick={() => setMobileOpen(false)}
               >
-                오시는 길
+                {CONTACT_NAV_LABEL}
               </Link>
             </nav>
           </div>
