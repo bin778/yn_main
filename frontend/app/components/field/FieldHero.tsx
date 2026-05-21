@@ -6,10 +6,24 @@ export default function FieldHero() {
   return (
     <section className="relative w-full" aria-labelledby="field-hero-heading">
       <div className="absolute inset-0 md:hidden">
-        <Image src={FIELD_HERO.bgMobile} alt="" fill className="object-cover" sizes="100vw" priority />
+        <Image
+          src={FIELD_HERO.bgMobile}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(max-width: 767px) 100vw, 1px"
+          priority
+        />
       </div>
       <div className="absolute inset-0 hidden md:block">
-        <Image src={FIELD_HERO.bgDesktop} alt="" fill className="object-cover" sizes="100vw" priority />
+        <Image
+          src={FIELD_HERO.bgDesktop}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(min-width: 768px) 100vw, 1px"
+          priority
+        />
       </div>
       <div className="absolute inset-0 bg-black/20" aria-hidden />
       <div className="relative z-[1] mx-auto max-w-[1200px] px-6 py-20 md:px-12 md:py-28">

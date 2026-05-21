@@ -14,10 +14,22 @@ export default function ExpertiseSection() {
   return (
     <section className="relative w-full py-16 md:py-0" aria-labelledby="expertise-heading">
       <div className="absolute inset-0 md:hidden">
-        <Image src={EXPERTISE_BG_MOBILE} alt="" fill className="object-cover" sizes="100vw" />
+        <Image
+          src={EXPERTISE_BG_MOBILE}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(max-width: 767px) 100vw, 1px"
+        />
       </div>
       <div className="absolute inset-0 hidden min-h-[400px] md:block">
-        <Image src={EXPERTISE_BG_DESKTOP} alt="" fill className="object-cover" sizes="100vw" />
+        <Image
+          src={EXPERTISE_BG_DESKTOP}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(min-width: 768px) 100vw, 1px"
+        />
       </div>
       <div
         className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/65 md:bg-gradient-to-r md:from-black/75 md:via-black/55 md:to-black/70"

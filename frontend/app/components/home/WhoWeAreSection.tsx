@@ -53,7 +53,7 @@ export default function WhoWeAreSection() {
         <p className="mt-12 text-center md:mt-16">
           <Link
             href={CONTACT_HREF}
-            className="inline-block border border-[#023373] bg-white px-10 py-3 text-base font-bold text-[#023373] transition-colors hover:bg-[#023373] hover:text-white"
+            className="inline-block cursor-pointer border border-[#023373] bg-white px-10 py-3 text-base font-bold text-[#023373] transition-colors hover:bg-[#023373] hover:text-white"
           >
             바로 문의하기
           </Link>

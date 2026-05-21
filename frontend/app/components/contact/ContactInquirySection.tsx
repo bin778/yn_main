@@ -1,5 +1,4 @@
-import Image from 'next/image';
-
+import ContactInquiryBackground from '@/app/components/contact/ContactInquiryBackground';
 import ContactInquiryForm from '@/app/components/contact/ContactInquiryForm';
 import { CONTACT_INQUIRY } from '@/app/constants/contactContent';
 
@@ -8,12 +7,7 @@ const headlineLines = CONTACT_INQUIRY.headline.split('\n');
 export default function ContactInquirySection() {
   return (
     <section className="relative w-full" aria-labelledby="contact-inquiry-heading">
-      <div className="absolute inset-0 md:hidden">
-        <Image src={CONTACT_INQUIRY.bgMobile} alt="" fill className="object-cover" sizes="100vw" />
-      </div>
-      <div className="absolute inset-0 hidden md:block">
-        <Image src={CONTACT_INQUIRY.bgDesktop} alt="" fill className="object-cover" sizes="100vw" />
-      </div>
+      <ContactInquiryBackground />
       <div className="absolute inset-0 bg-black/35" aria-hidden />
 
       <div className="relative z-[1] mx-auto max-w-[1200px] px-6 py-16 md:px-12 md:py-24">

@@ -52,14 +52,16 @@ export default function Header() {
       >
         <div className="mx-auto flex h-[80px] max-w-[1200px] items-center justify-between px-8 lg:px-16">
           <Link href="/" className="shrink-0 p-2.5" onClick={() => setMobileOpen(false)}>
-            <Image
-              src={logoSrc}
-              alt="법무법인 여온"
-              width={200}
-              height={48}
-              className="h-auto max-w-[200px] w-[200px] max-lg:w-[176px]"
-              priority
-            />
+            <span className="relative block h-[42px] w-[176px] lg:h-12 lg:w-[200px]">
+              <Image
+                src={logoSrc}
+                alt="법무법인 여온"
+                fill
+                className="object-contain object-left"
+                sizes="(max-width: 1024px) 176px, 200px"
+                priority
+              />
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-12 lg:flex">

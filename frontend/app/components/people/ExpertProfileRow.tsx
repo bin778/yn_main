@@ -24,13 +24,15 @@ export default function ExpertProfileRow({ person }: ExpertProfileRowProps) {
           }`}
         >
           <Link href={`/people/${person.id}`} className="block w-full max-w-[400px] md:max-w-none">
-            <Image
-              src={person.listPortraitMobile}
-              alt=""
-              width={400}
-              height={400}
-              className="mx-auto h-auto w-full max-w-[400px] object-contain md:hidden"
-            />
+            <div className="relative mx-auto aspect-square w-full max-w-[400px] md:hidden">
+              <Image
+                src={person.listPortraitMobile}
+                alt=""
+                fill
+                className="object-contain"
+                sizes="(max-width: 767px) min(100vw, 400px)"
+              />
+            </div>
             <Image
               src={person.listPortraitDesktop}
               alt=""
@@ -41,11 +43,7 @@ export default function ExpertProfileRow({ person }: ExpertProfileRowProps) {
           </Link>
         </div>
 
-        <div
-          className={`pb-8 md:pb-[50px] md:pl-[60px] ${
-            person.imageSide === 'left' ? 'md:order-2' : 'md:order-1'
-          }`}
-        >
+        <div className={`pb-8 md:pb-[50px] md:pl-[60px] ${person.imageSide === 'left' ? 'md:order-2' : 'md:order-1'}`}>
           <div className="mt-6 text-center md:mt-0 md:text-left">
             <p className={`text-base md:hidden ${textMuted}`}>{person.role}</p>
             <p className={`text-[30px] font-bold md:hidden ${textMain}`}>

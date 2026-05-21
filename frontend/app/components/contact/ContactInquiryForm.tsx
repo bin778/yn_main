@@ -164,7 +164,7 @@ export default function ContactInquiryForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-[3px] bg-[#023373] px-6 py-3 text-base font-bold text-white disabled:opacity-60"
+          className="cursor-pointer rounded-[3px] bg-[#023373] px-6 py-3 text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? '접수 중…' : '바로 문의하기 >'}
         </button>
