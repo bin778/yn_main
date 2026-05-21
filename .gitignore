@@ -32,6 +32,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!frontend/.env.example
+
+# backend secrets (copy from *.sample.php on server)
+backend/config/db_conn.php
+backend/config/app_config.php
+backend/api/submit_inquiry.php
 
 # vercel
 .vercel

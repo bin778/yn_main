@@ -114,6 +114,22 @@ export const INQUIRY_STUB_MESSAGE = '상담 접수 시스템을 준비 중입니
 
 export const INQUIRY_FIELD_LIMITS = {
   name: 10,
-  tel: 15,
+  tel: 11,
   content: 500,
+} as const;
+
+/** 완성형 한글 2~10자 */
+export const INQUIRY_NAME_PATTERN = /^[\uAC00-\uD7A3]{2,10}$/;
+
+/** 010 + 8자리 숫자 */
+export const INQUIRY_TEL_PATTERN = /^010\d{8}$/;
+
+export const INQUIRY_CONTENT_MIN = 5;
+
+export const INQUIRY_VALIDATION_MESSAGES = {
+  name: '올바른 성함을 입력하고, 한글 2~10자로만 입력해 주세요.',
+  tel: '연락처는 010으로 시작하는 11자리 숫자만 입력해 주세요.',
+  contentMin: '문의사항은 5자 이상 입력해 주세요.',
+  contentMax: `문의사항은 ${INQUIRY_FIELD_LIMITS.content}자 이내로 입력해 주세요.`,
+  agree: '개인정보 처리 방침에 동의해주세요.',
 } as const;

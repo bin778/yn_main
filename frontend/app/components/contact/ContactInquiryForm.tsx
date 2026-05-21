@@ -8,7 +8,9 @@ import {
   INQUIRY_API_URL,
   INQUIRY_FIELD_LIMITS,
   INQUIRY_STUB_MESSAGE,
+  INQUIRY_VALIDATION_MESSAGES,
 } from '@/app/constants/contactContent';
+import { validateInquiryFields } from '@/app/lib/inquiryValidation';
 
 type InquiryResponse = {
   result: string;
@@ -30,24 +32,14 @@ export default function ContactInquiryForm() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const trimmedName = name.trim();
-    const trimmedTel = tel.trim();
-    const trimmedContent = content.trim();
-
-    if (!trimmedName) {
-      alert('이름을 입력해주세요.');
-      return;
-    }
-    if (!trimmedTel) {
-      alert('전화번호를 입력해주세요.');
-      return;
-    }
-    if (!trimmedContent) {
-      alert('문의사항을 입력해주세요.');
-      return;
-    }
     if (!agreed) {
-      alert('개인정보 처리 방침에 동의해주세요.');
+      alert(INQUIRY_VALIDATION_MESSAGES.agree);
+      return;
+    }
+
+    const validation = validateInquiryFields({ name, tel, content });
+    if (!validation.ok) {
+      alert(validation.message);
       return;
     }
 
@@ -56,15 +48,15 @@ export default function ContactInquiryForm() {
       return;
     }
 
+    const { name: validName, tel: validTel, content: validContent } = validation.values;
+
     setSubmitting(true);
     try {
       const body = new URLSearchParams({
-        c_name: trimmedName,
-        c_tel: trimmedTel,
-        c_email: '',
-        c_content: trimmedContent,
+        c_name: validName,
+        c_tel: validTel,
+        c_content: validContent,
         c_inflow: getInflowLabel(),
-        token: '',
       });
 
       const response = await fetch(INQUIRY_API_URL, {
@@ -122,7 +114,7 @@ export default function ContactInquiryForm() {
             onChange={event => setTel(event.target.value.replace(/\D/g, ''))}
             maxLength={INQUIRY_FIELD_LIMITS.tel}
             required
-            placeholder="숫자만 입력"
+            placeholder="01012345678"
             className={`${inputClass} mt-2`}
           />
         </div>
