@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
       {
         source: '/people.php',
         destination: '/people',
+        permanent: true,
+      },
+      {
+        source: '/field.php',
+        destination: '/field',
         permanent: true,
       },
     ];
