@@ -41,6 +41,9 @@ const DUPLICATE_TEL_MSG = "이미 접수된 연락처입니다.\n회신 대기 �
 const MSG_NAME_INVALID = '올바른 성함을 입력하고, 한글 2~10자로만 입력해 주세요.';
 const MSG_TEL_INVALID = '연락처는 010으로 시작하는 11자리 숫자만 입력해 주세요.';
 const MSG_CONTENT_MIN = '문의사항은 5자 이상 입력해 주세요.';
+const ALIMTALK_INFLOW_URL = 'contact';
+const ALIMTALK_DEFAULT_UTM_SOURCE = 'main';
+const ALIMTALK_DEFAULT_UTM_CAMPAIGN = '직접문의';
 
 /**
  * @param array<string, mixed> $payload
@@ -89,15 +92,6 @@ function sanitize_input($data)
     return htmlspecialchars(trim((string) $data), ENT_QUOTES, 'UTF-8');
 }
 
-function truncate_content_preview($content)
-{
-    if (function_exists('mb_substr')) {
-        return mb_substr($content, 0, 100, 'UTF-8');
-    }
-
-    return substr($content, 0, 100);
-}
-
 function is_aligo_configured()
 {
     global $ALIGO_API_KEY, $ALIGO_USER_ID, $ALIGO_SENDER_KEY, $ALIGO_TPL_CODE, $ALIGO_SENDER, $ALIGO_RECEIVERS;
@@ -119,7 +113,18 @@ function is_aligo_configured()
     return true;
 }
 
-function send_kakao_alimtalk($name, $phone, $inflow, $content_preview)
+function build_alimtalk_message($name, $phone, $case_keyword, $utm_source, $utm_campaign)
+{
+    $inflow_path = ALIMTALK_INFLOW_URL . '/' . $utm_source . '/' . $utm_campaign;
+
+    return '상담이 접수되었습니다.' . PHP_EOL
+        . '이름 : ' . $name . PHP_EOL
+        . '연락처 : ' . $phone . PHP_EOL
+        . '유입경로 : ' . $inflow_path . PHP_EOL
+        . '사건키워드 : ' . $case_keyword;
+}
+
+function send_kakao_alimtalk($name, $phone, $case_keyword, $utm_source, $utm_campaign)
 {
     global $ALIGO_API_KEY, $ALIGO_USER_ID, $ALIGO_SENDER_KEY, $ALIGO_TPL_CODE, $ALIGO_SENDER, $ALIGO_RECEIVERS;
 
@@ -131,11 +136,7 @@ function send_kakao_alimtalk($name, $phone, $inflow, $content_preview)
     $host_info = parse_url($api_url);
     $port = (strtolower($host_info['scheme']) === 'https') ? 443 : 80;
 
-    $message = '상담이 접수되었습니다.' . PHP_EOL
-        . '이름 : ' . $name . PHP_EOL
-        . '연락처 : ' . $phone . PHP_EOL
-        . '유입경로 : ' . $inflow . PHP_EOL
-        . '문의내용 : ' . $content_preview;
+    $message = build_alimtalk_message($name, $phone, $case_keyword, $utm_source, $utm_campaign);
 
     $variables = [
         'apikey' => $ALIGO_API_KEY,
@@ -164,7 +165,6 @@ function send_kakao_alimtalk($name, $phone, $inflow, $content_preview)
     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
     $response = curl_exec($curl);
-    curl_close($curl);
 
     return $response;
 }
@@ -203,6 +203,10 @@ if ($content_length > INQUIRY_CONTENT_MAX) {
 $safe_name = sanitize_input($raw_name);
 $safe_content = sanitize_input($raw_content);
 $safe_inflow = sanitize_input($raw_inflow);
+$raw_option = trim((string) ($_POST['c_option'] ?? ''));
+$case_keyword = $raw_option !== '' ? sanitize_input($raw_option) : $safe_content;
+$utm_source = sanitize_input($_POST['utm_source'] ?? ALIMTALK_DEFAULT_UTM_SOURCE);
+$utm_campaign = sanitize_input($_POST['utm_campaign'] ?? ALIMTALK_DEFAULT_UTM_CAMPAIGN);
 
 $user_ip = get_client_ip();
 
@@ -265,8 +269,7 @@ try {
     $stmt->bindParam(':block', $block);
 
     if ($stmt->execute()) {
-        $content_preview = truncate_content_preview($safe_content);
-        send_kakao_alimtalk($safe_name, $safe_tel, $safe_inflow, $content_preview);
+        send_kakao_alimtalk($safe_name, $safe_tel, $case_keyword, $utm_source, $utm_campaign);
         json_response(['result' => '1', 'msg' => FAKE_SUCCESS_MSG]);
     }
 
