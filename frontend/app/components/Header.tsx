@@ -72,16 +72,30 @@ export default function Header() {
             ))}
 
             <div className="group relative flex h-[80px] items-center">
-              <Link href={STORY_NAV_HREF} className={navLinkClass}>
-                {STORY_NAV_LABEL}
-              </Link>
+              {STORY_NAV_HREF.startsWith('/board') ? (
+                <a href={STORY_NAV_HREF} className={navLinkClass}>
+                  {STORY_NAV_LABEL}
+                </a>
+              ) : (
+                <Link href={STORY_NAV_HREF} className={navLinkClass}>
+                  {STORY_NAV_LABEL}
+                </Link>
+              )}
               <div className="pointer-events-none invisible absolute left-0 top-full z-[110] w-[170px] pt-2 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100">
                 <div className="border border-gray-100 bg-white shadow-xl">
-                  {STORY_SUBLINKS.map(item => (
-                    <Link key={item.href} href={item.href} className={subLinkClass}>
-                      {item.label}
-                    </Link>
-                  ))}
+                  {STORY_SUBLINKS.map(item => {
+                    const isLegacy = item.href.startsWith('/board');
+
+                    return isLegacy ? (
+                      <a key={item.href} href={item.href} className={subLinkClass}>
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link key={item.href} href={item.href} className={subLinkClass}>
+                        {item.label}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -149,16 +163,31 @@ export default function Header() {
                 </button>
                 {mobileStoryOpen ? (
                   <div className="bg-gray-50 pb-2">
-                    {STORY_SUBLINKS.map(item => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="block px-8 py-3 text-[14px] text-black hover:bg-[#1a3151] hover:text-white"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
+                    {STORY_SUBLINKS.map(item => {
+                      const isLegacy = item.href.startsWith('/board');
+                      const mobileSubLinkClass =
+                        'block px-8 py-3 text-[14px] text-black hover:bg-[#1a3151] hover:text-white';
+
+                      return isLegacy ? (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          className={mobileSubLinkClass}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={mobileSubLinkClass}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>

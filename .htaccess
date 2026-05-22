@@ -1,0 +1,28 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # --- [SEO 301 영구 리다이렉트 (기존 PHP -> Next.js 경로)] ---
+  # 1. /peoples.php?p=아이디 -> /people/아이디 (쿼리스트링 파싱)
+  # 마지막에 ?를 붙여야 기존 쿼리스트링이 새 URL에 꼬리표처럼 붙는 것을 방지합니다.
+  RewriteCond %{QUERY_STRING} ^p=(\d+)$ [NC]
+  RewriteRule ^peoples\.php$ /people/%1/? [R=301,L]
+
+  # 2. 일반 단일 페이지 301 리다이렉트
+  RewriteRule ^people\.php$ /people/ [R=301,L]
+  RewriteRule ^field\.php$ /field/ [R=301,L]
+  RewriteRule ^contact\.php$ /contact/ [R=301,L]
+  RewriteRule ^privacy\.php$ /privacy/ [R=301,L]
+  # -------------------------------------------------------
+
+  # /api 경로나 기존 board 경로는 Next.js 라우팅에서 제외 (기존 PHP 실행)
+  RewriteCond %{REQUEST_URI} ^/(api|board) [NC]
+  RewriteRule ^ - [L]
+
+  # 파일이나 디렉토리가 실제 존재하면 그것을 보여줌
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # .html 확장자를 숨기고 Next.js의 동적 라우팅을 지원하기 위한 규칙
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+</IfModule>
