@@ -7,6 +7,7 @@
   RewriteRule ^peoples\.php$ /people/%1/? [R=301,L]
 
   # 일반 페이지 리다이렉트 (PHP -> Next.js 경로)
+  RewriteRule ^about\.php$ /about/ [R=301,L]
   RewriteRule ^people\.php$ /people/ [R=301,L]
   RewriteRule ^field\.php$ /field/ [R=301,L]
   RewriteRule ^contact\.php$ /contact/ [R=301,L]

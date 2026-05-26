@@ -43,7 +43,7 @@ export default function PreFooterCta() {
               바로 문의하기
               <span aria-hidden>→</span>
             </Link>
-            <Link
+            <a
               href={BROCHURE_HREF}
               target="_blank"
               rel="noopener noreferrer"
@@ -51,7 +51,7 @@ export default function PreFooterCta() {
             >
               브로슈어 다운로드
               <span aria-hidden>→</span>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -80,7 +80,7 @@ export default function PreFooterCta() {
                 바로 문의하기
                 <span aria-hidden>→</span>
               </Link>
-              <Link
+              <a
                 href={BROCHURE_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -88,7 +88,7 @@ export default function PreFooterCta() {
               >
                 브로슈어 다운로드
                 <span aria-hidden>→</span>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
