@@ -14,7 +14,7 @@ export default function ProcessSocialSection() {
         >
           {PROCESS_TITLE}
         </h2>
-        <div className="relative mt-10 w-full overflow-hidden rounded-sm">
+        <div className="relative mt-10 w-[80%] md:w-[70%] overflow-hidden rounded-sm mx-auto">
           <Image src={PROCESS_IMAGE_SRC} alt="" width={1000} height={500} className="h-auto w-full object-cover" />
         </div>
         <nav className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center md:justify-start">
@@ -22,7 +22,7 @@ export default function ProcessSocialSection() {
             <Link
               key={link.href}
               href={link.href}
-              className="inline-flex items-center justify-center border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-[#121212] transition-colors hover:border-[#023373] hover:text-[#023373]"
+              className="inline-flex items-center justify-center border border-gray-300 bg-white px-14 py-3 md:py-4 text-base md:text-lg font-semibold text-[#121212] transition-colors hover:border-[#023373] hover:text-[#023373] lg:px-28"
               {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             >
               {link.label}
