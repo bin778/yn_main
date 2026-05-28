@@ -1,0 +1,145 @@
+<?php
+
+/**
+ * 게시판 목록 API
+ *
+ * GET /backend/api/board/get_list.php
+ *
+ * Query Parameters:
+ *   bo_table  string  대상 게시판 (review|success|column|news)
+ *   page      int     페이지 번호 (기본 1)
+ *   per_page  int     페이지당 항목 수 (기본 10, 최대 50)
+ *
+ * Response:
+ *   { total, page, per_page, total_pages, items: [...] }
+ */
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed_origins = [
+    'https://yeoon.co.kr',
+    'https://www.yeoon.co.kr',
+    'http://localhost:3000',
+    'http://localhost:4173',
+];
+
+if (in_array($origin, $allowed_origins, true)) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+}
+
+header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Content-Type: application/json; charset=UTF-8');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['error' => '허용되지 않은 요청입니다.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+require_once __DIR__ . '/../../config/db_conn.php';
+
+const ALLOWED_TABLES   = ['review', 'success', 'column', 'news'];
+const BOARD_FILE_BASE  = 'https://yeoon.co.kr/board/data/file';
+const DEFAULT_PER_PAGE = 10;
+const MAX_PER_PAGE     = 50;
+
+/**
+ * @param array<string, mixed> $payload
+ */
+function json_response(array $payload, int $status = 200): void
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+// ── 입력 검증 ─────────────────────────────────────────────────────────────
+
+$raw_table = trim((string) ($_GET['bo_table'] ?? ''));
+
+if (
+    !preg_match('/^[a-z0-9_]{1,20}$/', $raw_table) ||
+    !in_array($raw_table, ALLOWED_TABLES, true)
+) {
+    json_response(['error' => '유효하지 않은 게시판입니다.'], 400);
+}
+
+$bo_table = $raw_table;
+$table    = 'g5_write_' . $bo_table;
+
+$page     = max(1, (int) ($_GET['page']     ?? 1));
+$per_page = min(MAX_PER_PAGE, max(1, (int) ($_GET['per_page'] ?? DEFAULT_PER_PAGE)));
+$offset   = ($page - 1) * $per_page;
+
+// ── 총 게시물 수 조회 ─────────────────────────────────────────────────────
+
+try {
+    $count_sql  = "SELECT COUNT(*) FROM `{$table}` WHERE wr_is_comment = 0";
+    $total      = (int) $pdo->query($count_sql)->fetchColumn();
+    $total_pages = (int) ceil($total / $per_page);
+
+    // ── 목록 조회 (코루레이티드 서브쿼리로 대표 이미지 URL 포함) ──────────
+
+    $list_sql = "
+        SELECT
+            w.wr_id,
+            w.wr_subject,
+            w.wr_name,
+            w.wr_datetime,
+            w.wr_hit,
+            w.wr_file,
+            (
+                SELECT bf_file
+                FROM   g5_board_file
+                WHERE  bo_table    = :bo_table_sub
+                AND    wr_id       = w.wr_id
+                AND    bf_width > 0
+                ORDER  BY bf_no ASC
+                LIMIT  1
+            ) AS thumbnail_file
+        FROM `{$table}` w
+        WHERE w.wr_is_comment = 0
+        ORDER BY w.wr_datetime DESC, w.wr_id DESC
+        LIMIT :offset, :per_page
+    ";
+
+    $stmt = $pdo->prepare($list_sql);
+    $stmt->bindValue(':bo_table_sub', $bo_table, PDO::PARAM_STR);
+    $stmt->bindValue(':offset',       $offset,   PDO::PARAM_INT);
+    $stmt->bindValue(':per_page',     $per_page, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $rows = $stmt->fetchAll();
+
+    $items = array_map(function (array $row) use ($bo_table): array {
+        $thumbnail_url = null;
+        if ($row['thumbnail_file'] !== null) {
+            $thumbnail_url = BOARD_FILE_BASE . '/' . $bo_table . '/' . $row['thumbnail_file'];
+        }
+
+        return [
+            'wr_id'         => (int) $row['wr_id'],
+            'wr_subject'    => $row['wr_subject'],
+            'wr_name'       => $row['wr_name'],
+            'wr_datetime'   => $row['wr_datetime'],
+            'wr_hit'        => (int) $row['wr_hit'],
+            'has_file'      => (int) $row['wr_file'] > 0,
+            'thumbnail_url' => $thumbnail_url,
+        ];
+    }, $rows);
+
+    json_response([
+        'total'       => $total,
+        'page'        => $page,
+        'per_page'    => $per_page,
+        'total_pages' => $total_pages,
+        'items'       => $items,
+    ]);
+} catch (PDOException $e) {
+    error_log('[board/get_list] DB error: ' . $e->getMessage());
+    json_response(['error' => '일시적인 서버 오류가 발생했습니다.'], 500);
+}
