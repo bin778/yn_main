@@ -36,25 +36,16 @@ export default function FooterMobileNav() {
           </button>
           {storyOpen ? (
             <ul className="border-t border-gray-100 bg-[#f5f5f5]">
-              {STORY_SUBLINKS.map(item => {
-                const isLegacy = item.href.startsWith('/board');
-                const footerSubLinkClass =
-                  'block px-4 py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white';
-
-                return (
-                  <li key={item.href}>
-                    {isLegacy ? (
-                      <a href={item.href} className={footerSubLinkClass}>
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link href={item.href} className={footerSubLinkClass}>
-                        {item.label}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
+              {STORY_SUBLINKS.map(item => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="block px-4 py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           ) : null}
         </li>

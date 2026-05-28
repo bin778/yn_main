@@ -4,10 +4,10 @@
  */
 
 export const STORY_SUBLINKS = [
-  { href: '/board/bbs/board.php?bo_table=review', label: '후기' },
-  { href: '/board/bbs/board.php?bo_table=success', label: '성공사례' },
-  { href: '/board/bbs/board.php?bo_table=column', label: '칼럼' },
-  { href: '/board/bbs/board.php?bo_table=news', label: '여온소식' },
+  { href: '/review', label: '후기' },
+  { href: '/success', label: '성공사례' },
+  { href: '/column', label: '칼럼' },
+  { href: '/news', label: '여온소식' },
 ] as const;
 
 export const MAIN_NAV_LINKS = [
@@ -16,7 +16,7 @@ export const MAIN_NAV_LINKS = [
   { href: '/field', label: '여온이 하는 일' },
 ] as const;
 
-export const STORY_NAV_HREF = '/board/bbs/board.php?bo_table=review';
+export const STORY_NAV_HREF = '/review';
 export const STORY_NAV_LABEL = '여온의 이야기';
 export const CONTACT_NAV_HREF = '/contact';
 export const CONTACT_NAV_LABEL = '오시는 길';
