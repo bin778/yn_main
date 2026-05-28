@@ -8,8 +8,8 @@
  *
  * Parent `<main>` is defined in `app/layout.tsx` — do not wrap with another `<main>`.
  */
-import FaqAccordion from './components/home/FaqAccordion';
-import HeroSwiper from './components/home/HeroSwiper';
+import HomeFaqSection from './components/home/HomeFaqSection';
+import HomeHeroSection from './components/home/HomeHeroSection';
 import ProcessSocialSection from './components/home/ProcessSocialSection';
 import ThreeReasonsSection from './components/home/ThreeReasonsSection';
 import WhoWeAreSection from './components/home/WhoWeAreSection';
@@ -17,9 +17,9 @@ import WhoWeAreSection from './components/home/WhoWeAreSection';
 export default function Home() {
   return (
     <>
-      <HeroSwiper />
+      <HomeHeroSection />
       <WhoWeAreSection />
-      <FaqAccordion />
+      <HomeFaqSection />
       <ThreeReasonsSection />
       <ProcessSocialSection />
     </>

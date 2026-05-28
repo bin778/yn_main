@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { FAQ_ITEMS, FAQ_SECTION_BG_SRC, FAQ_TITLE } from '@/app/constants/homeContent';
@@ -9,10 +10,17 @@ export default function FaqAccordion() {
 
   return (
     <section className="relative py-12 sm:py-24" aria-labelledby="faq-heading">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${FAQ_SECTION_BG_SRC})` }}
-      />
+      <div className="absolute inset-0">
+        <Image
+          src={FAQ_SECTION_BG_SRC}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="100vw"
+          loading="lazy"
+          fetchPriority="low"
+        />
+      </div>
       <div className="absolute inset-0 bg-black/45" aria-hidden />
       <div className="relative z-[1] mx-auto max-w-[1050px] px-6 lg:px-8">
         <h2

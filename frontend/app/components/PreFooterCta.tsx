@@ -22,7 +22,13 @@ export default function PreFooterCta() {
     <>
       <section className="relative w-full md:hidden" aria-labelledby="pre-footer-cta-mobile-heading">
         <div className="absolute inset-0">
-          <Image src={PRE_FOOTER_BG_MOBILE} alt="" fill className="object-cover" sizes="100vw" />
+          <Image
+            src={PRE_FOOTER_BG_MOBILE}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 767px) 100vw, 1px"
+          />
         </div>
         <div className="absolute inset-0 bg-black/35" aria-hidden />
         <div className="relative z-[1] px-6 py-16 text-center text-white">
@@ -58,7 +64,13 @@ export default function PreFooterCta() {
 
       <section className="relative hidden w-full md:block" aria-labelledby="pre-footer-cta-desktop-heading">
         <div className="absolute inset-0">
-          <Image src={PRE_FOOTER_BG_DESKTOP} alt="" fill className="object-cover" sizes="100vw" />
+          <Image
+            src={PRE_FOOTER_BG_DESKTOP}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(min-width: 768px) 100vw, 1px"
+          />
         </div>
         <div className="absolute inset-0 bg-black/35" aria-hidden />
         <div className="relative z-[1] mx-auto max-w-[1200px] px-8 py-24 lg:px-16">

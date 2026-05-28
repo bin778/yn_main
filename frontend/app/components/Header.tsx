@@ -59,7 +59,7 @@ export default function Header() {
                 fill
                 className="object-contain object-left"
                 sizes="(max-width: 1024px) 176px, 200px"
-                priority
+                fetchPriority="low"
               />
             </span>
           </Link>

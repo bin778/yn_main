@@ -191,7 +191,7 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
   {
     question: 'Q. 수임만 하고 사건 진행을 대충하면 어쩌지?',
     answer:
-      '여온에게 수임료는 \'빚\' 입니다. 사건이 모두 마무리되고, 당신에게 “감사합니다＂라는 말을 듣기 전까지는. 그래서 만약, 우리의 약속(핵심가치 3가지)이 지켜지지 않는다면, 받은 수임료는 모두 돌려드리겠습니다. 그리고 명심하세요. 처음 상담한 변호사와 사건을 진행하는 변호사가 다른 법무법인는 피하는게 좋습니다!',
+      "여온에게 수임료는 '빚' 입니다. 사건이 모두 마무리되고, 당신에게 “감사합니다＂라는 말을 듣기 전까지는. 그래서 만약, 우리의 약속(핵심가치 3가지)이 지켜지지 않는다면, 받은 수임료는 모두 돌려드리겠습니다. 그리고 명심하세요. 처음 상담한 변호사와 사건을 진행하는 변호사가 다른 법무법인는 피하는게 좋습니다!",
   },
 ] as const;
 
@@ -225,7 +225,8 @@ export const THREE_REASONS_CARDS: readonly ReasonCard[] = [
 
 export const PROCESS_LABEL = 'PROCESS';
 export const PROCESS_TITLE = '문제는 여행이다';
-export const PROCESS_IMAGE_SRC = '/img/ccb7c650f7444.webp';
+export const PROCESS_IMAGE_DESKTOP = '/img/d78d6f721b046.webp';
+export const PROCESS_IMAGE_MOBILE = '/img/ccb7c650f7444.webp';
 
 export const SOCIAL_LINKS = [
   { label: 'Blog', href: 'https://blog.naver.com/lawfirmonly', external: true },
