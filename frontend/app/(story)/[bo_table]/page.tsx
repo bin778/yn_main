@@ -4,7 +4,11 @@ import { notFound } from 'next/navigation';
 import BoardListSection from '../components/BoardListSection';
 import { ALLOWED_BO_TABLES, BOARD_META, SITE_NAME } from '../constants/boardContent';
 import { fetchBoardList } from '../lib/boardApi';
-import type { BoTable } from '../types/board';
+import type { BoTable, BoardListResponse } from '../types/board';
+
+const EMPTY_LIST: BoardListResponse = {
+  total: 0, page: 1, per_page: 10, total_pages: 0, items: [],
+};
 
 export const revalidate = 60;
 
@@ -38,7 +42,12 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
 
-  const [data] = await Promise.all([fetchBoardList(bo_table, page)]);
+  let data: BoardListResponse;
+  try {
+    data = await fetchBoardList(bo_table, page);
+  } catch {
+    data = EMPTY_LIST;
+  }
 
   const { label, description } = BOARD_META[bo_table];
 

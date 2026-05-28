@@ -1,6 +1,6 @@
 import type { BoardListResponse, BoardView } from '../types/board';
 
-const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/backend/api/board';
+const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board';
 
 export async function fetchBoardList(boTable: string, page = 1): Promise<BoardListResponse> {
   const url = `${BOARD_API_BASE}/get_list.php?bo_table=${boTable}&page=${page}`;
