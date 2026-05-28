@@ -8,7 +8,9 @@
  * Query Parameters:
  *   bo_table  string  대상 게시판 (review|success|column|news)
  *   page      int     페이지 번호 (기본 1)
- *   per_page  int     페이지당 항목 수 (기본 10, 최대 50)
+ *   per_page  int     페이지당 항목 수 (기본 12, 최대 50)
+ *   q         string  검색어
+ *   sfl       string  검색 구분(subject|content|subject_content|name)
  *
  * Response:
  *   { total, page, per_page, total_pages, items: [...] }
@@ -44,7 +46,7 @@ require_once __DIR__ . '/../../config/db_conn.php';
 
 const ALLOWED_TABLES   = ['review', 'success', 'column', 'news'];
 const BOARD_FILE_BASE  = 'https://yeoon.co.kr/board/data/file';
-const DEFAULT_PER_PAGE = 10;
+const DEFAULT_PER_PAGE = 12;
 const MAX_PER_PAGE     = 50;
 
 /**
@@ -74,12 +76,46 @@ $table    = 'g5_write_' . $bo_table;
 $page     = max(1, (int) ($_GET['page']     ?? 1));
 $per_page = min(MAX_PER_PAGE, max(1, (int) ($_GET['per_page'] ?? DEFAULT_PER_PAGE)));
 $offset   = ($page - 1) * $per_page;
+$raw_q    = trim((string) ($_GET['q'] ?? ''));
+$q        = mb_substr($raw_q, 0, 100, 'UTF-8');
+$has_q    = $q !== '';
+$raw_sfl  = trim((string) ($_GET['sfl'] ?? 'subject_content'));
+$sfl      = in_array($raw_sfl, ['subject', 'content', 'subject_content', 'name'], true)
+    ? $raw_sfl
+    : 'subject_content';
 
 // ── 총 게시물 수 조회 ─────────────────────────────────────────────────────
 
 try {
-    $count_sql  = "SELECT COUNT(*) FROM `{$table}` WHERE wr_is_comment = 0";
-    $total      = (int) $pdo->query($count_sql)->fetchColumn();
+    $where_sql = "WHERE wr_is_comment = 0";
+    if ($has_q) {
+        if ($sfl === 'subject') {
+            $where_sql .= " AND wr_subject LIKE :q_subject";
+        } elseif ($sfl === 'content') {
+            $where_sql .= " AND wr_content LIKE :q_content";
+        } elseif ($sfl === 'name') {
+            $where_sql .= " AND wr_name LIKE :q_name";
+        } else {
+            $where_sql .= " AND (wr_subject LIKE :q_subject OR wr_content LIKE :q_content)";
+        }
+    }
+
+    $count_sql = "SELECT COUNT(*) FROM `{$table}` {$where_sql}";
+    $count_stmt = $pdo->prepare($count_sql);
+    if ($has_q) {
+        if ($sfl === 'subject') {
+            $count_stmt->bindValue(':q_subject', '%' . $q . '%', PDO::PARAM_STR);
+        } elseif ($sfl === 'content') {
+            $count_stmt->bindValue(':q_content', '%' . $q . '%', PDO::PARAM_STR);
+        } elseif ($sfl === 'name') {
+            $count_stmt->bindValue(':q_name', '%' . $q . '%', PDO::PARAM_STR);
+        } else {
+            $count_stmt->bindValue(':q_subject', '%' . $q . '%', PDO::PARAM_STR);
+            $count_stmt->bindValue(':q_content', '%' . $q . '%', PDO::PARAM_STR);
+        }
+    }
+    $count_stmt->execute();
+    $total = (int) $count_stmt->fetchColumn();
     $total_pages = (int) ceil($total / $per_page);
 
     // ── 목록 조회 (코루레이티드 서브쿼리로 대표 이미지 URL 포함) ──────────
@@ -102,13 +138,25 @@ try {
                 LIMIT  1
             ) AS thumbnail_file
         FROM `{$table}` w
-        WHERE w.wr_is_comment = 0
+        {$where_sql}
         ORDER BY w.wr_datetime DESC, w.wr_id DESC
         LIMIT :offset, :per_page
     ";
 
     $stmt = $pdo->prepare($list_sql);
     $stmt->bindValue(':bo_table_sub', $bo_table, PDO::PARAM_STR);
+    if ($has_q) {
+        if ($sfl === 'subject') {
+            $stmt->bindValue(':q_subject', '%' . $q . '%', PDO::PARAM_STR);
+        } elseif ($sfl === 'content') {
+            $stmt->bindValue(':q_content', '%' . $q . '%', PDO::PARAM_STR);
+        } elseif ($sfl === 'name') {
+            $stmt->bindValue(':q_name', '%' . $q . '%', PDO::PARAM_STR);
+        } else {
+            $stmt->bindValue(':q_subject', '%' . $q . '%', PDO::PARAM_STR);
+            $stmt->bindValue(':q_content', '%' . $q . '%', PDO::PARAM_STR);
+        }
+    }
     $stmt->bindValue(':offset',       $offset,   PDO::PARAM_INT);
     $stmt->bindValue(':per_page',     $per_page, PDO::PARAM_INT);
     $stmt->execute();
@@ -137,6 +185,8 @@ try {
         'page'        => $page,
         'per_page'    => $per_page,
         'total_pages' => $total_pages,
+        'q'           => $q,
+        'sfl'         => $sfl,
         'items'       => $items,
     ]);
 } catch (PDOException $e) {

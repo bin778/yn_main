@@ -1,9 +1,26 @@
-import type { BoardListResponse, BoardView } from '../types/board';
+import type { BoardListResponse, BoardSearchField, BoardView } from '../types/board';
 
 const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board';
+const BOARD_LIST_PER_PAGE = 12;
 
-export async function fetchBoardList(boTable: string, page = 1): Promise<BoardListResponse> {
-  const url = `${BOARD_API_BASE}/get_list.php?bo_table=${boTable}&page=${page}`;
+export async function fetchBoardList(
+  boTable: string,
+  page = 1,
+  q = '',
+  sfl: BoardSearchField = 'subject_content',
+): Promise<BoardListResponse> {
+  const searchParams = new URLSearchParams({
+    bo_table: boTable,
+    page: String(page),
+    per_page: String(BOARD_LIST_PER_PAGE),
+  });
+
+  if (q.trim() !== '') {
+    searchParams.set('q', q.trim());
+    searchParams.set('sfl', sfl);
+  }
+
+  const url = `${BOARD_API_BASE}/get_list.php?${searchParams.toString()}`;
   const res = await fetch(url, { next: { revalidate: 60 } });
   if (!res.ok) throw new Error(`게시판 목록을 불러오지 못했습니다. (${boTable})`);
   return res.json() as Promise<BoardListResponse>;

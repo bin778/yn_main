@@ -10,3 +10,4 @@ export const BOARD_META: Record<BoTable, { label: string; description: string }>
 } as const;
 
 export const SITE_NAME = '법무법인 여온';
+export const BOARD_HERO_IMAGE_URL = '/img/3f2ae6827f971.webp';

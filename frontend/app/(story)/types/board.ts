@@ -1,4 +1,5 @@
 export type BoTable = 'review' | 'success' | 'column' | 'news';
+export type BoardSearchField = 'subject' | 'content' | 'subject_content' | 'name';
 
 export type BoardListItem = {
   wr_id: number;
@@ -15,6 +16,8 @@ export type BoardListResponse = {
   page: number;
   per_page: number;
   total_pages: number;
+  q?: string;
+  sfl?: BoardSearchField;
   items: BoardListItem[];
 };
 

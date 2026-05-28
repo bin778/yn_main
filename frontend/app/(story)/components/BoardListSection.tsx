@@ -1,18 +1,39 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import type { BoTable, BoardListItem, BoardListResponse } from '../types/board';
+import type { BoardListItem, BoardListResponse, BoardSearchField, BoTable } from '../types/board';
 
 type BoardListSectionProps = {
   boTable: BoTable;
   data: BoardListResponse;
+  q: string;
+  sfl: BoardSearchField;
+  view: 'list' | 'grid';
 };
 
 function formatDate(datetime: string): string {
   return datetime.slice(0, 10).replace(/-/g, '.');
 }
 
-function BoardListCard({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
+function buildListHref(
+  boTable: BoTable,
+  page: number,
+  view: 'list' | 'grid',
+  q: string,
+  sfl: BoardSearchField,
+): string {
+  const searchParams = new URLSearchParams();
+  if (page > 1) searchParams.set('page', String(page));
+  if (view !== 'list') searchParams.set('view', view);
+  if (q.trim() !== '') {
+    searchParams.set('q', q.trim());
+    if (sfl !== 'subject_content') searchParams.set('sfl', sfl);
+  }
+  const query = searchParams.toString();
+  return query === '' ? `/${boTable}` : `/${boTable}?${query}`;
+}
+
+function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
   const href = `/${boTable}/${item.wr_id}`;
 
   return (
@@ -57,15 +78,124 @@ function BoardListCard({ item, boTable }: { item: BoardListItem; boTable: BoTabl
   );
 }
 
+function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
+  const href = `/${boTable}/${item.wr_id}`;
+
+  return (
+    <li className="h-full border border-[#e8e8e8]">
+      <Link href={href} className="group flex h-full flex-col">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f0f0f0]">
+          {item.thumbnail_url !== null ? (
+            <Image
+              src={item.thumbnail_url}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[13px] text-[#999]">이미지 없음</div>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col px-4 py-4">
+          <p className="line-clamp-2 text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151]">
+            {item.wr_subject}
+          </p>
+          <p className="mt-auto pt-3 text-[12px] text-[#999]">
+            {item.wr_name} · {formatDate(item.wr_datetime)} · 조회 {item.wr_hit.toLocaleString()}
+          </p>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
 function EmptyState() {
   return <div className="py-20 text-center text-[15px] text-[#999]">등록된 게시물이 없습니다.</div>;
 }
 
-function Pagination({ boTable, page, totalPages }: { boTable: BoTable; page: number; totalPages: number }) {
+function SearchToolbar({
+  boTable,
+  q,
+  sfl,
+  view,
+}: {
+  boTable: BoTable;
+  q: string;
+  sfl: BoardSearchField;
+  view: 'list' | 'grid';
+}) {
+  return (
+    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <form action={`/${boTable}`} method="get" className="flex w-full max-w-[520px] gap-2">
+        <input type="hidden" name="view" value={view} />
+        <select
+          name="sfl"
+          defaultValue={sfl}
+          className="h-11 border border-[#ddd] bg-white px-2 text-[14px] text-[#121212] outline-none focus:border-[#1a3151]"
+          aria-label="검색 구분"
+        >
+          <option value="subject">제목</option>
+          <option value="content">내용</option>
+          <option value="subject_content">제목+내용</option>
+          <option value="name">글쓴이</option>
+        </select>
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="검색어를 입력하세요"
+          className="h-11 flex-1 border border-[#ddd] px-3 text-[14px] text-[#121212] outline-none focus:border-[#1a3151]"
+        />
+        <button
+          type="submit"
+          className="h-11 border border-[#1a3151] bg-[#1a3151] px-4 text-[14px] font-medium text-white"
+        >
+          검색
+        </button>
+      </form>
+
+      <div className="flex items-center gap-2">
+        <Link
+          href={buildListHref(boTable, 1, 'list', q, sfl)}
+          className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
+            view === 'list' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
+          }`}
+        >
+          목록형
+        </Link>
+        <Link
+          href={buildListHref(boTable, 1, 'grid', q, sfl)}
+          className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
+            view === 'grid' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
+          }`}
+        >
+          아이콘형
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Pagination({
+  boTable,
+  page,
+  totalPages,
+  q,
+  sfl,
+  view,
+}: {
+  boTable: BoTable;
+  page: number;
+  totalPages: number;
+  q: string;
+  sfl: BoardSearchField;
+  view: 'list' | 'grid';
+}) {
   if (totalPages <= 1) return null;
 
-  const prevHref = page > 1 ? `/${boTable}?page=${page - 1}` : null;
-  const nextHref = page < totalPages ? `/${boTable}?page=${page + 1}` : null;
+  const prevHref = page > 1 ? buildListHref(boTable, page - 1, view, q, sfl) : null;
+  const nextHref = page < totalPages ? buildListHref(boTable, page + 1, view, q, sfl) : null;
 
   const btnBase =
     'inline-flex h-10 items-center justify-center gap-2 border border-[#e0e0e0] px-5 text-[14px] font-medium tracking-tight transition-colors';
@@ -101,23 +231,32 @@ function Pagination({ boTable, page, totalPages }: { boTable: BoTable; page: num
   );
 }
 
-export default function BoardListSection({ boTable, data }: BoardListSectionProps) {
+export default function BoardListSection({ boTable, data, q, sfl, view }: BoardListSectionProps) {
   return (
     <section className="bg-white px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-[900px]">
-        <p className="mb-1 text-right text-[13px] text-[#999]">총 {data.total.toLocaleString()}건</p>
+        <SearchToolbar boTable={boTable} q={q} sfl={sfl} view={view} />
+        <p className="mb-1 text-right text-[13px] text-[#999]">
+          총 {data.total.toLocaleString()}건 {q !== '' ? `(검색어: ${q})` : ''}
+        </p>
 
         {data.items.length === 0 ? (
           <EmptyState />
+        ) : view === 'grid' ? (
+          <ul className="grid gap-4 border-t border-[#e8e8e8] pt-6 md:grid-cols-2 lg:grid-cols-3">
+            {data.items.map(item => (
+              <BoardGridCard key={item.wr_id} item={item} boTable={boTable} />
+            ))}
+          </ul>
         ) : (
           <ul className="border-t border-[#e8e8e8]">
             {data.items.map(item => (
-              <BoardListCard key={item.wr_id} item={item} boTable={boTable} />
+              <BoardListRow key={item.wr_id} item={item} boTable={boTable} />
             ))}
           </ul>
         )}
 
-        <Pagination boTable={boTable} page={data.page} totalPages={data.total_pages} />
+        <Pagination boTable={boTable} page={data.page} totalPages={data.total_pages} q={q} sfl={sfl} view={view} />
       </div>
     </section>
   );
