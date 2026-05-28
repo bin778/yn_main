@@ -1,10 +1,10 @@
 # 법무법인 여온 (yn_main)
 
-Next.js 정적 사이트(`frontend/`)와 카페24 PHP 상담 API(`backend/`)로 구성된 메인 사이트 마이그레이션 레포입니다.
+Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`) 및 레거시 그누보드(`/board/`)를 함께 운영하는 메인 사이트 레포입니다.
 
-- **프론트**: Next.js App Router → `output: 'export'`로 빌드 후 카페24 `public_html`에 배포
-- **백엔드**: 상담 접수 API만 PHP로 유지 (`/backend/api/`)
-- **레거시**: 그누보드 게시판(`/board/`)은 기존 호스팅 경로 그대로 사용
+- **프론트**: Next.js App Router (`npm run build` → `npm run start`)
+- **백엔드**: PHP API 유지 (`/backend/api/` 상담, `/api/board/` 게시판 조회)
+- **레거시**: 그누보드 게시판(`/board/`)은 기존 호스팅 경로 그대로 사용 (adm에서 생성/수정/삭제)
 
 ## 기술 스택
 
@@ -18,10 +18,9 @@ Next.js 정적 사이트(`frontend/`)와 카페24 PHP 상담 API(`backend/`)로 
 
 ```
 yn_main/
-├── frontend/          # Next.js 앱 (개발·빌드)
+├── frontend/          # Next.js 앱 (개발·빌드·런타임)
 │   ├── app/           # 페이지·컴포넌트
 │   ├── public/        # 정적 에셋 (img, css 등)
-│   └── out/           # npm run build 결과 (배포용, gitignore)
 ├── backend/           # 상담 API (카페24 FTP 업로드)
 │   ├── config/        # DB·Aligo 설정 (*.sample.php → 운영 파일)
 │   └── api/
@@ -57,41 +56,54 @@ npm run dev
 
 `frontend/.env.example`를 참고해 `frontend/.env.local`을 만듭니다.
 
-| 변수                          | 설명                                                           |
-| ----------------------------- | -------------------------------------------------------------- |
-| `NEXT_PUBLIC_INQUIRY_API_URL` | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시 |
+| 변수                          | 설명                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_INQUIRY_API_URL` | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시                 |
+| `BOARD_API_URL`               | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`) |
 
 ```bash
 cp frontend/.env.example frontend/.env.local
 ```
 
-### 빌드 (정적 export)
+### 빌드/실행
 
 ```bash
 cd frontend
-npm run build   # frontend/out/ 생성
+npm run build
+npm run start
 npm run lint    # ESLint
 ```
 
-`next.config.ts`에서 `output: 'export'`, `images.unoptimized: true`를 사용합니다. `npm start`는 Node 서버용이며, 운영 배포에는 `out/` 디렉터리를 사용합니다.
+`next.config.ts`에서는 `trailingSlash: true`를 사용하고, `/img/*`, `/fonts/*` 경로에 장기 캐시 헤더를 설정합니다.
+게시판 첨부 이미지는 `https://yeoon.co.kr/board/data/**`와 `https://lawfirmonly1.mycafe24.com/board/data/**`를 허용합니다.
 
 ## Production 배포 (카페24)
 
-### 1. 프론트엔드
+### 1. 프론트엔드 (Node 런타임)
 
 1. `.env.local`에 운영 API URL을 설정한 뒤 `npm run build` 실행
-2. `frontend/out/` **내용물**을 `public_html/` 루트에 FTP 업로드
-3. 레포 루트의 `.htaccess`를 `public_html/.htaccess`에 반영
+2. 서버에서 `npm run start`로 Next 프로덕션 서버 실행
+3. 레포 루트의 `.htaccess`를 `public_html/.htaccess`에 반영해 레거시 라우트를 유지
 
 `.htaccess` 역할:
 
 - 레거시 PHP URL → Next.js 경로 **301 리다이렉트** (예: `peoples.php?p=123` → `/people/123/`)
 - `/api/`, `/board/` 요청은 Next 규칙에서 제외 (기존 API·게시판 유지)
-- `/about` 등 경로를 `about/index.html` 등 정적 HTML로 연결
+- `config/` 디렉터리 접근 차단
 
-### 2. 백엔드 (상담 API)
+> 카페24 상품에서 Node 런타임(`npm run start`) 실행이 불가능한 경우, 정적 배포(export) 방식으로 전환해 운영합니다.
+
+### 2. 백엔드 (PHP API)
 
 PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `user_inquiry`에 저장합니다.
+
+#### 게시판 조회 API
+
+- `GET /api/board/get_list.php` : 후기/성공사례/칼럼/여온소식 목록
+- `GET /api/board/get_view.php` : 게시물 상세 + 이전/다음 + 첨부 파일
+- 허용 게시판: `review`, `success`, `column`, `news`
+- 관리자 글 작성/수정/삭제는 `https://yeoon.co.kr/board/adm/`에서 진행 (그누보드)
+- 배포 시 `backend/api/board/*.php`를 서버의 `/api/board/` 경로에 반영
 
 #### 디렉터리
 
@@ -124,7 +136,7 @@ backend/
 
 7. 빌드 전 `frontend/.env.local`의 `NEXT_PUBLIC_INQUIRY_API_URL`에 위 URL 설정.
 
-### API 계약
+### 상담 API 계약
 
 - **Method**: `POST`
 - **Content-Type**: `application/x-www-form-urlencoded`
@@ -154,12 +166,15 @@ backend/
 cd frontend && npm run build && npm run lint
 ```
 
-로컬에서 `out/` 미리보기 (선택):
+로컬 프로덕션 실행 확인:
 
 ```bash
-npx serve frontend/out
+cd frontend && npm run start
 ```
 
-`/contact/`에서 API URL 설정 후 제출 → DB 적재 및 응답 `result: "1"` 확인.
+검증 체크:
 
-배포 후 레거시 URL 301, `/board/` 게시판, `/backend/api/` 응답도 함께 확인합니다.
+- `/contact/`에서 상담 제출 → DB 적재 및 응답 `result: "1"` 확인
+- `/review/`, `/success/`, `/column/`, `/news/` 목록/상세 노출 확인
+- `https://yeoon.co.kr/board/adm/` 로그인 후 글 생성/수정/삭제 확인
+- 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
