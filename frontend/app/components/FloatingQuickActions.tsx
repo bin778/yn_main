@@ -52,17 +52,21 @@ export default function FloatingQuickActions() {
   };
 
   return (
-    <div className="fixed right-6 bottom-6 z-[100] flex flex-col items-center md:right-10 md:bottom-8">
-      <div className="flex w-[80px] flex-col items-center rounded-[999px] bg-[#023373] px-4 py-3 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)]">
+    <div className="fixed bottom-4 right-3 z-[100] flex flex-col items-center md:bottom-8 md:right-10">
+      <div className="flex w-[68px] flex-col items-center rounded-[999px] bg-[#023373] px-2 py-2 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:w-[80px] md:px-4 md:py-3">
         {QUICK_ACTIONS.map((action, index) => {
           const content = (
             <>
-              <span className="flex h-8 items-center justify-center [&_svg]:h-8 [&_svg]:w-8">{action.icon}</span>
-              <span className="mt-2 text-[13px] font-semibold leading-tight">{action.label}</span>
+              <span className="flex h-7 items-center justify-center md:h-8 [&_svg]:h-6 [&_svg]:w-6 md:[&_svg]:h-8 md:[&_svg]:w-8">
+                {action.icon}
+              </span>
+              <span className="mt-1.5 text-[11px] font-semibold leading-tight md:mt-2 md:text-[13px]">
+                {action.label}
+              </span>
             </>
           );
 
-          const className = `flex w-full flex-col items-center justify-center py-4 text-center transition-opacity hover:opacity-80 ${
+          const className = `flex w-full flex-col items-center justify-center py-3 text-center transition-opacity hover:opacity-80 md:py-4 ${
             index > 0 ? 'border-t border-white/15' : ''
           }`;
 
@@ -91,11 +95,15 @@ export default function FloatingQuickActions() {
 
       <button
         type="button"
-        className="mt-6 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#023373] shadow-[0_10px_24px_rgba(15,23,42,0.14)] transition-transform hover:scale-105 cursor-pointer"
+        className="mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[#023373] shadow-[0_10px_24px_rgba(15,23,42,0.14)] transition-transform hover:scale-105 md:mt-6 md:h-16 md:w-16"
         onClick={handleScrollTop}
         aria-label="맨 위로 이동"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9 fill-none stroke-current stroke-[2.2]">
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="h-7 w-7 fill-none stroke-current stroke-[2.2] md:h-9 md:w-9"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V5" />
           <path strokeLinecap="round" strokeLinejoin="round" d="m5 12 7-7 7 7" />
         </svg>

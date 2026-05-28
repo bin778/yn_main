@@ -7,7 +7,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'yeoon.co.kr',
-        pathname: '/board/data/file/**',
+        pathname: '/board/data/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lawfirmonly1.mycafe24.com',
+        pathname: '/board/data/**',
       },
     ],
   },

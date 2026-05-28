@@ -46,6 +46,7 @@ require_once __DIR__ . '/../../config/db_conn.php';
 
 const ALLOWED_TABLES   = ['review', 'success', 'column', 'news'];
 const BOARD_FILE_BASE  = 'https://yeoon.co.kr/board/data/file';
+const SITE_BASE_URL    = 'https://yeoon.co.kr';
 const DEFAULT_PER_PAGE = 12;
 const MAX_PER_PAGE     = 50;
 
@@ -57,6 +58,37 @@ function json_response(array $payload, int $status = 200): void
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+function extract_first_image_src(string $html): ?string
+{
+    if (!preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $html, $matches)) {
+        return null;
+    }
+
+    $src = trim(html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    if ($src === '') {
+        return null;
+    }
+
+    return $src;
+}
+
+function normalize_image_url(string $src): string
+{
+    if (preg_match('/^https?:\/\//i', $src)) {
+        return $src;
+    }
+
+    if (strpos($src, '//') === 0) {
+        return 'https:' . $src;
+    }
+
+    if (strpos($src, '/') === 0) {
+        return SITE_BASE_URL . $src;
+    }
+
+    return SITE_BASE_URL . '/' . ltrim($src, '/');
 }
 
 // ── 입력 검증 ─────────────────────────────────────────────────────────────
@@ -128,6 +160,7 @@ try {
             w.wr_datetime,
             w.wr_hit,
             w.wr_file,
+            w.wr_content,
             (
                 SELECT bf_file
                 FROM   g5_board_file
@@ -167,6 +200,11 @@ try {
         $thumbnail_url = null;
         if ($row['thumbnail_file'] !== null) {
             $thumbnail_url = BOARD_FILE_BASE . '/' . $bo_table . '/' . $row['thumbnail_file'];
+        } else {
+            $first_image_src = extract_first_image_src((string) $row['wr_content']);
+            if ($first_image_src !== null) {
+                $thumbnail_url = normalize_image_url($first_image_src);
+            }
         }
 
         return [

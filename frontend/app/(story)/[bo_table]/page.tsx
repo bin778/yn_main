@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
+import BoardCategoryTabs from '../components/BoardCategoryTabs';
 import BoardListSection from '../components/BoardListSection';
-import { ALLOWED_BO_TABLES, BOARD_HERO_IMAGE_URL, BOARD_META, SITE_NAME } from '../constants/boardContent';
+import { ALLOWED_BO_TABLES, BOARD_META, SITE_NAME } from '../constants/boardContent';
 import { fetchBoardList } from '../lib/boardApi';
 import type { BoardListResponse, BoardSearchField, BoTable } from '../types/board';
 
@@ -60,13 +61,19 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
     data = EMPTY_LIST;
   }
 
-  const { label, description } = BOARD_META[bo_table];
+  const { label, description, heroBg } = BOARD_META[bo_table];
 
   return (
     <>
       <section className="relative w-full overflow-hidden" aria-labelledby="story-hero-heading">
-        <Image src={BOARD_HERO_IMAGE_URL} alt="" fill priority className="object-cover object-center" sizes="100vw" />
-        <div className="absolute inset-0 bg-black/20" aria-hidden />
+        {heroBg ? (
+          <>
+            <Image src={heroBg} alt="" fill priority className="object-cover object-center" sizes="100vw" />
+            <div className="absolute inset-0 bg-black/20" aria-hidden />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-[#1a3151]" aria-hidden />
+        )}
         <div className="relative z-[1] mx-auto max-w-[1200px] px-6 py-20 md:px-12 md:py-28">
           <div className="relative z-[1]">
             <p className="mb-2 text-[13px] font-medium uppercase tracking-widest text-white/50">여온의 이야기</p>
@@ -83,6 +90,7 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
         </div>
       </section>
 
+      <BoardCategoryTabs current={bo_table} />
       <BoardListSection boTable={bo_table} data={data} q={q} sfl={sfl} view={viewMode} />
     </>
   );

@@ -116,11 +116,13 @@ function EmptyState() {
 
 function SearchToolbar({
   boTable,
+  page,
   q,
   sfl,
   view,
 }: {
   boTable: BoTable;
+  page: number;
   q: string;
   sfl: BoardSearchField;
   view: 'list' | 'grid';
@@ -128,7 +130,7 @@ function SearchToolbar({
   return (
     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <form action={`/${boTable}`} method="get" className="flex w-full max-w-[520px] gap-2">
-        <input type="hidden" name="view" value={view} />
+        {view === 'grid' ? <input type="hidden" name="view" value="grid" /> : null}
         <select
           name="sfl"
           defaultValue={sfl}
@@ -157,7 +159,7 @@ function SearchToolbar({
 
       <div className="flex items-center gap-2">
         <Link
-          href={buildListHref(boTable, 1, 'list', q, sfl)}
+          href={buildListHref(boTable, page, 'list', q, sfl)}
           className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
             view === 'list' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
           }`}
@@ -165,7 +167,7 @@ function SearchToolbar({
           목록형
         </Link>
         <Link
-          href={buildListHref(boTable, 1, 'grid', q, sfl)}
+          href={buildListHref(boTable, page, 'grid', q, sfl)}
           className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
             view === 'grid' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
           }`}
@@ -235,7 +237,7 @@ export default function BoardListSection({ boTable, data, q, sfl, view }: BoardL
   return (
     <section className="bg-white px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-[900px]">
-        <SearchToolbar boTable={boTable} q={q} sfl={sfl} view={view} />
+        <SearchToolbar boTable={boTable} page={data.page} q={q} sfl={sfl} view={view} />
         <p className="mb-1 text-right text-[13px] text-[#999]">
           총 {data.total.toLocaleString()}건 {q !== '' ? `(검색어: ${q})` : ''}
         </p>

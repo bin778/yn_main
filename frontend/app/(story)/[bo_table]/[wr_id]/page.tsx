@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
+import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardViewSection from '../../components/BoardViewSection';
 import { ALLOWED_BO_TABLES, BOARD_META, SITE_NAME } from '../../constants/boardContent';
 import { fetchBoardView } from '../../lib/boardApi';
@@ -52,17 +54,28 @@ export default async function BoardViewPage({ params }: PageProps) {
     notFound();
   }
 
-  const { label } = BOARD_META[bo_table];
+  const { label, heroBg } = BOARD_META[bo_table];
 
   return (
     <>
-      <section className="bg-[#1a3151] px-6 py-14 md:py-20">
-        <div className="mx-auto max-w-[900px]">
+      <section className="relative w-full overflow-hidden" aria-labelledby="story-detail-hero-heading">
+        {heroBg ? (
+          <>
+            <Image src={heroBg} alt="" fill priority className="object-cover object-center" sizes="100vw" />
+            <div className="absolute inset-0 bg-black/20" aria-hidden />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-[#1a3151]" aria-hidden />
+        )}
+        <div className="relative z-[1] mx-auto max-w-[1200px] px-6 py-20 md:px-12 md:py-28">
           <p className="mb-2 text-[13px] font-medium uppercase tracking-widest text-white/50">여온의 이야기</p>
-          <p className="text-[22px] font-bold tracking-tight text-white md:text-[32px]">{label}</p>
+          <p id="story-detail-hero-heading" className="text-[22px] font-bold tracking-tight text-white md:text-[32px]">
+            {label}
+          </p>
         </div>
       </section>
 
+      <BoardCategoryTabs current={bo_table} />
       <BoardViewSection boTable={bo_table} post={post} />
     </>
   );
