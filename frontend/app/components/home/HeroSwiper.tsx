@@ -35,9 +35,20 @@ type Props = {
 export default function HeroSwiper({ fallback }: Props) {
   const isClient = useIsClient();
 
-  // 서버 / 첫 hydration: 서버에서 내려온 fallback을 그대로 반환
-  if (!isClient) return <>{fallback}</>;
-
-  // 클라이언트: Swiper 번들 로드 (로딩 중엔 HeroSwiperFallback 표시)
-  return <HeroSwiperBundle />;
+  return (
+    <div className="relative w-full">
+      {/* fallback: DOM에서 절대 제거하지 않음, Swiper 로드 후 뒤로 깔림 */}
+      <div
+        aria-hidden={isClient}
+        style={{
+          visibility: isClient ? 'hidden' : 'visible',
+          position: isClient ? 'absolute' : 'relative',
+          inset: 0,
+        }}
+      >
+        {fallback}
+      </div>
+      {isClient && <HeroSwiperBundle />}
+    </div>
+  );
 }

@@ -46,7 +46,7 @@ export default function HeroSwiperBundle() {
                   fill
                   className="object-cover"
                   sizes="(max-width: 767px) 100vw, 1px"
-                  priority={index === 0}
+                  // 모바일 priority 속성 제거 완료
                   loading={index === 0 ? undefined : 'lazy'}
                 />
                 <div className="absolute inset-0 z-[1] bg-black/25" aria-hidden />
@@ -87,7 +87,7 @@ export default function HeroSwiperBundle() {
                   fill
                   className="object-cover"
                   sizes="(min-width: 768px) 100vw, 1px"
-                  priority={index === 0}
+                  // 데스크톱 priority 속성 제거 완료
                   loading={index === 0 ? undefined : 'lazy'}
                 />
                 <div className="absolute inset-0 z-[1] bg-black/20" aria-hidden />
