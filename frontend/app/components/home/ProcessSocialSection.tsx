@@ -1,5 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { FaInstagram, FaYoutube } from 'react-icons/fa';
+import { SiNaver } from 'react-icons/si';
+import type { IconType } from 'react-icons';
 
 import {
   PROCESS_IMAGE_DESKTOP,
@@ -8,6 +11,12 @@ import {
   PROCESS_TITLE,
   SOCIAL_LINKS,
 } from '@/app/constants/homeContent';
+
+const SOCIAL_ICON_MAP: Record<string, { icon: IconType; color: string }> = {
+  Blog: { icon: SiNaver, color: '#03C75A' },
+  YouTube: { icon: FaYoutube, color: '#FF0000' },
+  Instagram: { icon: FaInstagram, color: '#E1306C' },
+};
 
 export default function ProcessSocialSection() {
   return (
@@ -40,16 +49,21 @@ export default function ProcessSocialSection() {
           />
         </div>
         <nav className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center md:justify-start">
-          {SOCIAL_LINKS.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex items-center justify-center border border-gray-300 bg-white px-14 py-3 text-base font-semibold text-[#121212] transition-colors hover:border-[#023373] hover:text-[#023373] md:py-4 md:text-lg lg:px-28"
-              {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {SOCIAL_LINKS.map(link => {
+            const social = SOCIAL_ICON_MAP[link.label];
+            const Icon = social?.icon;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="inline-flex items-center justify-center gap-2 border border-gray-300 bg-white px-14 py-3 text-base font-semibold text-[#121212] transition-colors hover:border-[#023373] hover:text-[#023373] md:py-4 md:text-lg lg:px-28"
+                {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {Icon && <Icon style={{ color: social.color }} className="text-xl shrink-0" aria-hidden="true" />}
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </section>
