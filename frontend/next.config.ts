@@ -4,6 +4,14 @@ const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
+  async rewrites() {
+    return [
+      {
+        source: '/img/:path*',
+        destination: 'https://yeoon.co.kr/img/:path*',
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: '/success', destination: '/success-story', permanent: true },
