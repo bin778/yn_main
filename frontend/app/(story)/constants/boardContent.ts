@@ -1,6 +1,6 @@
 import type { BoTable } from '../types/board';
 
-export const ALLOWED_BO_TABLES: readonly BoTable[] = ['review', 'success', 'column', 'news'] as const;
+export const ALLOWED_BO_TABLES: readonly BoTable[] = ['news', 'success', 'column', 'review'] as const;
 
 export const BOARD_META: Record<BoTable, { label: string; description: string; heroBg?: string }> = {
   review: {
