@@ -1,5 +1,8 @@
+import type { BoardListSort } from '../constants/boardSort';
+
 export type BoTable = 'review' | 'success' | 'column' | 'news';
 export type BoardSearchField = 'subject' | 'content' | 'subject_content' | 'name';
+export type { BoardListSort };
 
 export type BoardListItem = {
   wr_id: number;
@@ -18,6 +21,7 @@ export type BoardListResponse = {
   total_pages: number;
   q?: string;
   sfl?: BoardSearchField;
+  sort?: BoardListSort;
   items: BoardListItem[];
 };
 

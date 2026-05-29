@@ -99,7 +99,7 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 
 #### 게시판 조회 API
 
-- `GET /api/board/get_list.php` : 후기/성공사례/칼럼/여온소식 목록
+- `GET /api/board/get_list.php` : 후기/성공사례/칼럼/여온소식 목록 (`sort`: 최신순·조회수·제목 가나다순 등)
 - `GET /api/board/get_view.php` : 게시물 상세 + 이전/다음 + 첨부 파일
 - 허용 게시판: `review`, `success`, `column`, `news`
 - 관리자 글 작성/수정/삭제는 `https://yeoon.co.kr/board/adm/`에서 진행 (그누보드)

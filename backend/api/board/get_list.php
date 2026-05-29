@@ -11,6 +11,7 @@
  *   per_page  int     페이지당 항목 수 (기본 12, 최대 50)
  *   q         string  검색어
  *   sfl       string  검색 구분(subject|content|subject_content|name)
+ *   sort      string  정렬(datetime_desc|datetime_asc|hit_desc|hit_asc|subject_asc|subject_desc)
  *
  * Response:
  *   { total, page, per_page, total_pages, items: [...] }
@@ -49,6 +50,15 @@ const BOARD_FILE_BASE  = 'https://yeoon.co.kr/board/data/file';
 const SITE_BASE_URL    = 'https://yeoon.co.kr';
 const DEFAULT_PER_PAGE = 12;
 const MAX_PER_PAGE     = 50;
+const DEFAULT_SORT     = 'datetime_desc';
+const ALLOWED_SORTS    = [
+    'datetime_desc' => 'w.wr_datetime DESC, w.wr_id DESC',
+    'datetime_asc'  => 'w.wr_datetime ASC, w.wr_id ASC',
+    'hit_desc'      => 'w.wr_hit DESC, w.wr_id DESC',
+    'hit_asc'       => 'w.wr_hit ASC, w.wr_id ASC',
+    'subject_asc'   => 'w.wr_subject ASC, w.wr_id ASC',
+    'subject_desc'  => 'w.wr_subject DESC, w.wr_id DESC',
+];
 
 /**
  * @param array<string, mixed> $payload
@@ -115,6 +125,9 @@ $raw_sfl  = trim((string) ($_GET['sfl'] ?? 'subject_content'));
 $sfl      = in_array($raw_sfl, ['subject', 'content', 'subject_content', 'name'], true)
     ? $raw_sfl
     : 'subject_content';
+$raw_sort = trim((string) ($_GET['sort'] ?? DEFAULT_SORT));
+$sort     = array_key_exists($raw_sort, ALLOWED_SORTS) ? $raw_sort : DEFAULT_SORT;
+$order_by = ALLOWED_SORTS[$sort];
 
 // ── 총 게시물 수 조회 ─────────────────────────────────────────────────────
 
@@ -172,7 +185,7 @@ try {
             ) AS thumbnail_file
         FROM `{$table}` w
         {$where_sql}
-        ORDER BY w.wr_datetime DESC, w.wr_id DESC
+        ORDER BY {$order_by}
         LIMIT :offset, :per_page
     ";
 
@@ -225,6 +238,7 @@ try {
         'total_pages' => $total_pages,
         'q'           => $q,
         'sfl'         => $sfl,
+        'sort'        => $sort,
         'items'       => $items,
     ]);
 } catch (PDOException $e) {

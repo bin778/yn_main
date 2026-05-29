@@ -1,3 +1,4 @@
+import { DEFAULT_BOARD_SORT, type BoardListSort } from '../constants/boardSort';
 import type { BoardListResponse, BoardSearchField, BoardView } from '../types/board';
 
 const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board';
@@ -8,12 +9,17 @@ export async function fetchBoardList(
   page = 1,
   q = '',
   sfl: BoardSearchField = 'subject_content',
+  sort: BoardListSort = DEFAULT_BOARD_SORT,
 ): Promise<BoardListResponse> {
   const searchParams = new URLSearchParams({
     bo_table: boTable,
     page: String(page),
     per_page: String(BOARD_LIST_PER_PAGE),
   });
+
+  if (sort !== DEFAULT_BOARD_SORT) {
+    searchParams.set('sort', sort);
+  }
 
   if (q.trim() !== '') {
     searchParams.set('q', q.trim());
