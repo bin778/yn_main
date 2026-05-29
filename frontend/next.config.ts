@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
     return [
       { source: '/success', destination: '/success-story', permanent: true },
       { source: '/success/:wr_id', destination: '/success-story/:wr_id', permanent: true },
+      { source: '/about.php', destination: '/about', permanent: true },
+      { source: '/contact.php', destination: '/contact', permanent: true },
+      { source: '/field.php', destination: '/field', permanent: true },
+      { source: '/people.php', destination: '/people', permanent: true },
+      { source: '/privacy.php', destination: '/privacy', permanent: true },
     ];
   },
   async headers() {
