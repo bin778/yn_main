@@ -5,7 +5,7 @@
 
 export const STORY_SUBLINKS = [
   { href: '/review', label: '후기' },
-  { href: '/success', label: '성공사례' },
+  { href: '/success-story', label: '성공사례' },
   { href: '/column', label: '칼럼' },
   { href: '/news', label: '여온소식' },
 ] as const;

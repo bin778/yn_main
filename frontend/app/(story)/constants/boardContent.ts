@@ -26,3 +26,25 @@ export const BOARD_META: Record<BoTable, { label: string; description: string; h
 } as const;
 
 export const SITE_NAME = '법무법인 여온';
+
+/** 브라우저 경로 슬러그 (API bo_table과 다를 수 있음) */
+export const BOARD_PATH_SLUG: Record<BoTable, string> = {
+  review: 'review',
+  success: 'success-story',
+  column: 'column',
+  news: 'news',
+};
+
+const slugEntries = Object.entries(BOARD_PATH_SLUG) as [BoTable, string][];
+
+export const PATH_SLUG_TO_BO_TABLE = Object.fromEntries(
+  slugEntries.map(([boTable, slug]) => [slug, boTable]),
+) as Record<string, BoTable>;
+
+export function resolveBoTableFromPathSlug(slug: string): BoTable | null {
+  return PATH_SLUG_TO_BO_TABLE[slug] ?? null;
+}
+
+export function getBoardPathSlug(boTable: BoTable): string {
+  return BOARD_PATH_SLUG[boTable];
+}

@@ -4,9 +4,8 @@ import { notFound } from 'next/navigation';
 
 import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardViewSection from '../../components/BoardViewSection';
-import { ALLOWED_BO_TABLES, BOARD_META, SITE_NAME } from '../../constants/boardContent';
+import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import { fetchBoardView } from '../../lib/boardApi';
-import type { BoTable } from '../../types/board';
 
 export const revalidate = 300;
 
@@ -14,25 +13,22 @@ type PageProps = {
   params: Promise<{ bo_table: string; wr_id: string }>;
 };
 
-function isValidBoTable(value: string): value is BoTable {
-  return (ALLOWED_BO_TABLES as readonly string[]).includes(value);
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { bo_table, wr_id } = await params;
+  const { bo_table: pathSlug, wr_id } = await params;
+  const boTable = resolveBoTableFromPathSlug(pathSlug);
 
-  if (!isValidBoTable(bo_table)) return {};
+  if (!boTable) return {};
 
   const wrIdNum = parseInt(wr_id, 10);
   if (!wrIdNum || wrIdNum <= 0) return {};
 
   try {
-    const post = await fetchBoardView(bo_table, wrIdNum);
-    const { label } = BOARD_META[bo_table];
+    const post = await fetchBoardView(boTable, wrIdNum);
+    const { label } = BOARD_META[boTable];
 
     return {
       title: `${post.wr_subject} | ${label} | ${SITE_NAME}`,
-      alternates: { canonical: `/${bo_table}/${wrIdNum}` },
+      alternates: { canonical: `/${getBoardPathSlug(boTable)}/${wrIdNum}` },
     };
   } catch {
     return {};
@@ -40,9 +36,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BoardViewPage({ params }: PageProps) {
-  const { bo_table, wr_id } = await params;
+  const { bo_table: pathSlug, wr_id } = await params;
+  const bo_table = resolveBoTableFromPathSlug(pathSlug);
 
-  if (!isValidBoTable(bo_table)) notFound();
+  if (!bo_table) notFound();
 
   const wrIdNum = parseInt(wr_id, 10);
   if (!wrIdNum || wrIdNum <= 0) notFound();

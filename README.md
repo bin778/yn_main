@@ -175,6 +175,6 @@ cd frontend && npm run start
 검증 체크:
 
 - `/contact/`에서 상담 제출 → DB 적재 및 응답 `result: "1"` 확인
-- `/review/`, `/success/`, `/column/`, `/news/` 목록/상세 노출 확인
+- `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 확인
 - `https://yeoon.co.kr/board/adm/` 로그인 후 글 생성/수정/삭제 확인
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인

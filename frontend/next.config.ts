@@ -4,6 +4,12 @@ const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
+  async redirects() {
+    return [
+      { source: '/success', destination: '/success-story', permanent: true },
+      { source: '/success/:wr_id', destination: '/success-story/:wr_id', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import type { BoTable } from '../types/board';
-import { ALLOWED_BO_TABLES, BOARD_META } from '../constants/boardContent';
+import { ALLOWED_BO_TABLES, BOARD_META, getBoardPathSlug } from '../constants/boardContent';
 
 type BoardCategoryTabsProps = {
   current: BoTable;
@@ -16,7 +16,7 @@ export default function BoardCategoryTabs({ current }: BoardCategoryTabsProps) {
           return (
             <li key={boTable}>
               <Link
-                href={`/${boTable}`}
+                href={`/${getBoardPathSlug(boTable)}`}
                 className={`flex h-11 items-center justify-center border text-[14px] font-medium tracking-tight transition-colors ${
                   isActive
                     ? 'border-[#1a3151] bg-[#1a3151] text-white'

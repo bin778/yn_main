@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { getBoardPathSlug } from '../constants/boardContent';
 import type { BoardListItem, BoardListResponse, BoardSearchField, BoTable } from '../types/board';
 
 type BoardListSectionProps = {
@@ -29,12 +30,13 @@ function buildListHref(
     searchParams.set('q', q.trim());
     if (sfl !== 'subject_content') searchParams.set('sfl', sfl);
   }
+  const pathSlug = getBoardPathSlug(boTable);
   const query = searchParams.toString();
-  return query === '' ? `/${boTable}` : `/${boTable}?${query}`;
+  return query === '' ? `/${pathSlug}` : `/${pathSlug}?${query}`;
 }
 
 function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
-  const href = `/${boTable}/${item.wr_id}`;
+  const href = `/${getBoardPathSlug(boTable)}/${item.wr_id}`;
 
   return (
     <li className="border-b border-[#e8e8e8] last:border-b-0">
@@ -79,7 +81,7 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
 }
 
 function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
-  const href = `/${boTable}/${item.wr_id}`;
+  const href = `/${getBoardPathSlug(boTable)}/${item.wr_id}`;
 
   return (
     <li className="h-full border border-[#e8e8e8]">
@@ -129,7 +131,7 @@ function SearchToolbar({
 }) {
   return (
     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <form action={`/${boTable}`} method="get" className="flex w-full max-w-[520px] gap-2">
+      <form action={`/${getBoardPathSlug(boTable)}`} method="get" className="flex w-full max-w-[520px] gap-2">
         {view === 'grid' ? <input type="hidden" name="view" value="grid" /> : null}
         <select
           name="sfl"

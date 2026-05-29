@@ -4,9 +4,9 @@ import { notFound } from 'next/navigation';
 
 import BoardCategoryTabs from '../components/BoardCategoryTabs';
 import BoardListSection from '../components/BoardListSection';
-import { ALLOWED_BO_TABLES, BOARD_META, SITE_NAME } from '../constants/boardContent';
+import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
 import { fetchBoardList } from '../lib/boardApi';
-import type { BoardListResponse, BoardSearchField, BoTable } from '../types/board';
+import type { BoardListResponse, BoardSearchField } from '../types/board';
 
 const EMPTY_LIST: BoardListResponse = {
   total: 0,
@@ -23,27 +23,25 @@ type PageProps = {
   searchParams: Promise<{ page?: string; q?: string; view?: string; sfl?: string }>;
 };
 
-function isValidBoTable(value: string): value is BoTable {
-  return (ALLOWED_BO_TABLES as readonly string[]).includes(value);
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { bo_table } = await params;
-  if (!isValidBoTable(bo_table)) return {};
+  const { bo_table: pathSlug } = await params;
+  const boTable = resolveBoTableFromPathSlug(pathSlug);
+  if (!boTable) return {};
 
-  const { label, description } = BOARD_META[bo_table];
+  const { label, description } = BOARD_META[boTable];
 
   return {
     title: `${label} | ${SITE_NAME}`,
     description,
-    alternates: { canonical: `/${bo_table}` },
+    alternates: { canonical: `/${getBoardPathSlug(boTable)}` },
   };
 }
 
 export default async function BoardListPage({ params, searchParams }: PageProps) {
-  const { bo_table } = await params;
+  const { bo_table: pathSlug } = await params;
+  const bo_table = resolveBoTableFromPathSlug(pathSlug);
 
-  if (!isValidBoTable(bo_table)) notFound();
+  if (!bo_table) notFound();
 
   const { page: pageParam, q: qParam, view: viewParam, sfl: sflParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
