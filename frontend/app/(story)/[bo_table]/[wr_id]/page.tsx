@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 import BoardCategoryTabs from '../../components/BoardCategoryTabs';
+import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardViewSection from '../../components/BoardViewSection';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import { fetchBoardView } from '../../lib/boardApi';
@@ -73,6 +74,7 @@ export default async function BoardViewPage({ params }: PageProps) {
       </section>
 
       <BoardCategoryTabs current={bo_table} />
+      <BoardAdminBar boTable={bo_table} wrId={wrIdNum} />
       <BoardViewSection boTable={bo_table} post={post} />
     </>
   );

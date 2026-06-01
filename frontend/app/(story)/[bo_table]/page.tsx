@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 import BoardCategoryTabs from '../components/BoardCategoryTabs';
+import BoardAdminBar from '../components/BoardAdminBar';
 import BoardListSection from '../components/BoardListSection';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
 import { parseBoardListSort } from '../constants/boardSort';
@@ -91,6 +92,7 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
       </section>
 
       <BoardCategoryTabs current={bo_table} />
+      <BoardAdminBar boTable={bo_table} />
       <BoardListSection boTable={bo_table} data={data} q={q} sfl={sfl} sort={sort} view={viewMode} />
     </>
   );

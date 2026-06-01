@@ -83,7 +83,7 @@ function get_client_ip()
     return $ip;
 }
 
-function sanitize_input($data)
+function sanitize_input($data): string
 {
     if ($data === null) {
         return '';
@@ -113,7 +113,7 @@ function is_aligo_configured()
     return true;
 }
 
-function build_alimtalk_message($name, $phone, $case_keyword, $utm_source, $utm_campaign)
+function build_alimtalk_message(string $name, string $phone, string $case_keyword, string $utm_source, string $utm_campaign): string
 {
     $inflow_path = ALIMTALK_INFLOW_URL . '/' . $utm_source . '/' . $utm_campaign;
 
@@ -124,7 +124,7 @@ function build_alimtalk_message($name, $phone, $case_keyword, $utm_source, $utm_
         . '사건키워드 : ' . $case_keyword;
 }
 
-function send_kakao_alimtalk($name, $phone, $case_keyword, $utm_source, $utm_campaign)
+function send_kakao_alimtalk(string $name, string $phone, string $case_keyword, string $utm_source, string $utm_campaign): bool
 {
     global $ALIGO_API_KEY, $ALIGO_USER_ID, $ALIGO_SENDER_KEY, $ALIGO_TPL_CODE, $ALIGO_SENDER, $ALIGO_RECEIVERS;
 

@@ -5,11 +5,12 @@ const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 const nextConfig: NextConfig = {
   trailingSlash: true,
   async rewrites() {
+    const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
     return [
-      {
-        source: '/img/:path*',
-        destination: 'https://yeoon.co.kr/img/:path*',
-      },
+      { source: '/img/:path*', destination: `${CAFE24}/img/:path*` },
+      { source: '/board/:path*', destination: `${CAFE24}/board/:path*` },
+      { source: '/api/:path*', destination: `${CAFE24}/api/:path*` },
+      { source: '/backend/:path*', destination: `${CAFE24}/backend/:path*` },
     ];
   },
   async redirects() {

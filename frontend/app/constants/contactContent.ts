@@ -108,7 +108,21 @@ export const CONTACT_INQUIRY = {
   inflowMobile: '상담 페이지(Mobile)',
 } as const;
 
-export const INQUIRY_API_URL = process.env.NEXT_PUBLIC_INQUIRY_API_URL ?? '';
+const LEGACY_INQUIRY_API_SUFFIX = '/api/submit_inquiry.php';
+const CORRECT_INQUIRY_API_SUFFIX = '/backend/api/submit_inquiry.php';
+
+function resolveInquiryApiUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_INQUIRY_API_URL?.trim() ?? '';
+  if (configured === '') return '';
+
+  if (configured.endsWith(LEGACY_INQUIRY_API_SUFFIX) && !configured.includes('/backend/api/')) {
+    return configured.replace(LEGACY_INQUIRY_API_SUFFIX, CORRECT_INQUIRY_API_SUFFIX);
+  }
+
+  return configured;
+}
+
+export const INQUIRY_API_URL = resolveInquiryApiUrl();
 
 export const INQUIRY_STUB_MESSAGE = '상담 접수 시스템을 준비 중입니다. 급한 문의는 02-318-2981로 연락해 주세요.';
 
