@@ -9,3 +9,10 @@ $ALIGO_SENDER_KEY = '';
 $ALIGO_TPL_CODE = '';
 $ALIGO_SENDER = '';
 $ALIGO_RECEIVERS = [];
+
+/** Board JWT admin (required for /api/board/auth/* and write_post.php) */
+$JWT_SECRET = '';
+$JWT_TTL_SECONDS = 28800;
+$JWT_COOKIE_NAME = 'yn_board_token';
+/** Production: '.yeoon.co.kr' or leave empty for host-only cookie */
+$JWT_COOKIE_DOMAIN = '';

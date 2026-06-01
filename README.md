@@ -102,8 +102,15 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 - `GET /api/board/get_list.php` : 후기/성공사례/칼럼/여온소식 목록 (`sort`: 최신순·조회수·제목 가나다순 등)
 - `GET /api/board/get_view.php` : 게시물 상세 + 이전/다음 + 첨부 파일
 - 허용 게시판: `review`, `success`, `column`, `news`
-- 관리자 글 작성/수정/삭제는 `https://yeoon.co.kr/board/adm/`에서 진행 (그누보드)
-- 배포 시 `backend/api/board/*.php`를 서버의 `/api/board/` 경로에 반영
+- 배포 시 `backend/api/board/*.php` 및 `backend/lib/*.php`를 서버 `/api/board/`, `/lib/` 경로에 반영
+
+#### 게시판 관리자 (JWT, 그누보드 세션 불필요)
+
+- 로그인 UI: Next `/admin/login` → `POST /api/board/auth/login.php` (`g5_member` PBKDF2 검증 후 JWT 쿠키)
+- 세션 확인: `GET /api/board/auth/me.php?bo_table=news` (BoardAdminBar)
+- 글 CRUD: `POST|PUT|DELETE /api/board/write_post.php` (관리자 JWT 필수)
+- `get_session.php`는 deprecated → `auth/me.php`로 위임
+- `app_config.php`에 `JWT_SECRET`(32자 이상 랜덤) 필수
 
 #### 디렉터리
 
@@ -112,7 +119,11 @@ backend/
   config/
     db_conn.sample.php
     app_config.sample.php
+  lib/
+    bootstrap.php, board_auth.php, jwt.php, ...
   api/
+    board/auth/login.php, logout.php, me.php
+    board/write_post.php
     submit_inquiry.sample.php
 ```
 
@@ -129,7 +140,7 @@ backend/
 
 3. `db_conn.php`에 DB 호스트·계정·DB명 입력.
 4. DB에 `schema.sql`의 `user_inquiry` 테이블이 있는지 확인.
-5. `app_config.php`에 Aligo 알림톡 값 입력. 키·수신자가 비어 있으면 DB 저장만 하고 알림톡은 보내지 않습니다.
+5. `app_config.php`에 Aligo 알림톡·`JWT_SECRET` 입력. JWT 없으면 관리자 API가 동작하지 않습니다.
 6. 공개 URL 확인 (경로 예시):
 
    `https://yeoon.co.kr/backend/api/submit_inquiry.php`
@@ -176,5 +187,10 @@ cd frontend && npm run start
 
 - `/contact/`에서 상담 제출 → DB 적재 및 응답 `result: "1"` 확인
 - `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 확인
-- `https://yeoon.co.kr/board/adm/` 로그인 후 글 생성/수정/삭제 확인
+- `/admin/login` → `admin` 로그인 → `/news/` 관리자 바(글쓰기) 노출
+- `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
+- `/admin/news/write`에서 글 작성 → 목록/상세 반영 (ISR 최대 60초)
+- 상세 페이지에서 수정·삭제 동작 확인
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
+
+카페24 배포 시 업로드: `backend/lib/`, `backend/api/board/auth/`, `write_post.php`, `config/app_config.php`(JWT_SECRET).
