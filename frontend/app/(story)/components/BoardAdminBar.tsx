@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { getBoardPathSlug } from '../constants/boardContent';
-import { deleteBoardPost, fetchBoardAdminMe, type BoardAdminMe } from '../lib/boardAdminApi';
+import { boardAdminLogout, deleteBoardPost, fetchBoardAdminMe, type BoardAdminMe } from '../lib/boardAdminApi';
 import type { BoTable } from '../types/board';
 
 type BoardAdminBarProps = {
@@ -41,6 +41,16 @@ export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
     };
   }, [boTable, wrId]);
 
+  async function handleLogout() {
+    try {
+      await boardAdminLogout();
+      setSession(EMPTY_SESSION);
+      router.refresh();
+    } catch (logoutError) {
+      window.alert(logoutError instanceof Error ? logoutError.message : '로그아웃에 실패했습니다.');
+    }
+  }
+
   async function handleDelete() {
     if (wrId === undefined || wrId <= 0) return;
     if (!window.confirm('이 게시물을 삭제하시겠습니까?')) return;
@@ -63,13 +73,11 @@ export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
     <div className="mx-auto mb-4 max-w-[900px] px-4 md:px-6" aria-label="게시판 관리">
       <div className="flex flex-wrap items-center justify-end gap-2 border border-[#e8e8e8] bg-[#f8f9fb] px-4 py-3">
         {session.mb_name !== null && (
-          <span className="mr-auto text-[13px] text-[#666]">
-            {session.mb_name} (관리자)
-            <Link href="/admin/login" className="ml-2 text-[#1a3151] underline">
-              계정
-            </Link>
-          </span>
+          <span className="mr-auto text-[13px] text-[#666]">{session.mb_name} (관리자)</span>
         )}
+        <button type="button" className={buttonClass} onClick={handleLogout}>
+          로그아웃
+        </button>
         {session.write_href !== null && (
           <Link href={session.write_href} className={buttonClass}>
             글쓰기

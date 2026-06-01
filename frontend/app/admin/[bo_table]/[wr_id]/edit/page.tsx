@@ -67,6 +67,7 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
 
   return (
     <AdminPostForm
+      key={`edit-${wrId}-${initialSubject}`}
       boTable={boTable}
       mode="edit"
       wrId={wrId}
