@@ -9,6 +9,13 @@ import { INQUIRY_DETAIL_PATH, INQUIRY_LIST_PATH } from '@/app/constants/inquiryA
 
 import { fetchInquiryList, type InquiryListItem } from '../lib/inquiryAdminApi';
 
+function formatInquirySummary(item: InquiryListItem): string {
+  if (item.c_state2?.trim()) return item.c_state2.trim();
+  if (item.utm_source?.trim()) return item.utm_source.trim();
+  const route = item.c_inflowurl?.trim() || item.c_inflow?.trim();
+  return route ?? '';
+}
+
 function formatDate(value: string | null): string {
   if (value === null || value === '') {
     return '-';
@@ -62,21 +69,24 @@ export default function AdminHub() {
           )}
           {recentInquiries.length > 0 && (
             <ul className="divide-y divide-[#eee]">
-              {recentInquiries.map(item => (
-                <li key={item.idx} className="py-3">
-                  <Link href={INQUIRY_DETAIL_PATH(item.idx)} className="block hover:bg-[#fafafa] -mx-2 px-2 py-1">
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="font-medium text-[#333]">{item.c_name ?? '-'}</span>
-                      <span className="text-[#666]">{item.c_tel ?? '-'}</span>
-                      <span className="rounded bg-[#eef2f7] px-2 py-0.5 text-xs text-[#1a3151]">
-                        {item.c_state ?? '-'}
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-1 text-sm text-[#666]">{item.c_content ?? ''}</p>
-                    <p className="mt-0.5 text-xs text-[#999]">{formatDate(item.c_date)}</p>
-                  </Link>
-                </li>
-              ))}
+              {recentInquiries.map(item => {
+                const summary = formatInquirySummary(item);
+                return (
+                  <li key={item.idx} className="py-3">
+                    <Link href={INQUIRY_DETAIL_PATH(item.idx)} className="block hover:bg-[#fafafa] -mx-2 px-2 py-1">
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="font-medium text-[#333]">{item.c_name ?? '-'}</span>
+                        <span className="text-[#666]">{item.c_tel ?? '-'}</span>
+                        <span className="rounded bg-[#eef2f7] px-2 py-0.5 text-xs text-[#1a3151]">
+                          {item.c_state ?? '-'}
+                        </span>
+                      </div>
+                      {summary !== '' && <p className="mt-1 line-clamp-1 text-sm text-[#666]">{summary}</p>}
+                      <p className="mt-0.5 text-xs text-[#999]">{formatDate(item.c_date)}</p>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
