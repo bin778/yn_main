@@ -198,6 +198,38 @@ function board_require_admin(
     return ['member' => $member, 'role' => $role];
 }
 
+/**
+ * 최고관리자(cf_admin)만 허용.
+ *
+ * @return array{member: array<string, mixed>}|null
+ */
+function board_require_super(
+    PDO $pdo,
+    string $secret,
+    string $cookie_name
+): ?array {
+    if ($secret === '') {
+        return null;
+    }
+
+    $claims = board_read_jwt_claims($secret, $cookie_name);
+    if ($claims === null || empty($claims['sub'])) {
+        return null;
+    }
+
+    $member = board_load_member($pdo, (string) $claims['sub']);
+    if ($member === null || !board_member_is_active($member)) {
+        return null;
+    }
+
+    $cf_admin = board_load_cf_admin($pdo);
+    if ($cf_admin === '' || (string) $member['mb_id'] !== $cf_admin) {
+        return null;
+    }
+
+    return ['member' => $member];
+}
+
 function board_display_name(array $member): string
 {
     $name = trim((string) ($member['mb_name'] ?? ''));

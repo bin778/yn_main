@@ -14,7 +14,7 @@ export default function AdminLoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const redirectTo = searchParams.get('url') || '/news/';
+  const redirectTo = searchParams.get('url') || '/admin/';
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

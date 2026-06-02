@@ -20,6 +20,16 @@ const nextConfig: NextConfig = {
         destination: '/admin/login/',
         permanent: false,
       },
+      {
+        source: '/board/adm/',
+        destination: '/admin/',
+        permanent: false,
+      },
+      {
+        source: '/board/adm',
+        destination: '/admin/',
+        permanent: false,
+      },
       { source: '/success', destination: '/success-story', permanent: true },
       { source: '/success/:wr_id', destination: '/success-story/:wr_id', permanent: true },
       { source: '/about.php', destination: '/about', permanent: true },

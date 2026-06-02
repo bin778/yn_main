@@ -107,12 +107,22 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 #### 게시판 관리자 (JWT, 그누보드 세션 불필요)
 
 - 로그인 UI: **`/admin/login/`** (URL 직접 입력, UI에 노출하지 않음) → JWT
-- 구 **`/board/bbs/login.php`** → `/admin/login/` (`next.config` redirect)
+- 대시보드: **`/admin/`** (로그인 후 기본 이동)
+- 구 **`/board/bbs/login.php`** → `/admin/login/`, **`/board/adm/`** → `/admin/` (`next.config` redirect)
 - 로그아웃: JWT + `/board/bbs/logout.php` (그누보드 쿠키 정리)
-- 세션 확인: `GET /api/board/auth/me.php?bo_table=news` (BoardAdminBar)
-- 글 CRUD: `POST|PUT|DELETE /api/board/write_post.php` (관리자 JWT 필수)
+- 세션 확인: `GET /api/board/auth/me.php` (BoardAdminBar는 `?bo_table=news` 등)
+- 글 CRUD: `POST|PUT|DELETE /api/board/write_post.php` (게시판 관리자 JWT)
 - `get_session.php`는 deprecated → `auth/me.php`로 위임
 - `app_config.php`에 `JWT_SECRET`(32자 이상 랜덤) 필수
+
+#### 상담 문의 관리 (JWT, 최고관리자만)
+
+- UI: **`/admin/inquiries/`** (목록), **`/admin/inquiries/{idx}/`** (상세·상태 저장)
+- `cf_admin`과 동일한 계정만 API 접근 가능 (`bo_admin` 제외)
+- `GET /api/inquiry/list.php` — `page`, `per_page` (기본 20)
+- `GET /api/inquiry/get.php?idx=` — 단건 상세
+- `PATCH /api/inquiry/update.php` — `c_state`, `block`, `c_state2`(메모, 45자)
+- 배포 시 `backend/api/inquiry/*.php`, `backend/lib/inquiry_admin.php`를 카페24 `/api/inquiry/`, `/lib/`에 업로드
 
 #### 디렉터리
 
@@ -126,6 +136,7 @@ backend/
   api/
     board/auth/login.php, logout.php, me.php
     board/write_post.php
+    inquiry/list.php, get.php, update.php
     submit_inquiry.sample.php
 ```
 

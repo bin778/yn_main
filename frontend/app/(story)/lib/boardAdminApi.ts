@@ -50,13 +50,19 @@ export async function boardAdminLogout(): Promise<void> {
   await parseJson(res);
 }
 
-export async function fetchBoardAdminMe(boTable: BoTable, wrId?: number): Promise<BoardAdminMe> {
-  const params = new URLSearchParams({ bo_table: boTable });
+export async function fetchBoardAdminMe(boTable?: BoTable, wrId?: number): Promise<BoardAdminMe> {
+  const params = new URLSearchParams();
+  if (boTable !== undefined) {
+    params.set('bo_table', boTable);
+  }
   if (wrId !== undefined && wrId > 0) {
     params.set('wr_id', String(wrId));
   }
 
-  const res = await fetch(`${AUTH_BASE}/me.php?${params.toString()}`, {
+  const query = params.toString();
+  const url = query ? `${AUTH_BASE}/me.php?${query}` : `${AUTH_BASE}/me.php`;
+
+  const res = await fetch(url, {
     credentials: 'include',
     cache: 'no-store',
   });
@@ -66,6 +72,14 @@ export async function fetchBoardAdminMe(boTable: BoTable, wrId?: number): Promis
   }
 
   return res.json() as Promise<BoardAdminMe>;
+}
+
+export function isSuperAdmin(me: BoardAdminMe): boolean {
+  return me.is_admin === 'super';
+}
+
+export function isAnyAdmin(me: BoardAdminMe): boolean {
+  return me.is_admin === 'super' || me.is_admin === 'board';
 }
 
 export async function createBoardPost(
