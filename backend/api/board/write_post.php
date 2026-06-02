@@ -3,6 +3,8 @@
 require_once __DIR__ . '/../../lib/cors.php';
 require_once __DIR__ . '/../../lib/bootstrap.php';
 require_once __DIR__ . '/../../lib/board_auth.php';
+require_once __DIR__ . '/../../lib/board_write.php';
+require_once __DIR__ . '/../../lib/board_files.php';
 
 board_handle_options('GET, POST, PUT, PATCH, DELETE, OPTIONS');
 
@@ -40,14 +42,13 @@ $client_ip = board_client_ip();
 $display_name = board_display_name($member);
 
 if ($method === 'POST') {
-    $wr_subject = trim((string) ($body['wr_subject'] ?? ''));
-    $wr_content = trim((string) ($body['wr_content'] ?? ''));
+    $parsed = board_parse_post_body($body, $now);
 
-    if ($wr_subject === '' || $wr_content === '') {
+    if ($parsed['wr_subject'] === '' || $parsed['wr_content'] === '') {
         board_json_response(['error' => '제목과 내용을 입력해 주세요.'], 400);
     }
 
-    if (mb_strlen($wr_subject, 'UTF-8') > 255) {
+    if (mb_strlen($parsed['wr_subject'], 'UTF-8') > 255) {
         board_json_response(['error' => '제목이 너무 깁니다.'], 400);
     }
 
@@ -76,20 +77,27 @@ if ($method === 'POST') {
             wr_datetime = :wr_datetime,
             wr_last = :wr_last,
             wr_ip = :wr_ip,
-            wr_option = 'html1'";
+            wr_option = :wr_option,
+            wr_1 = :wr_1,
+            wr_2 = :wr_2,
+            wr_3 = :wr_3";
 
         $stmt = $pdo->prepare($insert_sql);
         $stmt->execute([
             'wr_num'      => $next_num,
-            'wr_subject'  => $wr_subject,
-            'wr_content'  => $wr_content,
+            'wr_subject'  => $parsed['wr_subject'],
+            'wr_content'  => $parsed['wr_content'],
             'mb_id'       => (string) $member['mb_id'],
             'wr_name'     => $display_name,
             'wr_email'    => (string) ($member['mb_email'] ?? ''),
             'wr_homepage' => (string) ($member['mb_homepage'] ?? ''),
-            'wr_datetime' => $now,
+            'wr_datetime' => $parsed['wr_datetime'],
             'wr_last'     => $now,
             'wr_ip'       => $client_ip,
+            'wr_option'   => $parsed['wr_option'],
+            'wr_1'        => $parsed['wr_1'],
+            'wr_2'        => $parsed['wr_2'],
+            'wr_3'        => $parsed['wr_3'],
         ]);
 
         $new_wr_id = (int) $pdo->lastInsertId();
@@ -102,11 +110,11 @@ if ($method === 'POST') {
              VALUES (:bo_table, :wr_id, :wr_parent, :bn_datetime, :mb_id)'
         );
         $new_stmt->execute([
-            'bo_table'     => $bo_table,
-            'wr_id'        => $new_wr_id,
-            'wr_parent'    => $new_wr_id,
-            'bn_datetime'  => $now,
-            'mb_id'        => (string) $member['mb_id'],
+            'bo_table'    => $bo_table,
+            'wr_id'       => $new_wr_id,
+            'wr_parent'   => $new_wr_id,
+            'bn_datetime' => $parsed['wr_datetime'],
+            'mb_id'       => (string) $member['mb_id'],
         ]);
 
         $count_stmt = $pdo->prepare(
@@ -117,9 +125,9 @@ if ($method === 'POST') {
         $pdo->commit();
 
         board_json_response([
-            'ok'      => true,
-            'wr_id'   => $new_wr_id,
-            'bo_table'=> $bo_table,
+            'ok'       => true,
+            'wr_id'    => $new_wr_id,
+            'bo_table' => $bo_table,
         ], 201);
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) {
@@ -135,10 +143,9 @@ if ($method === 'PUT' || $method === 'PATCH') {
         board_json_response(['error' => '게시물 번호가 필요합니다.'], 400);
     }
 
-    $wr_subject = trim((string) ($body['wr_subject'] ?? ''));
-    $wr_content = trim((string) ($body['wr_content'] ?? ''));
+    $parsed = board_parse_post_body($body, $now);
 
-    if ($wr_subject === '' || $wr_content === '') {
+    if ($parsed['wr_subject'] === '' || $parsed['wr_content'] === '') {
         board_json_response(['error' => '제목과 내용을 입력해 주세요.'], 400);
     }
 
@@ -150,18 +157,32 @@ if ($method === 'PUT' || $method === 'PATCH') {
         board_json_response(['error' => '게시물을 찾을 수 없습니다.'], 404);
     }
 
+    if (!empty($body['remove_attachment'])) {
+        board_remove_attachment($pdo, $bo_table, $wr_id);
+    }
+
     $update = $pdo->prepare(
         "UPDATE `{$write_table}` SET
             wr_subject = :wr_subject,
             wr_content = :wr_content,
-            wr_last = :wr_last
+            wr_datetime = :wr_datetime,
+            wr_last = :wr_last,
+            wr_option = :wr_option,
+            wr_1 = :wr_1,
+            wr_2 = :wr_2,
+            wr_3 = :wr_3
          WHERE wr_id = :wr_id AND wr_is_comment = 0"
     );
     $update->execute([
-        'wr_subject' => $wr_subject,
-        'wr_content' => $wr_content,
-        'wr_last'    => $now,
-        'wr_id'      => $wr_id,
+        'wr_subject'  => $parsed['wr_subject'],
+        'wr_content'  => $parsed['wr_content'],
+        'wr_datetime' => $parsed['wr_datetime'],
+        'wr_last'     => $now,
+        'wr_option'   => $parsed['wr_option'],
+        'wr_1'        => $parsed['wr_1'],
+        'wr_2'        => $parsed['wr_2'],
+        'wr_3'        => $parsed['wr_3'],
+        'wr_id'       => $wr_id,
     ]);
 
     board_json_response(['ok' => true, 'wr_id' => $wr_id, 'bo_table' => $bo_table]);
@@ -217,9 +238,9 @@ if ($method === 'DELETE') {
                 bo_count_comment = GREATEST(0, CAST(bo_count_comment AS SIGNED) - :comment_delta)
              WHERE bo_table = :bo_table'
         )->execute([
-            'write_delta'    => $write_delta,
-            'comment_delta'  => $comment_count,
-            'bo_table'       => $bo_table,
+            'write_delta'   => $write_delta,
+            'comment_delta' => $comment_count,
+            'bo_table'      => $bo_table,
         ]);
 
         $pdo->commit();

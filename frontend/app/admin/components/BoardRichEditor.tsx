@@ -7,7 +7,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
 
@@ -19,6 +19,7 @@ type BoardRichEditorProps = {
   value: string;
   onChange: (html: string) => void;
   disabled?: boolean;
+  onUploadImage?: (file: File) => Promise<string>;
 };
 
 type ToolbarButtonProps = {
@@ -44,10 +45,12 @@ function ToolbarButton({ label, active, disabled, onClick }: ToolbarButtonProps)
   );
 }
 
-export default function BoardRichEditor({ value, onChange, disabled = false }: BoardRichEditorProps) {
+export default function BoardRichEditor({ value, onChange, disabled = false, onUploadImage }: BoardRichEditorProps) {
   const labelId = useId();
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<EditorTab>('editor');
   const [htmlDraft, setHtmlDraft] = useState(value);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const emitChange = useCallback(
     (html: string) => {
@@ -127,10 +130,30 @@ export default function BoardRichEditor({ value, onChange, disabled = false }: B
   }
 
   function setImage() {
-    if (editor === null) return;
+    if (editor === null || disabled) return;
+    if (onUploadImage) {
+      imageInputRef.current?.click();
+      return;
+    }
     const url = window.prompt('이미지 URL', 'https://');
     if (url === null || url.trim() === '') return;
     editor.chain().focus().setImage({ src: url.trim() }).run();
+  }
+
+  async function handleImageFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || editor === null || !onUploadImage) return;
+
+    setUploadingImage(true);
+    try {
+      const url = await onUploadImage(file);
+      editor.chain().focus().setImage({ src: url }).run();
+    } catch (uploadError) {
+      window.alert(uploadError instanceof Error ? uploadError.message : '이미지 업로드에 실패했습니다.');
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   const toolbarDisabled = disabled || tab === 'html' || editor === null;
@@ -200,7 +223,18 @@ export default function BoardRichEditor({ value, onChange, disabled = false }: B
         />
         <span className="mx-1 w-px self-stretch bg-[#ddd]" aria-hidden />
         <ToolbarButton label="링크" disabled={toolbarDisabled} onClick={setLink} />
-        <ToolbarButton label="이미지" disabled={toolbarDisabled} onClick={setImage} />
+        <ToolbarButton
+          label={uploadingImage ? '업로드…' : '이미지'}
+          disabled={toolbarDisabled || uploadingImage}
+          onClick={setImage}
+        />
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          className="hidden"
+          onChange={handleImageFileChange}
+        />
       </div>
 
       {tab === 'editor' ? (

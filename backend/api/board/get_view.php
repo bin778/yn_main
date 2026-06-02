@@ -87,6 +87,7 @@ try {
         FROM   `{$table}`
         WHERE  wr_id = :wr_id
         AND    wr_is_comment = 0
+        AND    wr_datetime <= NOW()
         LIMIT  1
     ";
 

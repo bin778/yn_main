@@ -1,7 +1,11 @@
 import type { BoTable } from '../types/board';
 
+import type { BoardPostAdmin, BoardPostPayload, BoardUploadPurpose } from '@/app/admin/lib/boardPostTypes';
+
 const AUTH_BASE = '/api/board/auth';
 const WRITE_API = '/api/board/write_post.php';
+const GET_POST_API = '/api/board/get_post.php';
+const UPLOAD_API = '/api/board/upload_file.php';
 const GNUBOARD_LOGOUT = '/board/bbs/logout.php';
 
 export type BoardAdminRole = '' | 'super' | 'group' | 'board';
@@ -82,41 +86,32 @@ export function isAnyAdmin(me: BoardAdminMe): boolean {
   return me.is_admin === 'super' || me.is_admin === 'board';
 }
 
-export async function createBoardPost(
-  boTable: BoTable,
-  wrSubject: string,
-  wrContent: string,
-): Promise<{ wr_id: number }> {
+export async function fetchBoardPostAdmin(boTable: BoTable, wrId: number): Promise<BoardPostAdmin> {
+  const res = await fetch(`${GET_POST_API}?bo_table=${boTable}&wr_id=${wrId}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  const data = await parseJson<{ ok: boolean; item: BoardPostAdmin }>(res);
+  return data.item;
+}
+
+export async function createBoardPost(boTable: BoTable, payload: BoardPostPayload): Promise<{ wr_id: number }> {
   const res = await fetch(WRITE_API, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      bo_table: boTable,
-      wr_subject: wrSubject,
-      wr_content: wrContent,
-    }),
+    body: JSON.stringify({ bo_table: boTable, ...payload }),
   });
   const data = await parseJson<{ wr_id: number }>(res);
   return { wr_id: data.wr_id };
 }
 
-export async function updateBoardPost(
-  boTable: BoTable,
-  wrId: number,
-  wrSubject: string,
-  wrContent: string,
-): Promise<void> {
+export async function updateBoardPost(boTable: BoTable, wrId: number, payload: BoardPostPayload): Promise<void> {
   const res = await fetch(WRITE_API, {
     method: 'PUT',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      bo_table: boTable,
-      wr_id: wrId,
-      wr_subject: wrSubject,
-      wr_content: wrContent,
-    }),
+    body: JSON.stringify({ bo_table: boTable, wr_id: wrId, ...payload }),
   });
   await parseJson(res);
 }
@@ -127,4 +122,27 @@ export async function deleteBoardPost(boTable: BoTable, wrId: number): Promise<v
     credentials: 'include',
   });
   await parseJson(res);
+}
+
+export async function uploadBoardFile(
+  boTable: BoTable,
+  file: File,
+  purpose: BoardUploadPurpose,
+  wrId?: number,
+): Promise<string> {
+  const form = new FormData();
+  form.set('bo_table', boTable);
+  form.set('purpose', purpose);
+  form.set('file', file);
+  if (wrId !== undefined && wrId > 0) {
+    form.set('wr_id', String(wrId));
+  }
+
+  const res = await fetch(UPLOAD_API, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
+  const data = await parseJson<{ ok: boolean; url: string }>(res);
+  return data.url;
 }

@@ -132,7 +132,7 @@ $order_by = ALLOWED_SORTS[$sort];
 // ── 총 게시물 수 조회 ─────────────────────────────────────────────────────
 
 try {
-    $where_sql = "WHERE wr_is_comment = 0";
+    $where_sql = "WHERE wr_is_comment = 0 AND wr_datetime <= NOW()";
     if ($has_q) {
         if ($sfl === 'subject') {
             $where_sql .= " AND wr_subject LIKE :q_subject";
@@ -174,6 +174,8 @@ try {
             w.wr_hit,
             w.wr_file,
             w.wr_content,
+            w.wr_1,
+            w.wr_option,
             (
                 SELECT bf_file
                 FROM   g5_board_file
@@ -185,7 +187,7 @@ try {
             ) AS thumbnail_file
         FROM `{$table}` w
         {$where_sql}
-        ORDER BY {$order_by}
+        ORDER BY (CASE WHEN w.wr_option LIKE '%notice%' THEN 0 ELSE 1 END), {$order_by}
         LIMIT :offset, :per_page
     ";
 
@@ -211,7 +213,10 @@ try {
 
     $items = array_map(function (array $row) use ($bo_table): array {
         $thumbnail_url = null;
-        if ($row['thumbnail_file'] !== null) {
+        $wr1 = trim((string) ($row['wr_1'] ?? ''));
+        if ($wr1 !== '') {
+            $thumbnail_url = normalize_image_url($wr1);
+        } elseif ($row['thumbnail_file'] !== null) {
             $thumbnail_url = BOARD_FILE_BASE . '/' . $bo_table . '/' . $row['thumbnail_file'];
         } else {
             $first_image_src = extract_first_image_src((string) $row['wr_content']);
