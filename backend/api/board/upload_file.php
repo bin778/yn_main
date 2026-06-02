@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../lib/cors.php';
 require_once __DIR__ . '/../../lib/bootstrap.php';
 require_once __DIR__ . '/../../lib/board_auth.php';
+require_once __DIR__ . '/../../lib/board_write.php';
 require_once __DIR__ . '/../../lib/board_files.php';
 
 board_handle_options('POST, OPTIONS');
