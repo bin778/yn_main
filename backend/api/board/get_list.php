@@ -101,6 +101,26 @@ function normalize_image_url(string $src): string
     return SITE_BASE_URL . '/' . ltrim($src, '/');
 }
 
+function normalize_legacy_thumb_url(string $src): string
+{
+    if (
+        preg_match(
+            '~^(https?://[^/]+)?(/.+/)thumb-([^/]+)_\d+x\d+\.(jpe?g|png|gif|webp)(\?.*)?$~i',
+            $src,
+            $matches
+        ) !== 1
+    ) {
+        return $src;
+    }
+
+    $host = $matches[1] ?? '';
+    $dir = $matches[2];
+    $filename = $matches[3];
+    $ext = $matches[4];
+
+    return $host . $dir . $filename . '.' . $ext;
+}
+
 // ── 입력 검증 ─────────────────────────────────────────────────────────────
 
 $raw_table = trim((string) ($_GET['bo_table'] ?? ''));
@@ -215,13 +235,13 @@ try {
         $thumbnail_url = null;
         $wr1 = trim((string) ($row['wr_1'] ?? ''));
         if ($wr1 !== '') {
-            $thumbnail_url = normalize_image_url($wr1);
+            $thumbnail_url = normalize_legacy_thumb_url(normalize_image_url($wr1));
         } elseif ($row['thumbnail_file'] !== null) {
             $thumbnail_url = BOARD_FILE_BASE . '/' . $bo_table . '/' . $row['thumbnail_file'];
         } else {
             $first_image_src = extract_first_image_src((string) $row['wr_content']);
             if ($first_image_src !== null) {
-                $thumbnail_url = normalize_image_url($first_image_src);
+                $thumbnail_url = normalize_legacy_thumb_url(normalize_image_url($first_image_src));
             }
         }
 

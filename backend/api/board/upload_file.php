@@ -71,6 +71,9 @@ try {
     ]);
 } catch (InvalidArgumentException $e) {
     board_json_response(['error' => $e->getMessage()], 400);
+} catch (RuntimeException $e) {
+    error_log('upload_file runtime error: ' . $e->getMessage());
+    board_json_response(['error' => $e->getMessage()], 500);
 } catch (Throwable $e) {
     error_log('upload_file error: ' . $e->getMessage());
     board_json_response(['error' => '파일 업로드에 실패했습니다.'], 500);

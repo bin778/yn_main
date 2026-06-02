@@ -1,10 +1,8 @@
 'use client';
 
 import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
-import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -66,11 +64,6 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],

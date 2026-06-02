@@ -19,6 +19,12 @@ if (!isset($JWT_COOKIE_NAME) || $JWT_COOKIE_NAME === '') {
 if (!isset($JWT_COOKIE_DOMAIN)) {
     $JWT_COOKIE_DOMAIN = '';
 }
+if (!isset($BOARD_FILE_DIR) || trim((string) $BOARD_FILE_DIR) === '') {
+    $BOARD_FILE_DIR = getenv('BOARD_FILE_DIR') ?: '';
+}
+if (!isset($BOARD_FILE_URL_BASE) || trim((string) $BOARD_FILE_URL_BASE) === '') {
+    $BOARD_FILE_URL_BASE = getenv('BOARD_FILE_URL_BASE') ?: 'https://yeoon.co.kr/board/data/file';
+}
 
 const BOARD_ALLOWED_TABLES = ['review', 'success', 'column', 'news'];
 

@@ -37,7 +37,9 @@ export function sanitizeBoardHtml(html: string): string {
     return '';
   }
 
-  const purified = DOMPurify.sanitize(trimmed, {
+  const normalized = normalizeLegacyThumbUrls(trimmed);
+
+  const purified = DOMPurify.sanitize(normalized, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     FORBID_ATTR: ['style', 'class', 'id', 'face', 'size', 'color', 'width', 'height'],
@@ -73,4 +75,40 @@ function collapseEmptyBlocks(html: string): string {
 
   const result = root.innerHTML.trim();
   return result === '' ? '' : result;
+}
+
+function normalizeLegacyThumbUrls(html: string): string {
+  return html.replace(/(<img[^>]*\ssrc=["'])([^"']+)(["'][^>]*>)/gi, (_full, prefix, src, suffix) => {
+    const normalizedSrc = normalizeLegacyThumbUrl(src);
+    return `${prefix}${normalizedSrc}${suffix}`;
+  });
+}
+
+function normalizeLegacyThumbUrl(src: string): string {
+  const decoded = decodeHtmlEntities(src.trim());
+
+  // /.../thumb-<name>_<w>x<h>.<ext> 또는 https://.../thumb-... 패턴을 원본 파일 경로로 치환
+  const match = decoded.match(/^(https?:\/\/[^/]+)?(\/.+\/)thumb-([^/]+)_\d+x\d+\.(jpe?g|png|gif|webp)(\?.*)?$/i);
+  if (match === null) {
+    return src;
+  }
+
+  const host = match[1] ?? '';
+  const dir = match[2];
+  const filename = match[3];
+  const ext = match[4];
+  return `${host}${dir}${filename}.${ext}`;
+}
+
+function decodeHtmlEntities(value: string): string {
+  if (typeof document === 'undefined') {
+    return value
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = value;
+  return textarea.value;
 }
