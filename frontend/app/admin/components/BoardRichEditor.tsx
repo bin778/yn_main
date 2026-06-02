@@ -1,0 +1,253 @@
+'use client';
+
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align';
+import Underline from '@tiptap/extension-underline';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { useCallback, useEffect, useId, useState } from 'react';
+
+import { sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
+
+import './board-rich-editor.css';
+
+type EditorTab = 'editor' | 'html';
+
+type BoardRichEditorProps = {
+  value: string;
+  onChange: (html: string) => void;
+  disabled?: boolean;
+};
+
+type ToolbarButtonProps = {
+  label: string;
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+};
+
+function ToolbarButton({ label, active, disabled, onClick }: ToolbarButtonProps) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-pressed={active}
+      className={`min-w-[32px] rounded border px-2 py-1 text-xs font-medium transition-colors disabled:opacity-40 ${
+        active ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#333] hover:bg-[#f5f7fb]'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+export default function BoardRichEditor({ value, onChange, disabled = false }: BoardRichEditorProps) {
+  const labelId = useId();
+  const [tab, setTab] = useState<EditorTab>('editor');
+  const [htmlDraft, setHtmlDraft] = useState(value);
+
+  const emitChange = useCallback(
+    (html: string) => {
+      const cleaned = sanitizeBoardHtml(html);
+      onChange(cleaned);
+    },
+    [onChange],
+  );
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    editable: !disabled && tab === 'editor',
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [2, 3] },
+      }),
+      Underline,
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Image.configure({ HTMLAttributes: { class: 'max-w-full h-auto' } }),
+      Placeholder.configure({ placeholder: '내용을 입력하세요…' }),
+    ],
+    content: value,
+    onUpdate: ({ editor: ed }) => {
+      if (tab === 'editor') {
+        emitChange(ed.getHTML());
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (editor === null) return;
+    editor.setEditable(!disabled && tab === 'editor');
+  }, [disabled, editor, tab]);
+
+  useEffect(() => {
+    if (editor === null || tab !== 'editor') return;
+    const current = editor.getHTML();
+    if (current !== value) {
+      editor.commands.setContent(value || '<p></p>', { emitUpdate: false });
+    }
+  }, [editor, tab, value]);
+
+  function switchToHtml() {
+    if (editor === null) return;
+    const next = editor.getHTML();
+    setHtmlDraft(next);
+    setTab('html');
+    emitChange(next);
+  }
+
+  function switchToEditor() {
+    const cleaned = sanitizeBoardHtml(htmlDraft);
+    setHtmlDraft(cleaned);
+    setTab('editor');
+    if (editor !== null) {
+      editor.commands.setContent(cleaned || '<p></p>', { emitUpdate: false });
+    }
+    emitChange(cleaned);
+  }
+
+  function setLink() {
+    if (editor === null) return;
+    const previous = editor.getAttributes('link').href as string | undefined;
+    const url = window.prompt('링크 URL', previous ?? 'https://');
+    if (url === null) return;
+    if (url.trim() === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run();
+  }
+
+  function setImage() {
+    if (editor === null) return;
+    const url = window.prompt('이미지 URL', 'https://');
+    if (url === null || url.trim() === '') return;
+    editor.chain().focus().setImage({ src: url.trim() }).run();
+  }
+
+  const toolbarDisabled = disabled || tab === 'html' || editor === null;
+
+  return (
+    <div className="board-rich-editor">
+      <div
+        className="flex flex-wrap gap-1 border border-b-0 border-[#ddd] bg-[#f8f9fb] px-2 py-2"
+        role="toolbar"
+        aria-label="서식"
+      >
+        <ToolbarButton
+          label="굵게"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('bold') ?? false}
+          onClick={() => editor?.chain().focus().toggleBold().run()}
+        />
+        <ToolbarButton
+          label="기울임"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('italic') ?? false}
+          onClick={() => editor?.chain().focus().toggleItalic().run()}
+        />
+        <ToolbarButton
+          label="밑줄"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('underline') ?? false}
+          onClick={() => editor?.chain().focus().toggleUnderline().run()}
+        />
+        <span className="mx-1 w-px self-stretch bg-[#ddd]" aria-hidden />
+        <ToolbarButton
+          label="H2"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('heading', { level: 2 }) ?? false}
+          onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+        />
+        <ToolbarButton
+          label="H3"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('heading', { level: 3 }) ?? false}
+          onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+        />
+        <ToolbarButton
+          label="본문"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('paragraph') ?? false}
+          onClick={() => editor?.chain().focus().setParagraph().run()}
+        />
+        <span className="mx-1 w-px self-stretch bg-[#ddd]" aria-hidden />
+        <ToolbarButton
+          label="왼쪽"
+          disabled={toolbarDisabled}
+          active={editor?.isActive({ textAlign: 'left' }) ?? false}
+          onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+        />
+        <ToolbarButton
+          label="가운데"
+          disabled={toolbarDisabled}
+          active={editor?.isActive({ textAlign: 'center' }) ?? false}
+          onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+        />
+        <ToolbarButton
+          label="오른쪽"
+          disabled={toolbarDisabled}
+          active={editor?.isActive({ textAlign: 'right' }) ?? false}
+          onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+        />
+        <span className="mx-1 w-px self-stretch bg-[#ddd]" aria-hidden />
+        <ToolbarButton label="링크" disabled={toolbarDisabled} onClick={setLink} />
+        <ToolbarButton label="이미지" disabled={toolbarDisabled} onClick={setImage} />
+      </div>
+
+      {tab === 'editor' ? (
+        <div className="border border-[#ddd] bg-white text-sm text-[#333]" aria-labelledby={labelId}>
+          <EditorContent editor={editor} />
+        </div>
+      ) : (
+        <textarea
+          id={labelId}
+          disabled={disabled}
+          rows={16}
+          value={htmlDraft}
+          onChange={event => {
+            setHtmlDraft(event.target.value);
+            emitChange(event.target.value);
+          }}
+          className="w-full border border-[#ddd] bg-white px-3 py-2 font-mono text-xs leading-relaxed text-[#333]"
+          spellCheck={false}
+        />
+      )}
+
+      <div className="flex justify-end gap-0 border border-t-0 border-[#ddd] bg-[#f8f9fb]">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => {
+            if (tab === 'html') switchToEditor();
+          }}
+          className={`px-4 py-1.5 text-xs font-medium ${
+            tab === 'editor' ? 'bg-white text-[#1a3151] shadow-sm' : 'text-[#666] hover:text-[#333]'
+          }`}
+        >
+          에디터
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => {
+            if (tab === 'editor') switchToHtml();
+          }}
+          className={`px-4 py-1.5 text-xs font-medium ${
+            tab === 'html' ? 'bg-white text-[#1a3151] shadow-sm' : 'text-[#666] hover:text-[#333]'
+          }`}
+        >
+          HTML
+        </button>
+      </div>
+    </div>
+  );
+}

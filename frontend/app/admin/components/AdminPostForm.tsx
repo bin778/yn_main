@@ -7,6 +7,9 @@ import { BOARD_META } from '@/app/(story)/constants/boardContent';
 import type { BoTable } from '@/app/(story)/types/board';
 
 import { getAdminListPath } from '../lib/adminBoard';
+import { boardHtmlIsEmpty, sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
+
+import BoardRichEditor from './BoardRichEditor';
 
 type AdminPostFormProps = {
   boTable: BoTable;
@@ -28,20 +31,28 @@ export default function AdminPostForm({
   onDelete,
 }: AdminPostFormProps) {
   const [subject, setSubject] = useState(initialSubject);
-  const [content, setContent] = useState(initialContent);
+  const [content, setContent] = useState(() => sanitizeBoardHtml(initialContent));
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const meta = BOARD_META[boTable];
   const listPath = getAdminListPath(boTable);
+  const editorKey = `${mode}-${wrId ?? 'new'}-${initialSubject}`;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    const cleanedContent = sanitizeBoardHtml(content);
+    if (boardHtmlIsEmpty(cleanedContent)) {
+      setError('내용을 입력해 주세요.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await onSubmit(subject.trim(), content.trim());
+      await onSubmit(subject.trim(), cleanedContent);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '저장에 실패했습니다.');
       setLoading(false);
@@ -85,17 +96,8 @@ export default function AdminPostForm({
           />
         </div>
         <div>
-          <label htmlFor="wr_content" className="mb-1 block text-sm font-medium">
-            내용
-          </label>
-          <textarea
-            id="wr_content"
-            required
-            rows={16}
-            value={content}
-            onChange={event => setContent(event.target.value)}
-            className="w-full border border-[#ddd] px-3 py-2 text-sm"
-          />
+          <span className="mb-1 block text-sm font-medium">내용</span>
+          <BoardRichEditor key={editorKey} value={content} onChange={setContent} disabled={loading} />
         </div>
         {error !== null && (
           <p className="text-sm text-[#b42318]" role="alert">

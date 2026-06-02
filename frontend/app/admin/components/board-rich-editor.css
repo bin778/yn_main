@@ -1,0 +1,41 @@
+.board-rich-editor .ProseMirror {
+  min-height: 320px;
+  padding: 12px 14px;
+  outline: none;
+}
+
+.board-rich-editor .ProseMirror p {
+  margin: 0 0 0.75em;
+}
+
+.board-rich-editor .ProseMirror h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+}
+
+.board-rich-editor .ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.85em 0 0.4em;
+}
+
+.board-rich-editor .ProseMirror ul,
+.board-rich-editor .ProseMirror ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+
+.board-rich-editor .ProseMirror a {
+  color: #1a3151;
+  text-decoration: underline;
+}
+
+.board-rich-editor .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+}
+
+.board-rich-editor .ProseMirror-focused {
+  outline: none;
+}
