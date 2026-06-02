@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { ADMIN_HUB_PATH } from '@/app/constants/adminAuth';
+
 import { getBoardPathSlug } from '../constants/boardContent';
 import { boardAdminLogout, deleteBoardPost, fetchBoardAdminMe, type BoardAdminMe } from '../lib/boardAdminApi';
 import type { BoTable } from '../types/board';
@@ -77,6 +79,9 @@ export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
         {session.mb_name !== null && (
           <span className="mr-auto text-[13px] text-[#666]">{session.mb_name} (관리자)</span>
         )}
+        <Link href={ADMIN_HUB_PATH} className={buttonClass}>
+          관리자
+        </Link>
         <button type="button" className={buttonClass} onClick={handleLogout}>
           로그아웃
         </button>
