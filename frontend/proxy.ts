@@ -33,5 +33,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/board/bbs/board.php',
+  matcher: ['/board/bbs/board.php', '/board/bbs/board.php/'],
 };

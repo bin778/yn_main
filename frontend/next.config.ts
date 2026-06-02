@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
+const LEGACY_BOARD_PATH = '/board/bbs/board.php';
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
@@ -14,7 +15,35 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
+    const legacyBoardRedirects = [
+      {
+        source: LEGACY_BOARD_PATH,
+        has: [{ type: 'query' as const, key: 'bo_table', value: 'review' }],
+        destination: '/review/',
+        permanent: true,
+      },
+      {
+        source: LEGACY_BOARD_PATH,
+        has: [{ type: 'query' as const, key: 'bo_table', value: 'success' }],
+        destination: '/success-story/',
+        permanent: true,
+      },
+      {
+        source: LEGACY_BOARD_PATH,
+        has: [{ type: 'query' as const, key: 'bo_table', value: 'column' }],
+        destination: '/column/',
+        permanent: true,
+      },
+      {
+        source: LEGACY_BOARD_PATH,
+        has: [{ type: 'query' as const, key: 'bo_table', value: 'news' }],
+        destination: '/news/',
+        permanent: true,
+      },
+    ];
+
     return [
+      ...legacyBoardRedirects,
       {
         source: '/board/bbs/login.php',
         destination: '/admin/login/',
