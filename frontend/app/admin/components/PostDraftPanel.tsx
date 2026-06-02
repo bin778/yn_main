@@ -41,9 +41,15 @@ export default function PostDraftPanel({ boTable, onLoad, refreshKey = 0 }: Post
       <button
         type="button"
         onClick={handleToggle}
-        className="rounded border border-[#ddd] bg-white px-3 py-1.5 text-sm text-[#333] hover:bg-[#f5f7fb]"
+        className="flex items-center gap-1 rounded border border-[#ddd] bg-white px-3 py-1.5 text-sm text-[#333] hover:bg-[#f5f7fb]"
       >
-        임시 저장 ({drafts.length})
+        불러오기
+        {drafts.length > 0 && (
+          <span className="rounded-full bg-[#1a3151] px-1.5 py-0.5 text-xs font-bold text-white leading-none">
+            {drafts.length}
+          </span>
+        )}
+        <span className="text-[#999]">▾</span>
       </button>
 
       {open && (

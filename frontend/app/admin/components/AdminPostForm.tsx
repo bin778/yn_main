@@ -11,7 +11,6 @@ import type { BoTable } from '@/app/(story)/types/board';
 import { saveBoardDraft } from '../lib/boardDraftStorage';
 import {
   defaultDatetimeLocal,
-  slugifySubject,
   toDatetimeLocalValue,
   toMysqlDatetime,
   type BoardPostFile,
@@ -81,7 +80,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
   const [seoTitle, setSeoTitle] = useState(initial.seoTitle);
   const [seoSlug, setSeoSlug] = useState(initial.seoSlug);
-  const [seoSlugTouched, setSeoSlugTouched] = useState(initial.seoSlug !== '');
+  const [showSlugInput, setShowSlugInput] = useState(initial.seoSlug !== '');
   const [attachment, setAttachment] = useState<BoardPostFile | null>(initial.attachment);
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
@@ -98,12 +97,6 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
 
   function handleSubjectChange(value: string) {
     setSubject(value);
-    if (!seoSlugTouched && value.trim() !== '') {
-      setSeoSlug(slugifySubject(value));
-    }
-    if (seoTitle.trim() === '' || seoTitle === subject) {
-      setSeoTitle(value);
-    }
   }
 
   async function handleThumbnailFile(file: File) {
@@ -151,7 +144,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
     setThumbnailUrl(draft.wr_1);
     setSeoTitle(draft.wr_seo_title);
     setSeoSlug(draft.wr_seo_slug);
-    setSeoSlugTouched(true);
+    if (draft.wr_seo_slug !== '') setShowSlugInput(true);
     setPendingAttachment(null);
     setRemoveAttachment(false);
   }
@@ -217,8 +210,9 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         {mode === 'edit' && wrId !== undefined ? ` #${wrId}` : ''}
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4 border border-[#e8e8e8] bg-white p-6">
-        <div className="flex flex-wrap items-center gap-4">
+      <form onSubmit={handleSubmit} className="space-y-5 border border-[#e8e8e8] bg-white p-6">
+        {/* 상단: 공지 + 임시저장 */}
+        <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-[#333]">
             <input
               type="checkbox"
@@ -229,79 +223,121 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             />
             공지
           </label>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
+          <p className="ml-auto text-xs text-[#999]">
+            <span className="text-[#b42318] font-bold">*</span> 필수 입력
+          </p>
+          <div className="flex items-center gap-2">
             <PostDraftPanel boTable={boTable} onLoad={loadDraft} refreshKey={draftRefreshKey} />
             <button
               type="button"
               disabled={loading}
               onClick={handleSaveDraft}
-              className="rounded border border-[#ddd] bg-white px-3 py-1.5 text-sm text-[#333] hover:bg-[#f5f7fb]"
+              className="rounded bg-[#f0f2f5] px-3 py-1.5 text-sm font-medium text-[#333] hover:bg-[#e4e7ec]"
             >
               임시 저장
             </button>
           </div>
         </div>
 
+        {/* 필수: 제목 */}
         <div>
-          <label htmlFor="wr_subject" className="mb-1 block text-sm font-medium">
-            제목
+          <label htmlFor="wr_subject" className="mb-1 flex items-center gap-1 text-sm font-medium">
+            제목{' '}
+            <span className="text-[#b42318]" aria-hidden>
+              *
+            </span>
           </label>
           <input
             id="wr_subject"
             required
             value={subject}
             onChange={event => handleSubjectChange(event.target.value)}
+            className="w-full border border-[#ddd] px-3 py-2 text-sm focus:border-[#1a3151] focus:outline-none"
+          />
+        </div>
+
+        {/* 발행일 */}
+        <div className="w-full sm:w-72">
+          <label htmlFor="wr_datetime" className="mb-1 block text-sm font-medium">
+            발행일 <span className="text-xs font-normal text-[#999]">(기본: 현재 시각)</span>
+          </label>
+          <input
+            id="wr_datetime"
+            type="datetime-local"
+            value={datetimeLocal}
+            onChange={event => setDatetimeLocal(event.target.value)}
             className="w-full border border-[#ddd] px-3 py-2 text-sm"
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="wr_datetime" className="mb-1 block text-sm font-medium">
-              발행일
-            </label>
-            <input
-              id="wr_datetime"
-              type="datetime-local"
-              value={datetimeLocal}
-              onChange={event => setDatetimeLocal(event.target.value)}
-              className="w-full border border-[#ddd] px-3 py-2 text-sm"
+        {/* SEO 섹션 */}
+        <details className="rounded border border-[#e0e8f4] bg-[#f8fafc]">
+          <summary className="cursor-pointer select-none px-4 py-3 text-sm font-medium text-[#1a3151]">
+            SEO 설정 <span className="text-xs font-normal text-[#999]">(선택, 비우면 제목·글번호로 자동 설정)</span>
+          </summary>
+          <div className="space-y-4 border-t border-[#e0e8f4] px-4 py-4">
+            <SeoPreview
+              boTable={boTable}
+              title={seoTitle.trim() || subject}
+              slug={seoSlug}
+              wrId={wrId}
+              description={seoDescription}
             />
+            <div>
+              <label htmlFor="wr_seo_title" className="mb-1 block text-sm font-medium">
+                SEO 제목 <span className="text-xs font-normal text-[#999]">(비우면 제목 사용)</span>
+              </label>
+              <input
+                id="wr_seo_title"
+                value={seoTitle}
+                placeholder={subject || '제목을 입력하면 자동으로 사용됩니다'}
+                onChange={event => setSeoTitle(event.target.value)}
+                className="w-full border border-[#ddd] px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              {!showSlugInput ? (
+                <button
+                  type="button"
+                  className="text-xs text-[#1a3151] underline"
+                  onClick={() => setShowSlugInput(true)}
+                >
+                  Slug 직접 입력 (기본: 글 번호)
+                </button>
+              ) : (
+                <>
+                  <label htmlFor="wr_seo_slug" className="mb-1 block text-sm font-medium">
+                    Slug <span className="text-xs font-normal text-[#999]">(비우면 글 번호로 저장)</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      id="wr_seo_slug"
+                      value={seoSlug}
+                      onChange={event => setSeoSlug(event.target.value)}
+                      className="flex-1 border border-[#ddd] px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      className="border border-[#ddd] px-3 py-2 text-xs text-[#999] hover:text-[#b42318]"
+                      onClick={() => {
+                        setSeoSlug('');
+                        setShowSlugInput(false);
+                      }}
+                    >
+                      초기화
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </details>
 
-        <SeoPreview boTable={boTable} title={seoTitle} slug={seoSlug} description={seoDescription} />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="wr_seo_title" className="mb-1 block text-sm font-medium">
-              SEO 제목
-            </label>
-            <input
-              id="wr_seo_title"
-              value={seoTitle}
-              onChange={event => setSeoTitle(event.target.value)}
-              className="w-full border border-[#ddd] px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="wr_seo_slug" className="mb-1 block text-sm font-medium">
-              Slug
-            </label>
-            <input
-              id="wr_seo_slug"
-              value={seoSlug}
-              onChange={event => {
-                setSeoSlugTouched(true);
-                setSeoSlug(event.target.value);
-              }}
-              className="w-full border border-[#ddd] px-3 py-2 text-sm"
-            />
-          </div>
-        </div>
-
+        {/* 썸네일 */}
         <div>
-          <span className="mb-1 block text-sm font-medium">썸네일</span>
+          <span className="mb-1 block text-sm font-medium">
+            썸네일 <span className="text-xs font-normal text-[#999]">(선택)</span>
+          </span>
           <div className="flex flex-wrap items-start gap-4">
             {thumbnailUrl !== '' && (
               <div className="relative h-24 w-40 overflow-hidden rounded border border-[#ddd] bg-[#f5f5f5]">
@@ -330,7 +366,12 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         </div>
 
         <div>
-          <span className="mb-1 block text-sm font-medium">내용</span>
+          <span className="mb-1 flex items-center gap-1 text-sm font-medium">
+            내용{' '}
+            <span className="text-[#b42318]" aria-hidden>
+              *
+            </span>
+          </span>
           <BoardRichEditor
             key={editorKey}
             value={content}

@@ -8,14 +8,15 @@ type SeoPreviewProps = {
   title: string;
   slug: string;
   description?: string;
+  wrId?: number;
 };
 
 const SITE_ORIGIN = 'https://yeoon.co.kr';
 
-export default function SeoPreview({ boTable, title, slug, description }: SeoPreviewProps) {
+export default function SeoPreview({ boTable, title, slug, description, wrId }: SeoPreviewProps) {
   const pathSlug = BOARD_PATH_SLUG[boTable];
-  const safeSlug = slug.trim() || 'post';
-  const url = `${SITE_ORIGIN}/${pathSlug}/${safeSlug}/`;
+  const idPart = slug.trim() || (wrId !== undefined ? String(wrId) : '{글번호}');
+  const url = `${SITE_ORIGIN}/${pathSlug}/${idPart}/`;
   const displayTitle = title.trim() || '제목을 입력하세요';
   const displayDesc = description?.trim().slice(0, 160) || '본문 내용이 검색 결과 설명으로 사용될 수 있습니다.';
 
