@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: '/board/bbs/login.php',
+        destination: '/admin/login/',
+        permanent: false,
+      },
       { source: '/success', destination: '/success-story', permanent: true },
       { source: '/success/:wr_id', destination: '/success-story/:wr_id', permanent: true },
       { source: '/about.php', destination: '/about', permanent: true },

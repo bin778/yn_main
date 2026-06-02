@@ -107,6 +107,7 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 #### 게시판 관리자 (JWT, 그누보드 세션 불필요)
 
 - 로그인 UI: **`/admin/login/`** (URL 직접 입력, UI에 노출하지 않음) → JWT
+- 구 **`/board/bbs/login.php`** → `/admin/login/` (`next.config` redirect)
 - 로그아웃: JWT + `/board/bbs/logout.php` (그누보드 쿠키 정리)
 - 세션 확인: `GET /api/board/auth/me.php?bo_table=news` (BoardAdminBar)
 - 글 CRUD: `POST|PUT|DELETE /api/board/write_post.php` (관리자 JWT 필수)
