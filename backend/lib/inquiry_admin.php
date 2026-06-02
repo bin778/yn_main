@@ -119,3 +119,46 @@ function inquiry_normalize_block($block): string
 
     return '0';
 }
+
+/**
+ * GET 파라미터에서 WHERE 절과 바인드 파라미터를 생성한다.
+ *
+ * @param array<string, mixed> $params  $_GET 배열
+ * @return array{0: string, 1: array<string, mixed>}  [WHERE 절, 바인드 배열]
+ */
+function inquiry_build_where(array $params): array
+{
+    $where  = [];
+    $bind   = [];
+
+    $date_from = trim((string) ($params['date_from'] ?? ''));
+    $date_to   = trim((string) ($params['date_to']   ?? ''));
+
+    if ($date_from !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from)) {
+        $where[] = 'DATE(c_date) >= :date_from';
+        $bind[':date_from'] = $date_from;
+    }
+    if ($date_to !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)) {
+        $where[] = 'DATE(c_date) <= :date_to';
+        $bind[':date_to'] = $date_to;
+    }
+
+    $q = trim((string) ($params['q'] ?? ''));
+    if ($q !== '') {
+        $q_digits = preg_replace('/\D/', '', $q);
+        $like     = '%' . $q . '%';
+
+        if ($q_digits !== '' && strlen($q_digits) >= 4) {
+            $where[] = "(c_name LIKE :q_name OR REPLACE(c_tel, '-', '') LIKE :q_tel)";
+            $bind[':q_name'] = $like;
+            $bind[':q_tel']  = '%' . $q_digits . '%';
+        } else {
+            $where[] = 'c_name LIKE :q_name';
+            $bind[':q_name'] = $like;
+        }
+    }
+
+    $where_sql = $where !== [] ? (' WHERE ' . implode(' AND ', $where)) : '';
+
+    return [$where_sql, $bind];
+}

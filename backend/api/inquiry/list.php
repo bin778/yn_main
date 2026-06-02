@@ -20,35 +20,39 @@ if ($auth === null) {
     board_json_response(['error' => '최고관리자 권한이 필요합니다.'], 403);
 }
 
-$page = max(1, (int) ($_GET['page'] ?? 1));
-$per_page = (int) ($_GET['per_page'] ?? 20);
-if ($per_page < 1) {
-    $per_page = 20;
-}
-if ($per_page > 100) {
-    $per_page = 100;
-}
+$page     = max(1, (int) ($_GET['page'] ?? 1));
+$per_page = (int) ($_GET['per_page'] ?? 15);
+if ($per_page < 1)   $per_page = 15;
+if ($per_page > 100) $per_page = 100;
 
 $offset = ($page - 1) * $per_page;
 
+/** @noinspection PhpUndefinedFunctionInspection */
+[$where_sql, $where_params] = inquiry_build_where($_GET);
+
 try {
-    $count_stmt = $pdo->query('SELECT COUNT(*) AS cnt FROM user_inquiry');
+    $count_sql  = "SELECT COUNT(*) AS cnt FROM user_inquiry" . $where_sql;
+    $count_stmt = $pdo->prepare($count_sql);
+    $count_stmt->execute($where_params);
     $total = (int) $count_stmt->fetchColumn();
 
-    $list_sql = 'SELECT idx, c_date, c_name, c_tel, c_content, c_inflow, c_inflowurl, c_state, c_state2,
-                        block, userip, utm_source, utm_campaign, c_email
-                 FROM user_inquiry
-                 ORDER BY idx DESC
-                 LIMIT :limit OFFSET :offset';
+    $list_sql = "SELECT idx, c_date, c_name, c_tel,
+                        c_inflowurl, c_inflow, c_state, c_state2,
+                        block, userip, utm_source, utm_campaign
+                FROM user_inquiry"
+                . $where_sql
+                . " ORDER BY idx DESC
+                LIMIT :limit OFFSET :offset";
+
     $stmt = $pdo->prepare($list_sql);
+    foreach ($where_params as $key => $val) {
+        $stmt->bindValue($key, $val);
+    }
     $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset,  PDO::PARAM_INT);
     $stmt->execute();
 
-    $items = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $items[] = inquiry_format_list_row($row);
-    }
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     board_json_response([
         'ok'       => true,

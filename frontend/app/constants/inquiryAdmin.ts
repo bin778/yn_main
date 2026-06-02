@@ -5,4 +5,4 @@ export type InquiryState = (typeof INQUIRY_STATES)[number];
 export const INQUIRY_LIST_PATH = '/admin/inquiries/';
 export const INQUIRY_DETAIL_PATH = (idx: number) => `/admin/inquiries/${idx}/`;
 
-export const INQUIRY_PER_PAGE_DEFAULT = 20;
+export const INQUIRY_PER_PAGE_DEFAULT = 15;
