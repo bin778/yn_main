@@ -1,7 +1,8 @@
 import { DEFAULT_BOARD_SORT, type BoardListSort } from '../constants/boardSort';
 import type { BoardListResponse, BoardSearchField, BoardView } from '../types/board';
 
-const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board';
+const BOARD_API_BASE =
+  typeof window !== 'undefined' ? '/api/board' : (process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board');
 const BOARD_LIST_PER_PAGE = 12;
 
 export async function fetchBoardList(
