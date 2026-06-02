@@ -1,10 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
-import { buildAdminLoginUrl } from '@/app/constants/adminAuth';
 
 import { getBoardPathSlug } from '../constants/boardContent';
 import { boardAdminLogout, deleteBoardPost, fetchBoardAdminMe, type BoardAdminMe } from '../lib/boardAdminApi';
@@ -25,7 +23,6 @@ const EMPTY_SESSION: BoardAdminMe = {
 
 export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const [session, setSession] = useState<BoardAdminMe | null>(null);
 
   useEffect(() => {
@@ -69,24 +66,10 @@ export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
     }
   }
 
-  if (session === null) return null;
+  if (session === null || session.is_admin === '') return null;
 
   const buttonClass =
     'inline-flex h-10 items-center justify-center border border-[#1a3151] px-4 text-[13px] font-medium text-[#1a3151] transition-colors hover:bg-[#1a3151] hover:text-white';
-
-  if (session.is_admin === '') {
-    const loginHref = buildAdminLoginUrl(pathname || `/${getBoardPathSlug(boTable)}/`);
-
-    return (
-      <div className="mx-auto mb-4 max-w-[900px] px-4 md:px-6" aria-label="게시판 관리">
-        <div className="flex justify-end border border-[#e8e8e8] bg-[#f8f9fb] px-4 py-3">
-          <Link href={loginHref} className={buttonClass}>
-            관리자 로그인
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto mb-4 max-w-[900px] px-4 md:px-6" aria-label="게시판 관리">
