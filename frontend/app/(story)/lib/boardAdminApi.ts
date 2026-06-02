@@ -2,6 +2,7 @@ import type { BoTable } from '../types/board';
 
 const AUTH_BASE = '/api/board/auth';
 const WRITE_API = '/api/board/write_post.php';
+const GNUBOARD_LOGOUT = '/board/bbs/logout.php';
 
 export type BoardAdminRole = '' | 'super' | 'group' | 'board';
 
@@ -40,6 +41,8 @@ export async function boardAdminLogin(mbId: string, mbPassword: string): Promise
 }
 
 export async function boardAdminLogout(): Promise<void> {
+  await fetch(GNUBOARD_LOGOUT, { method: 'GET', credentials: 'include' }).catch(() => {});
+
   const res = await fetch(`${AUTH_BASE}/logout.php`, {
     method: 'POST',
     credentials: 'include',

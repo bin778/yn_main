@@ -15,6 +15,7 @@ export default function AdminLoginForm() {
   const [loading, setLoading] = useState(false);
 
   const redirectTo = searchParams.get('url') || '/news/';
+  const fromLegacy = searchParams.get('from') === 'legacy';
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,6 +35,12 @@ export default function AdminLoginForm() {
 
   return (
     <>
+      {fromLegacy ? (
+        <p className="mb-4 rounded border border-[#dbeafe] bg-[#eff6ff] px-4 py-3 text-sm text-[#1e3a5f]" role="status">
+          게시판 관리(글쓰기·수정·삭제)는 이 페이지에서 로그인해 주세요. 구 주소(
+          <code className="text-[12px]">/board/bbs/login.php</code>)는 사용하지 않습니다.
+        </p>
+      ) : null}
       <form onSubmit={handleSubmit} className="space-y-4 border border-[#e8e8e8] bg-white p-6">
         <div>
           <label htmlFor="mb_id" className="mb-1 block text-sm font-medium text-[#333]">

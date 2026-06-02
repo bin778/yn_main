@@ -11,13 +11,23 @@ const BO_TABLE_TO_PATH: Record<string, string> = {
 };
 
 /**
- * 구 그누보드 게시판 URL → 신 Next.js 경로 301 영구 리다이렉트
+ * 구 그누보드 URL → Next.js 경로 처리
  *
- * /board/bbs/board.php?bo_table=review&wr_id=44  →  /review/44/
- * /board/bbs/board.php?bo_table=success           →  /success-story/
+ * /board/bbs/login.php  →  /admin/login/ (JWT 관리자 로그인)
+ * /board/bbs/board.php?bo_table=…  →  /review/ … (목록·상세)
  */
 export function proxy(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  if (pathname === '/board/bbs/login.php') {
+    const destination = new URL('/admin/login/', request.url);
+    const returnUrl = searchParams.get('url');
+    if (returnUrl) {
+      destination.searchParams.set('url', returnUrl);
+    }
+    destination.searchParams.set('from', 'legacy');
+    return NextResponse.redirect(destination, { status: 302 });
+  }
 
   const boTable = searchParams.get('bo_table');
   const wrId = searchParams.get('wr_id');
@@ -33,5 +43,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/board/bbs/board.php',
+  matcher: ['/board/bbs/board.php', '/board/bbs/login.php'],
 };
