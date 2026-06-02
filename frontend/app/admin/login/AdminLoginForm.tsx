@@ -2,9 +2,17 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
-import { boardAdminLogin } from '@/app/(story)/lib/boardAdminApi';
+import { boardAdminLogin, fetchBoardAdminMe, isAnyAdmin } from '@/app/(story)/lib/boardAdminApi';
+import { ADMIN_HUB_PATH } from '@/app/constants/adminAuth';
+
+function resolveRedirectPath(url: string | null): string {
+  if (url === null || url === '' || !url.startsWith('/') || url.startsWith('//')) {
+    return ADMIN_HUB_PATH;
+  }
+  return url;
+}
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -13,8 +21,30 @@ export default function AdminLoginForm() {
   const [mbPassword, setMbPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
-  const redirectTo = searchParams.get('url') || '/admin/';
+  const redirectTo = resolveRedirectPath(searchParams.get('url'));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchBoardAdminMe()
+      .then(session => {
+        if (cancelled) return;
+        if (isAnyAdmin(session)) {
+          router.replace(redirectTo);
+          return;
+        }
+        setSessionChecked(true);
+      })
+      .catch(() => {
+        if (!cancelled) setSessionChecked(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [redirectTo, router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,6 +60,10 @@ export default function AdminLoginForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!sessionChecked) {
+    return <p className="text-sm text-[#666]">확인 중…</p>;
   }
 
   return (
