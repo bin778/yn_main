@@ -97,6 +97,7 @@ function board_slugify(string $text): string
  *   wr_1: string,
  *   wr_2: string,
  *   wr_3: string,
+ *   wr_4: string,
  *   notice: bool
  * }
  */
@@ -118,6 +119,11 @@ function board_parse_post_body(array $body, string $default_datetime): array
         $wr_2 = board_slugify($wr_subject);
     }
 
+    $wr_4 = trim((string) ($body['wr_seo_description'] ?? $body['wr_4'] ?? ''));
+    if (mb_strlen($wr_4, 'UTF-8') > 500) {
+        $wr_4 = mb_substr($wr_4, 0, 500, 'UTF-8');
+    }
+
     return [
         'wr_subject'  => $wr_subject,
         'wr_content'  => $wr_content,
@@ -126,6 +132,7 @@ function board_parse_post_body(array $body, string $default_datetime): array
         'wr_1'        => $wr_1,
         'wr_2'        => $wr_2,
         'wr_3'        => $wr_3,
+        'wr_4'        => $wr_4,
         'notice'      => $notice,
     ];
 }
@@ -147,8 +154,9 @@ function board_format_admin_post(array $row, string $bo_table): array
         'wr_option'     => $row['wr_option'] ?? '',
         'notice'        => $option['notice'],
         'wr_1'          => (string) ($row['wr_1'] ?? ''),
-        'wr_seo_slug'   => (string) ($row['wr_2'] ?? ''),
-        'wr_seo_title'  => (string) ($row['wr_3'] ?? ''),
-        'bo_table'      => $bo_table,
+        'wr_seo_slug'         => (string) ($row['wr_2'] ?? ''),
+        'wr_seo_title'        => (string) ($row['wr_3'] ?? ''),
+        'wr_seo_description'  => (string) ($row['wr_4'] ?? ''),
+        'bo_table'            => $bo_table,
     ];
 }

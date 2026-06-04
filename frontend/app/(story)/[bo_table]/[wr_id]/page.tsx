@@ -7,6 +7,7 @@ import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardViewSection from '../../components/BoardViewSection';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import { fetchBoardView } from '../../lib/boardApi';
+import { resolveBoardMetaDescription } from '../../lib/boardSeo';
 
 export const revalidate = 300;
 
@@ -25,10 +26,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   try {
     const post = await fetchBoardView(boTable, wrIdNum);
-    const { label } = BOARD_META[boTable];
+    const { label, description: boardDescription } = BOARD_META[boTable];
+    const metaDescription =
+      resolveBoardMetaDescription(post.wr_seo_description, post.wr_content) || boardDescription;
 
     return {
       title: `${post.wr_subject} | ${label} | ${SITE_NAME}`,
+      description: metaDescription,
+      openGraph: {
+        title: `${post.wr_subject} | ${label}`,
+        description: metaDescription,
+      },
       alternates: { canonical: `/${getBoardPathSlug(boTable)}/${wrIdNum}` },
     };
   } catch {

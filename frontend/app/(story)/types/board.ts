@@ -47,6 +47,7 @@ export type BoardView = {
   wr_name: string;
   wr_datetime: string;
   wr_hit: number;
+  wr_seo_description?: string;
   prev: BoardNavItem;
   next: BoardNavItem;
   files: BoardFile[];

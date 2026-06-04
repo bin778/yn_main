@@ -9,6 +9,8 @@ import { createBoardPost, updateBoardPost, uploadBoardFile } from '@/app/(story)
 import type { BoTable } from '@/app/(story)/types/board';
 
 import { saveBoardDraft } from '../lib/boardDraftStorage';
+import { SEO_DESCRIPTION_MAX, stripHtmlForMetaDescription } from '@/app/(story)/lib/boardSeo';
+
 import {
   defaultDatetimeLocal,
   toDatetimeLocalValue,
@@ -33,6 +35,7 @@ export type AdminPostInitial = {
   thumbnailUrl: string;
   seoTitle: string;
   seoSlug: string;
+  seoDescription: string;
   attachment: BoardPostFile | null;
 };
 
@@ -45,13 +48,6 @@ type AdminPostFormProps = {
   onDelete?: () => Promise<void>;
 };
 
-function stripHtmlPreview(html: string): string {
-  if (typeof document === 'undefined') return '';
-  const el = document.createElement('div');
-  el.innerHTML = html;
-  return (el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 160);
-}
-
 function buildPayload(
   subject: string,
   content: string,
@@ -60,6 +56,7 @@ function buildPayload(
   thumbnailUrl: string,
   seoTitle: string,
   seoSlug: string,
+  seoDescription: string,
   removeAttachment: boolean,
 ): BoardPostPayload {
   return {
@@ -70,6 +67,7 @@ function buildPayload(
     wr_1: thumbnailUrl.trim(),
     wr_seo_title: seoTitle.trim(),
     wr_seo_slug: seoSlug.trim(),
+    wr_seo_description: seoDescription.trim(),
     remove_attachment: removeAttachment,
   };
 }
@@ -82,6 +80,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
   const [seoTitle, setSeoTitle] = useState(initial.seoTitle);
   const [seoSlug, setSeoSlug] = useState(initial.seoSlug);
+  const [seoDescription, setSeoDescription] = useState(initial.seoDescription);
   const [showSlugInput, setShowSlugInput] = useState(initial.seoSlug !== '');
   const [attachment, setAttachment] = useState<BoardPostFile | null>(initial.attachment);
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
@@ -96,7 +95,8 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const listPath = getAdminListPath(boTable);
   const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}`;
 
-  const seoDescription = useMemo(() => stripHtmlPreview(content), [content]);
+  const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
+  const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
 
   function handleSubjectChange(value: string) {
     setSubject(value);
@@ -128,6 +128,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       thumbnailUrl,
       seoTitle,
       seoSlug,
+      seoDescription,
       removeAttachment,
     );
   }
@@ -147,6 +148,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
     setThumbnailUrl(draft.wr_1);
     setSeoTitle(draft.wr_seo_title);
     setSeoSlug(draft.wr_seo_slug);
+    setSeoDescription(draft.wr_seo_description ?? '');
     if (draft.wr_seo_slug !== '') setShowSlugInput(true);
     setPendingAttachment(null);
     setRemoveAttachment(false);
@@ -327,7 +329,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
               title={seoTitle.trim() || subject}
               slug={seoSlug}
               wrId={wrId}
-              description={seoDescription}
+              description={seoPreviewDescription}
             />
             <div>
               <label htmlFor="wr_seo_title" className="mb-1 block text-sm font-medium">
@@ -340,6 +342,28 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
                 onChange={event => setSeoTitle(event.target.value)}
                 className="w-full border border-[#ddd] px-3 py-2 text-sm"
               />
+            </div>
+            <div>
+              <label htmlFor="wr_seo_description" className="mb-1 block text-sm font-medium">
+                SEO 설명{' '}
+                <span className="text-xs font-normal text-[#999]">
+                  (비우면 본문 요약 사용, 최대 {SEO_DESCRIPTION_MAX}자)
+                </span>
+              </label>
+              <textarea
+                id="wr_seo_description"
+                rows={3}
+                maxLength={SEO_DESCRIPTION_MAX}
+                value={seoDescription}
+                placeholder={
+                  bodyDescriptionFallback || '본문을 입력하면 검색 결과 설명 미리보기에 반영됩니다'
+                }
+                onChange={event => setSeoDescription(event.target.value)}
+                className="w-full resize-y border border-[#ddd] px-3 py-2 text-sm leading-relaxed"
+              />
+              <p className="mt-1 text-xs text-[#999]">
+                {seoDescription.length}/{SEO_DESCRIPTION_MAX}자 · 본문과 다른 검색용 요약을 쓸 수 있습니다.
+              </p>
             </div>
             <div>
               {!showSlugInput ? (
@@ -482,6 +506,7 @@ export function emptyAdminPostInitial(): AdminPostInitial {
     thumbnailUrl: '',
     seoTitle: '',
     seoSlug: '',
+    seoDescription: '',
     attachment: null,
   };
 }

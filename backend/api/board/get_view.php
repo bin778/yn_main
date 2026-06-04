@@ -135,7 +135,7 @@ if ($wr_id <= 0) {
 try {
     $view_sql = "
         SELECT wr_id, wr_num, wr_subject, wr_content,
-               wr_name, wr_datetime, wr_hit, wr_file
+               wr_name, wr_datetime, wr_hit, wr_file, wr_4
         FROM   `{$table}`
         WHERE  wr_id = :wr_id
         AND    wr_is_comment = 0
@@ -233,15 +233,16 @@ try {
     };
 
     json_response([
-        'wr_id'       => (int) $post['wr_id'],
-        'wr_subject'  => $post['wr_subject'],
-        'wr_content'  => normalize_content_image_sources((string) $post['wr_content']),
-        'wr_name'     => $post['wr_name'],
-        'wr_datetime' => $post['wr_datetime'],
-        'wr_hit'      => (int) $post['wr_hit'] + 1,
-        'prev'        => $format_nav($prev_row),
-        'next'        => $format_nav($next_row),
-        'files'       => $files,
+        'wr_id'                => (int) $post['wr_id'],
+        'wr_subject'           => $post['wr_subject'],
+        'wr_content'           => normalize_content_image_sources((string) $post['wr_content']),
+        'wr_name'              => $post['wr_name'],
+        'wr_datetime'          => $post['wr_datetime'],
+        'wr_hit'               => (int) $post['wr_hit'] + 1,
+        'wr_seo_description'   => (string) ($post['wr_4'] ?? ''),
+        'prev'                 => $format_nav($prev_row),
+        'next'                 => $format_nav($next_row),
+        'files'                => $files,
     ]);
 } catch (PDOException $e) {
     error_log('[board/get_view] DB error: ' . $e->getMessage());

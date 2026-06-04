@@ -80,7 +80,8 @@ if ($method === 'POST') {
             wr_option = :wr_option,
             wr_1 = :wr_1,
             wr_2 = :wr_2,
-            wr_3 = :wr_3";
+            wr_3 = :wr_3,
+            wr_4 = :wr_4";
 
         $stmt = $pdo->prepare($insert_sql);
         $stmt->execute([
@@ -98,6 +99,7 @@ if ($method === 'POST') {
             'wr_1'        => $parsed['wr_1'],
             'wr_2'        => $parsed['wr_2'],
             'wr_3'        => $parsed['wr_3'],
+            'wr_4'        => $parsed['wr_4'],
         ]);
 
         $new_wr_id = (int) $pdo->lastInsertId();
@@ -170,7 +172,8 @@ if ($method === 'PUT' || $method === 'PATCH') {
             wr_option = :wr_option,
             wr_1 = :wr_1,
             wr_2 = :wr_2,
-            wr_3 = :wr_3
+            wr_3 = :wr_3,
+            wr_4 = :wr_4
          WHERE wr_id = :wr_id AND wr_is_comment = 0"
     );
     $update->execute([
@@ -182,6 +185,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
         'wr_1'        => $parsed['wr_1'],
         'wr_2'        => $parsed['wr_2'],
         'wr_3'        => $parsed['wr_3'],
+        'wr_4'        => $parsed['wr_4'],
         'wr_id'       => $wr_id,
     ]);
 
