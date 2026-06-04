@@ -22,10 +22,12 @@ export default function ProcessSocialSection() {
   return (
     <section className="bg-[#f5f7fa] py-16 md:py-20" aria-labelledby="process-heading">
       <div className="mx-auto max-w-[1200px] px-6 md:px-12">
-        <p className="text-center text-lg font-bold tracking-tight text-[#023373] md:text-left">{PROCESS_LABEL}</p>
+        <p className="text-center text-base md:text-lg font-bold tracking-tight text-[#023373] md:text-left">
+          {PROCESS_LABEL}
+        </p>
         <h2
           id="process-heading"
-          className="mt-4 text-center text-4xl font-bold tracking-tight text-[#121212] md:text-left"
+          className="mt-4 text-center text-3xl md:text-4xl font-bold tracking-tight text-[#121212] md:text-left"
         >
           {PROCESS_TITLE}
         </h2>

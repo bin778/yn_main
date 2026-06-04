@@ -9,19 +9,19 @@ export default function Footer() {
 
         <div className="lg:hidden">
           {FOOTER_LEGAL_LINES.map(line => (
-            <p key={line} className="text-center text-sm leading-relaxed">
+            <p key={line} className="text-center text-xs md:text-sm leading-relaxed">
               {line}
             </p>
           ))}
         </div>
-        <div className="hidden text-sm leading-relaxed text-[#8B8B8B] lg:block">
+        <div className="hidden text-xs md:text-sm leading-relaxed text-[#8B8B8B] lg:block">
           <p className="whitespace-pre-line">{FOOTER_LEGAL_LINES.join('\n')}</p>
         </div>
 
         <hr className="my-6 border-t border-black/5" />
 
         <div className="flex flex-col items-center gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <p className="text-center text-[13px] text-[#a9a9a9] lg:text-right">{FOOTER_COPYRIGHT}</p>
+          <p className="text-center text-[11px] md:text-[13px] text-[#a9a9a9] lg:text-right">{FOOTER_COPYRIGHT}</p>
         </div>
       </div>
     </footer>

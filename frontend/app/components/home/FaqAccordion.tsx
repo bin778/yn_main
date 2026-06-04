@@ -36,12 +36,12 @@ export default function FaqAccordion() {
               <li key={item.question} className="flex list-none flex-col gap-2">
                 <button
                   type="button"
-                  className="flex w-full items-start justify-between gap-3 rounded-[10px] bg-white px-4 py-5 text-left text-base font-bold text-[#333] transition-colors hover:bg-gray-50 sm:gap-4 sm:px-6 sm:py-6 sm:text-lg"
+                  className="flex w-full items-start justify-between gap-3 rounded-[10px] bg-white px-4 py-3 sm:py-4 md:py-5 text-left text-sm font-bold text-[#333] transition-colors hover:bg-gray-50 sm:gap-4 sm:px-6 sm:py-6 sm:text-base md:text-lg"
                   aria-expanded={isOpen}
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                 >
                   <span>{item.question}</span>
-                  <span className="relative mt-1 inline-block h-6 w-6 shrink-0" aria-hidden>
+                  <span className="relative mt-0 md:mt-1 inline-block h-6 w-6 shrink-0" aria-hidden>
                     <span
                       className={`absolute left-1/2 top-0 h-7 w-px -translate-x-1/2 bg-[#333] transition-all ${
                         isOpen ? 'scale-y-0' : ''
@@ -56,7 +56,9 @@ export default function FaqAccordion() {
                   }`}
                 >
                   <div className="min-h-0">
-                    <div className="whitespace-pre-line px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-6">{item.answer}</div>
+                    <div className="whitespace-pre-line px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-6 text-sm md:text-base">
+                      {item.answer}
+                    </div>
                   </div>
                 </div>
               </li>

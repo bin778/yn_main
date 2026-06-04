@@ -115,7 +115,7 @@ export default function Header() {
             aria-label="메뉴 닫기"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute right-0 top-0 flex h-full w-[min(100%,320px)] flex-col bg-white shadow-xl">
+          <div className="absolute right-0 top-0 flex h-full w-[100%] sm:w-[min(300px)] flex-col bg-white shadow-xl">
             <div className="flex h-[80px] items-center justify-between border-b border-gray-100 px-4">
               <span className="text-sm font-bold text-black">MENU</span>
               <button
@@ -132,7 +132,7 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="border-b border-gray-100 px-5 py-4 text-[16px] font-bold text-black"
+                  className="border-b border-gray-100 px-5 py-4 text-[14px] md:text-[16px] font-bold text-black"
                   onClick={() => setMobileOpen(false)}
                 >
                   {item.label}

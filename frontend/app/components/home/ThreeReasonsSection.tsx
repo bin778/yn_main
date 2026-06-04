@@ -8,18 +8,21 @@ export default function ThreeReasonsSection() {
   return (
     <section className="bg-white py-16 md:py-20" aria-labelledby="three-reasons-heading">
       <div className="mx-auto max-w-[1200px] px-6 md:px-12">
-        <h2 id="three-reasons-heading" className="text-center text-4xl font-bold tracking-tight text-[#121212]">
+        <h2
+          id="three-reasons-heading"
+          className="text-center text-2xl md:text-4xl font-bold tracking-tight text-[#121212]"
+        >
           {THREE_REASONS_TITLE}
         </h2>
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
+        <div className="mt-8 md:mt-12 grid gap-4 md:gap-6 lg:gap-8 lg:grid-cols-3">
           {THREE_REASONS_CARDS.map(card => (
             <article key={card.title} className="overflow-hidden rounded-sm border border-gray-100 bg-white shadow-sm">
               <div className="flex min-h-[140px] items-center justify-center bg-[#f5f7fa] px-6 py-10">
-                <ReasonIcon iconId={card.iconId} className="h-16 w-16 md:h-[72px] md:w-[72px]" />
+                <ReasonIcon iconId={card.iconId} className="h-12 w-12 md:h-16 md:w-16 md:h-[72px] md:w-[72px]" />
               </div>
               <div className="px-6 py-6">
-                <h3 className="text-xl font-bold tracking-tight text-[#222]">{card.title}</h3>
-                <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-[#666]">{card.body}</p>
+                <h3 className="text-lg md:text-xl font-bold tracking-tight text-[#222]">{card.title}</h3>
+                <p className="mt-3 whitespace-pre-line text-sm md:text-base leading-relaxed text-[#666]">{card.body}</p>
               </div>
             </article>
           ))}

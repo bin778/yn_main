@@ -52,8 +52,8 @@ export default function HeroSwiperBundle() {
                 <div className="absolute inset-0 z-[1] bg-black/25" aria-hidden />
                 <Link href={CONTACT_HREF} className="absolute inset-0 z-[2]" aria-label="상담 문의로 이동" />
                 <div className="relative z-[3] flex min-h-[min(100vh,720px)] flex-col items-center justify-center px-6 pb-24 pt-28 text-center text-white">
-                  <p className="text-[46px] font-bold leading-tight tracking-tight">{slide.title}</p>
-                  <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/85">
+                  <p className="text-[40px] md:text-[46px] font-bold leading-tight tracking-tight">{slide.title}</p>
+                  <p className="mt-5 max-w-md text-[13px] md:text-[15px] leading-relaxed text-white/85">
                     {slide.bodyLines.map((line, lineIndex) => (
                       <span key={line}>
                         {line}
@@ -61,7 +61,7 @@ export default function HeroSwiperBundle() {
                       </span>
                     ))}
                   </p>
-                  <p className="mt-16">
+                  <p className="mt-12 md:mt-16">
                     <CtaButton />
                   </p>
                 </div>

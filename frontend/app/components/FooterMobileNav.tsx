@@ -19,7 +19,10 @@ export default function FooterMobileNav() {
       <ul className="flex flex-col">
         {MAIN_NAV_LINKS.map(item => (
           <li key={item.href} className="border-t border-gray-100">
-            <Link href={item.href} className="block px-1 py-3.5 text-[16px] font-bold text-[#121212]">
+            <Link
+              href={item.href}
+              className="block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]"
+            >
               {item.label}
             </Link>
           </li>
@@ -27,7 +30,7 @@ export default function FooterMobileNav() {
         <li className="border-t border-gray-100">
           <button
             type="button"
-            className="flex w-full items-center justify-between px-1 py-3.5 text-left text-[16px] font-bold text-[#121212]"
+            className="flex w-full items-center justify-between px-1 py-3.5 text-left text-[14px] md:text-[16px] font-bold text-[#121212]"
             onClick={() => setStoryOpen(open => !open)}
             aria-expanded={storyOpen}
           >
@@ -40,7 +43,7 @@ export default function FooterMobileNav() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="block px-4 py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white"
+                    className="block px-4 py-2 md:py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white"
                   >
                     {item.label}
                   </Link>
@@ -50,7 +53,10 @@ export default function FooterMobileNav() {
           ) : null}
         </li>
         <li className="border-t border-gray-100">
-          <Link href={CONTACT_NAV_HREF} className="block px-1 py-3.5 text-[16px] font-bold text-[#121212]">
+          <Link
+            href={CONTACT_NAV_HREF}
+            className="block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]"
+          >
             {CONTACT_NAV_LABEL}
           </Link>
         </li>
