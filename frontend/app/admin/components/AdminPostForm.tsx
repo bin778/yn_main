@@ -17,15 +17,13 @@ import {
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
 import { getAdminListPath } from '../lib/adminBoard';
+import { BOARD_ATTACHMENT_ACCEPT, BOARD_ATTACHMENT_HINT, BOARD_IMAGE_ACCEPT } from '../lib/boardAttachmentAccept';
 import { boardHtmlIsEmpty, sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
 
 import BoardRichEditor from './BoardRichEditor';
 import FilePickerField from './FilePickerField';
 import PostDraftPanel from './PostDraftPanel';
 import SeoPreview from './SeoPreview';
-
-const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp';
-const ATTACHMENT_ACCEPT = `${IMAGE_ACCEPT},application/pdf`;
 
 export type AdminPostInitial = {
   subject: string;
@@ -393,7 +391,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
               </div>
             )}
             <FilePickerField
-              accept={IMAGE_ACCEPT}
+              accept={BOARD_IMAGE_ACCEPT}
               uploadLabel="썸네일 업로드"
               changeLabel="이미지 변경"
               removeLabel="썸네일 제거"
@@ -424,9 +422,11 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         </div>
 
         <div>
-          <span className="mb-1 block text-sm font-medium">파일 첨부 (1개)</span>
+          <span className="mb-1 block text-sm font-medium">
+            파일 첨부 (1개) <span className="text-xs font-normal text-[#999]">({BOARD_ATTACHMENT_HINT})</span>
+          </span>
           <FilePickerField
-            accept={ATTACHMENT_ACCEPT}
+            accept={BOARD_ATTACHMENT_ACCEPT}
             uploadLabel="파일 첨부"
             changeLabel="파일 변경"
             removeLabel="첨부 제거"

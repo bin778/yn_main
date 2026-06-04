@@ -2,7 +2,16 @@
 
 const BOARD_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 const BOARD_UPLOAD_IMAGE_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-const BOARD_UPLOAD_FILE_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+
+/** @see frontend/app/admin/lib/boardAttachmentAccept.ts — 확장자 목록 동기화 */
+const BOARD_UPLOAD_FILE_EXT = [
+    'jpg', 'jpeg', 'png', 'gif', 'webp',
+    'pdf',
+    'doc', 'docx', 'hwp', 'hwpx', 'txt', 'rtf', 'odt',
+    'xls', 'xlsx', 'csv', 'ods',
+    'ppt', 'pptx',
+    'zip', '7z', 'rar',
+];
 
 function board_file_storage_dir(string $bo_table): string
 {
