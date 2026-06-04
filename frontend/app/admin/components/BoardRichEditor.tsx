@@ -68,7 +68,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Image.configure({ HTMLAttributes: { class: 'max-w-full h-auto' } }),
+      Image.configure({ inline: true }),
       Placeholder.configure({ placeholder: '내용을 입력하세요…' }),
     ],
     content: value,
@@ -110,10 +110,15 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     emitChange(cleaned);
   }
 
-  /** 블록 이미지 삽입 후 Gapcursor 때문에 스페이스가 두 번 필요해지는 문제 방지 */
-  function insertImageWithParagraphAfter(src: string) {
-    if (editor === null) return;
-    editor.chain().focus().setImage({ src }).insertContent('<p></p>').focus('end').run();
+  function insertEditorImage(src: string): boolean {
+    if (editor === null) return false;
+    const trimmed = src.trim();
+    if (trimmed === '') return false;
+    const ok = editor.chain().focus().setImage({ src: trimmed }).run();
+    if (!ok) {
+      window.alert('이미지를 본문에 넣지 못했습니다. 다시 시도해 주세요.');
+    }
+    return ok;
   }
 
   function setLink() {
@@ -136,7 +141,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     }
     const url = window.prompt('이미지 URL', 'https://');
     if (url === null || url.trim() === '') return;
-    insertImageWithParagraphAfter(url.trim());
+    if (!insertEditorImage(url.trim())) return;
   }
 
   async function handleImageFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -147,7 +152,9 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     setUploadingImage(true);
     try {
       const url = await onUploadImage(file);
-      insertImageWithParagraphAfter(url);
+      if (!insertEditorImage(url)) {
+        return;
+      }
     } catch (uploadError) {
       window.alert(uploadError instanceof Error ? uploadError.message : '이미지 업로드에 실패했습니다.');
     } finally {
