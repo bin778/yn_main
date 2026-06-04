@@ -20,8 +20,12 @@ import { getAdminListPath } from '../lib/adminBoard';
 import { boardHtmlIsEmpty, sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
 
 import BoardRichEditor from './BoardRichEditor';
+import FilePickerField from './FilePickerField';
 import PostDraftPanel from './PostDraftPanel';
 import SeoPreview from './SeoPreview';
+
+const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp';
+const ATTACHMENT_ACCEPT = `${IMAGE_ACCEPT},application/pdf`;
 
 export type AdminPostInitial = {
   subject: string;
@@ -85,6 +89,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
   const [uploadingThumb, setUploadingThumb] = useState(false);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [draftRefreshKey, setDraftRefreshKey] = useState(0);
@@ -201,6 +206,49 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   }
 
   const attachmentLabel = pendingAttachment?.name ?? attachment?.source ?? null;
+  const hasThumbnail = thumbnailUrl !== '';
+  const hasAttachment = attachmentLabel !== null && !removeAttachment;
+
+  function handleAttachmentFile(file: File) {
+    if (mode === 'edit' && wrId !== undefined && wrId > 0) {
+      setUploadingAttachment(true);
+      setError(null);
+      uploadBoardFile(boTable, file, 'attachment', wrId)
+        .then(() => {
+          setAttachment({
+            no: 0,
+            source: file.name,
+            url: '',
+            size: file.size,
+            is_image: file.type.startsWith('image/'),
+            width: null,
+            height: null,
+          });
+          setRemoveAttachment(false);
+          setPendingAttachment(null);
+        })
+        .catch(uploadError => {
+          setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');
+        })
+        .finally(() => setUploadingAttachment(false));
+      return;
+    }
+    setPendingAttachment(file);
+    setRemoveAttachment(false);
+  }
+
+  function handleRemoveAttachment() {
+    setRemoveAttachment(true);
+    setPendingAttachment(null);
+  }
+
+  const attachmentHint = (() => {
+    if (!hasAttachment || attachmentLabel === null) return null;
+    if (mode === 'create' && pendingAttachment !== null) {
+      return `저장 시 함께 업로드: ${pendingAttachment.name}`;
+    }
+    return `현재: ${attachmentLabel}`;
+  })();
 
   return (
     <main className="mx-auto max-w-[900px] px-4 py-10 md:px-6">
@@ -339,29 +387,23 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             썸네일 <span className="text-xs font-normal text-[#999]">(선택)</span>
           </span>
           <div className="flex flex-wrap items-start gap-4">
-            {thumbnailUrl !== '' && (
-              <div className="relative h-24 w-40 overflow-hidden rounded border border-[#ddd] bg-[#f5f5f5]">
+            {hasThumbnail && (
+              <div className="relative h-24 w-40 shrink-0 overflow-hidden rounded border border-[#ddd] bg-[#f5f5f5]">
                 <Image src={thumbnailUrl} alt="" fill className="object-cover" sizes="160px" unoptimized />
               </div>
             )}
-            <div className="space-y-2">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                disabled={loading || uploadingThumb}
-                onChange={event => {
-                  const file = event.target.files?.[0];
-                  event.target.value = '';
-                  if (file) void handleThumbnailFile(file);
-                }}
-                className="block text-sm"
-              />
-              {thumbnailUrl !== '' && (
-                <button type="button" className="text-xs text-[#b42318] underline" onClick={() => setThumbnailUrl('')}>
-                  썸네일 제거
-                </button>
-              )}
-            </div>
+            <FilePickerField
+              accept={IMAGE_ACCEPT}
+              uploadLabel="썸네일 업로드"
+              changeLabel="이미지 변경"
+              removeLabel="썸네일 제거"
+              busyLabel="썸네일 업로드 중…"
+              disabled={loading}
+              busy={uploadingThumb}
+              hasSelection={hasThumbnail}
+              onFileSelect={file => void handleThumbnailFile(file)}
+              onRemove={() => setThumbnailUrl('')}
+            />
           </div>
         </div>
 
@@ -383,61 +425,19 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
 
         <div>
           <span className="mb-1 block text-sm font-medium">파일 첨부 (1개)</span>
-          {attachmentLabel !== null && !removeAttachment && (
-            <p className="mb-2 text-sm text-[#666]">
-              현재: {attachmentLabel}
-              {mode === 'edit' && (
-                <button
-                  type="button"
-                  className="ml-2 text-xs text-[#b42318] underline"
-                  onClick={() => {
-                    setRemoveAttachment(true);
-                    setPendingAttachment(null);
-                  }}
-                >
-                  제거
-                </button>
-              )}
-            </p>
-          )}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
-            disabled={loading}
-            onChange={event => {
-              const file = event.target.files?.[0];
-              event.target.value = '';
-              if (!file) return;
-              if (mode === 'edit' && wrId !== undefined && wrId > 0) {
-                setLoading(true);
-                uploadBoardFile(boTable, file, 'attachment', wrId)
-                  .then(() => {
-                    setAttachment({
-                      no: 0,
-                      source: file.name,
-                      url: '',
-                      size: file.size,
-                      is_image: file.type.startsWith('image/'),
-                      width: null,
-                      height: null,
-                    });
-                    setRemoveAttachment(false);
-                    setPendingAttachment(null);
-                  })
-                  .catch(uploadError => {
-                    setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');
-                  })
-                  .finally(() => setLoading(false));
-                return;
-              }
-              setPendingAttachment(file);
-              setRemoveAttachment(false);
-            }}
-            className="block text-sm"
+          <FilePickerField
+            accept={ATTACHMENT_ACCEPT}
+            uploadLabel="파일 첨부"
+            changeLabel="파일 변경"
+            removeLabel="첨부 제거"
+            busyLabel="첨부 업로드 중…"
+            disabled={loading || uploadingAttachment}
+            busy={uploadingAttachment}
+            hasSelection={hasAttachment}
+            hint={attachmentHint}
+            onFileSelect={handleAttachmentFile}
+            onRemove={handleRemoveAttachment}
           />
-          {mode === 'create' && pendingAttachment !== null && (
-            <p className="mt-1 text-xs text-[#666]">저장 시 함께 업로드: {pendingAttachment.name}</p>
-          )}
         </div>
 
         {error !== null && (
