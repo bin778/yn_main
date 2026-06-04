@@ -110,6 +110,12 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     emitChange(cleaned);
   }
 
+  /** 블록 이미지 삽입 후 Gapcursor 때문에 스페이스가 두 번 필요해지는 문제 방지 */
+  function insertImageWithParagraphAfter(src: string) {
+    if (editor === null) return;
+    editor.chain().focus().setImage({ src }).insertContent('<p></p>').focus('end').run();
+  }
+
   function setLink() {
     if (editor === null) return;
     const previous = editor.getAttributes('link').href as string | undefined;
@@ -130,7 +136,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     }
     const url = window.prompt('이미지 URL', 'https://');
     if (url === null || url.trim() === '') return;
-    editor.chain().focus().setImage({ src: url.trim() }).run();
+    insertImageWithParagraphAfter(url.trim());
   }
 
   async function handleImageFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -141,7 +147,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     setUploadingImage(true);
     try {
       const url = await onUploadImage(file);
-      editor.chain().focus().setImage({ src: url }).run();
+      insertImageWithParagraphAfter(url);
     } catch (uploadError) {
       window.alert(uploadError instanceof Error ? uploadError.message : '이미지 업로드에 실패했습니다.');
     } finally {
