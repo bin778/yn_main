@@ -13,7 +13,7 @@ const G5_MYSQL_PASSWORD_LENGTH = 41;
 
 function pbkdf2_create_hash(string $password): string
 {
-    $salt = random_bytes(PBKDF2_COMPAT_SALT_BYTES);
+    $salt = base64_encode(random_bytes(PBKDF2_COMPAT_SALT_BYTES));
     $hash = pbkdf2_default(
         PBKDF2_COMPAT_HASH_ALGORITHM,
         $password,
@@ -22,9 +22,9 @@ function pbkdf2_create_hash(string $password): string
         PBKDF2_COMPAT_HASH_BYTES
     );
 
-    return PBKDF2_COMPAT_HASH_ALGORITHM
+    return strtolower(PBKDF2_COMPAT_HASH_ALGORITHM)
         . ':' . PBKDF2_COMPAT_ITERATIONS
-        . ':' . base64_encode($salt)
+        . ':' . $salt
         . ':' . base64_encode($hash);
 }
 
@@ -35,19 +35,30 @@ function pbkdf2_validate_password(string $password, string $hash): bool
         return false;
     }
 
-    $salt = base64_decode($params[2], true);
-    if ($salt === false) {
-        return false;
-    }
-
     $pbkdf2 = base64_decode($params[3], true);
     if ($pbkdf2 === false) {
         return false;
     }
 
-    $pbkdf2_check = pbkdf2_default($params[0], $password, $salt, (int) $params[1], strlen($pbkdf2));
+    $iterations = (int) $params[1];
+    $key_length = strlen($pbkdf2);
 
-    return pbkdf2_slow_equals($pbkdf2, $pbkdf2_check);
+    // 그누보드 g5_member 비밀번호: salt는 base64 문자열 그대로 사용
+    $gnuboard_check = pbkdf2_default($params[0], $password, $params[2], $iterations, $key_length);
+    if (pbkdf2_slow_equals($pbkdf2, $gnuboard_check)) {
+        return true;
+    }
+
+    // fallback: base64 decode salt (이전 create_hash 방식 등)
+    $decoded_salt = base64_decode($params[2], true);
+    if ($decoded_salt !== false) {
+        $decoded_check = pbkdf2_default($params[0], $password, $decoded_salt, $iterations, $key_length);
+        if (pbkdf2_slow_equals($pbkdf2, $decoded_check)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function pbkdf2_slow_equals(string $a, string $b): bool
