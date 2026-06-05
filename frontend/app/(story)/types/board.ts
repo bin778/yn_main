@@ -28,11 +28,12 @@ export type BoardListResponse = {
 export type BoardFile = {
   no: number;
   source: string;
-  url: string;
+  url: string | null;
   size: number;
   is_image: boolean;
   width: number | null;
   height: number | null;
+  has_password: boolean;
 };
 
 export type BoardNavItem = {

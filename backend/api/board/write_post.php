@@ -161,6 +161,17 @@ if ($method === 'PUT' || $method === 'PATCH') {
 
     if (!empty($body['remove_attachment'])) {
         board_remove_attachment($pdo, $bo_table, $wr_id);
+    } elseif (!empty($body['clear_attachment_password'])) {
+        board_clear_attachment_password($pdo, $bo_table, $wr_id);
+    } else {
+        $attachment_password = trim((string) ($body['attachment_password'] ?? ''));
+        if ($attachment_password !== '') {
+            try {
+                board_set_attachment_password($pdo, $bo_table, $wr_id, $attachment_password);
+            } catch (InvalidArgumentException $e) {
+                board_json_response(['error' => $e->getMessage()], 400);
+            }
+        }
     }
 
     $update = $pdo->prepare(

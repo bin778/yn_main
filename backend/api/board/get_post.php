@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../lib/cors.php';
 require_once __DIR__ . '/../../lib/bootstrap.php';
 require_once __DIR__ . '/../../lib/board_auth.php';
 require_once __DIR__ . '/../../lib/board_write.php';
+require_once __DIR__ . '/../../lib/board_files.php';
 
 board_handle_options('GET, OPTIONS');
 
@@ -52,7 +53,7 @@ try {
     }
 
     $files_stmt = $pdo->prepare(
-        'SELECT bf_no, bf_source, bf_file, bf_filesize, bf_width, bf_height
+        'SELECT bf_no, bf_source, bf_file, bf_filesize, bf_width, bf_height, bf_content
          FROM g5_board_file
          WHERE bo_table = :bo_table AND wr_id = :wr_id
          ORDER BY bf_no ASC'
@@ -60,20 +61,10 @@ try {
     $files_stmt->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id]);
     $file_rows = $files_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $base = board_file_url_base();
-    $files = array_map(static function (array $file) use ($bo_table, $base): array {
-        $is_image = (int) $file['bf_width'] > 0;
-
-        return [
-            'no'       => (int) $file['bf_no'],
-            'source'   => $file['bf_source'],
-            'url'      => $base . '/' . $bo_table . '/' . $file['bf_file'],
-            'size'     => (int) $file['bf_filesize'],
-            'is_image' => $is_image,
-            'width'    => $is_image ? (int) $file['bf_width'] : null,
-            'height'   => $is_image ? (int) $file['bf_height'] : null,
-        ];
-    }, $file_rows);
+    $files = array_map(
+        static fn (array $file): array => board_format_attachment_meta($file, $bo_table),
+        $file_rows
+    );
 
     $item = board_format_admin_post($row, $bo_table);
     $item['files'] = $files;

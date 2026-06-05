@@ -3,6 +3,8 @@ import Link from 'next/link';
 import type { BoTable, BoardView } from '../types/board';
 import { BOARD_META, getBoardPathSlug } from '../constants/boardContent';
 
+import BoardAttachmentItem from './BoardAttachmentItem';
+
 type BoardViewSectionProps = {
   boTable: BoTable;
   post: BoardView;
@@ -64,16 +66,12 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
             <ul className="space-y-2">
               {post.files.map(file => (
                 <li key={file.no}>
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-[14px] text-[#1a3151] underline underline-offset-2 hover:text-[#1a3151]/70"
-                  >
-                    <span aria-hidden>{file.is_image ? '🖼' : '📎'}</span>
-                    <span>{file.source}</span>
-                    <span className="text-[12px] text-[#aaa]">({formatFileSize(file.size)})</span>
-                  </a>
+                  <BoardAttachmentItem
+                    boTable={boTable}
+                    wrId={post.wr_id}
+                    file={file}
+                    formatFileSize={formatFileSize}
+                  />
                 </li>
               ))}
             </ul>

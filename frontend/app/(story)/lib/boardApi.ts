@@ -3,6 +3,7 @@ import type { BoardListResponse, BoardSearchField, BoardView } from '../types/bo
 
 const BOARD_API_BASE =
   typeof window !== 'undefined' ? '/api/board' : (process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board');
+const DOWNLOAD_API = `${BOARD_API_BASE}/download_file.php`;
 const BOARD_LIST_PER_PAGE = 12;
 
 export async function fetchBoardList(
@@ -38,4 +39,35 @@ export async function fetchBoardView(boTable: string, wrId: number): Promise<Boa
   const res = await fetch(url, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error(`게시물을 불러오지 못했습니다. (${boTable}/${wrId})`);
   return res.json() as Promise<BoardView>;
+}
+
+export async function downloadBoardAttachment(
+  boTable: string,
+  wrId: number,
+  bfNo: number,
+  password?: string,
+): Promise<Blob> {
+  const res = await fetch(DOWNLOAD_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      bo_table: boTable,
+      wr_id: wrId,
+      bf_no: bfNo,
+      password: password ?? '',
+    }),
+  });
+
+  if (!res.ok) {
+    let message = '파일 다운로드에 실패했습니다.';
+    try {
+      const data = (await res.json()) as { error?: string };
+      if (typeof data.error === 'string') message = data.error;
+    } catch {
+      // binary or empty body
+    }
+    throw new Error(message);
+  }
+
+  return res.blob();
 }

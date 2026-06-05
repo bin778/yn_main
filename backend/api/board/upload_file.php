@@ -47,6 +47,7 @@ if ($purpose === 'attachment' && $wr_id <= 0) {
 try {
     $images_only = $purpose !== 'attachment';
     $stored = board_store_uploaded_file($bo_table, $_FILES['file'], $images_only);
+    $password_hash = '';
 
     if ($purpose === 'attachment') {
         $check = $pdo->prepare(
@@ -57,17 +58,24 @@ try {
             board_delete_stored_file($bo_table, $stored['stored_name']);
             board_json_response(['error' => '게시물을 찾을 수 없습니다.'], 404);
         }
-        board_upsert_attachment($pdo, $bo_table, $wr_id, $stored);
+        $attachment_password = trim((string) ($_POST['attachment_password'] ?? ''));
+        if ($attachment_password !== '') {
+            $password_hash = board_hash_attachment_password($attachment_password);
+        }
+        board_upsert_attachment($pdo, $bo_table, $wr_id, $stored, $password_hash);
     }
+
+    $has_password = $purpose === 'attachment' && $password_hash !== '';
 
     board_json_response([
         'ok'   => true,
-        'url'  => $stored['url'],
+        'url'  => $has_password ? null : $stored['url'],
         'file' => [
-            'source' => $stored['source'],
-            'size'   => $stored['size'],
-            'width'  => $stored['width'],
-            'height' => $stored['height'],
+            'source'       => $stored['source'],
+            'size'         => $stored['size'],
+            'width'        => $stored['width'],
+            'height'       => $stored['height'],
+            'has_password' => $has_password,
         ],
     ]);
 } catch (InvalidArgumentException $e) {

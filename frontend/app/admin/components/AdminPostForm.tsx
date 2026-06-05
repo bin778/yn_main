@@ -12,6 +12,8 @@ import { saveBoardDraft } from '../lib/boardDraftStorage';
 import { SEO_DESCRIPTION_MAX, stripHtmlForMetaDescription } from '@/app/(story)/lib/boardSeo';
 
 import {
+  BOARD_ATTACHMENT_PASSWORD_MAX,
+  BOARD_ATTACHMENT_PASSWORD_MIN,
   defaultDatetimeLocal,
   toDatetimeLocalValue,
   toMysqlDatetime,
@@ -58,8 +60,10 @@ function buildPayload(
   seoSlug: string,
   seoDescription: string,
   removeAttachment: boolean,
+  attachmentPassword: string,
+  clearAttachmentPassword: boolean,
 ): BoardPostPayload {
-  return {
+  const payload: BoardPostPayload = {
     wr_subject: subject.trim(),
     wr_content: content,
     notice,
@@ -70,6 +74,25 @@ function buildPayload(
     wr_seo_description: seoDescription.trim(),
     remove_attachment: removeAttachment,
   };
+
+  if (!removeAttachment) {
+    if (clearAttachmentPassword) {
+      payload.clear_attachment_password = true;
+    } else if (attachmentPassword.trim() !== '') {
+      payload.attachment_password = attachmentPassword.trim();
+    }
+  }
+
+  return payload;
+}
+
+function validateAttachmentPassword(password: string): string | null {
+  const trimmed = password.trim();
+  if (trimmed === '') return null;
+  if (trimmed.length < BOARD_ATTACHMENT_PASSWORD_MIN || trimmed.length > BOARD_ATTACHMENT_PASSWORD_MAX) {
+    return `다운로드 비밀번호는 ${BOARD_ATTACHMENT_PASSWORD_MIN}~${BOARD_ATTACHMENT_PASSWORD_MAX}자여야 합니다.`;
+  }
+  return null;
 }
 
 export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, onDelete }: AdminPostFormProps) {
@@ -85,6 +108,8 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const [attachment, setAttachment] = useState<BoardPostFile | null>(initial.attachment);
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
+  const [attachmentPassword, setAttachmentPassword] = useState('');
+  const [clearAttachmentPassword, setClearAttachmentPassword] = useState(false);
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,8 +132,8 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
     setUploadingThumb(true);
     setError(null);
     try {
-      const url = await uploadBoardFile(boTable, file, 'thumbnail', wrId);
-      setThumbnailUrl(url);
+      const uploaded = await uploadBoardFile(boTable, file, 'thumbnail', wrId);
+      if (uploaded.url) setThumbnailUrl(uploaded.url);
     } catch (thumbError) {
       setError(thumbError instanceof Error ? thumbError.message : '썸네일 업로드에 실패했습니다.');
     } finally {
@@ -117,7 +142,9 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   }
 
   async function handleEditorImageUpload(file: File): Promise<string> {
-    return uploadBoardFile(boTable, file, 'editor_image', wrId);
+    const uploaded = await uploadBoardFile(boTable, file, 'editor_image', wrId);
+    if (!uploaded.url) throw new Error('이미지 URL을 받지 못했습니다.');
+    return uploaded.url;
   }
 
   function buildCurrentPayload(cleanedContent: string): BoardPostPayload {
@@ -131,6 +158,8 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       seoSlug,
       seoDescription,
       removeAttachment,
+      attachmentPassword,
+      clearAttachmentPassword,
     );
   }
 
@@ -165,6 +194,12 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       return;
     }
 
+    const passwordError = validateAttachmentPassword(attachmentPassword);
+    if (passwordError !== null) {
+      setError(passwordError);
+      return;
+    }
+
     const payload = buildCurrentPayload(cleanedContent);
     setLoading(true);
 
@@ -180,8 +215,21 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       }
 
       if (pendingAttachment !== null && savedId > 0) {
-        await uploadBoardFile(boTable, pendingAttachment, 'attachment', savedId);
+        const passwordForUpload = clearAttachmentPassword ? '' : attachmentPassword;
+        const uploaded = await uploadBoardFile(boTable, pendingAttachment, 'attachment', savedId, passwordForUpload);
+        setAttachment({
+          no: 0,
+          source: pendingAttachment.name,
+          url: uploaded.url,
+          size: pendingAttachment.size,
+          is_image: pendingAttachment.type.startsWith('image/'),
+          width: null,
+          height: null,
+          has_password: uploaded.has_password,
+        });
         setPendingAttachment(null);
+        setAttachmentPassword('');
+        setClearAttachmentPassword(false);
       }
 
       onSaved(savedId);
@@ -222,22 +270,32 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const hasAttachment = attachmentLabel !== null && !removeAttachment;
 
   function handleAttachmentFile(file: File) {
+    const passwordError = validateAttachmentPassword(attachmentPassword);
+    if (passwordError !== null) {
+      setError(passwordError);
+      return;
+    }
+
     if (mode === 'edit' && wrId !== undefined && wrId > 0) {
       setUploadingAttachment(true);
       setError(null);
-      uploadBoardFile(boTable, file, 'attachment', wrId)
-        .then(() => {
+      const passwordForUpload = clearAttachmentPassword ? '' : attachmentPassword;
+      uploadBoardFile(boTable, file, 'attachment', wrId, passwordForUpload)
+        .then(uploaded => {
           setAttachment({
             no: 0,
             source: file.name,
-            url: '',
+            url: uploaded.url,
             size: file.size,
             is_image: file.type.startsWith('image/'),
             width: null,
             height: null,
+            has_password: uploaded.has_password,
           });
           setRemoveAttachment(false);
           setPendingAttachment(null);
+          setAttachmentPassword('');
+          setClearAttachmentPassword(false);
         })
         .catch(uploadError => {
           setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');
@@ -252,7 +310,11 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   function handleRemoveAttachment() {
     setRemoveAttachment(true);
     setPendingAttachment(null);
+    setAttachmentPassword('');
+    setClearAttachmentPassword(false);
   }
+
+  const attachmentHasPassword = attachment?.has_password === true && !removeAttachment;
 
   const attachmentHint = (() => {
     if (!hasAttachment || attachmentLabel === null) return null;
@@ -472,6 +534,45 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             onFileSelect={handleAttachmentFile}
             onRemove={handleRemoveAttachment}
           />
+          {hasAttachment && (
+            <div className="mt-3 space-y-2">
+              <label className="block text-sm font-medium text-[#333]" htmlFor="attachment-password">
+                다운로드 비밀번호 <span className="text-xs font-normal text-[#999]">(선택)</span>
+              </label>
+              <input
+                id="attachment-password"
+                type="password"
+                value={attachmentPassword}
+                onChange={event => {
+                  setAttachmentPassword(event.target.value);
+                  if (event.target.value.trim() !== '') setClearAttachmentPassword(false);
+                }}
+                placeholder={`${BOARD_ATTACHMENT_PASSWORD_MIN}~${BOARD_ATTACHMENT_PASSWORD_MAX}자, 미입력 시 공개 다운로드`}
+                autoComplete="new-password"
+                disabled={loading || uploadingAttachment || clearAttachmentPassword}
+                className="w-full border border-[#ddd] px-3 py-2 text-sm disabled:bg-[#f5f5f5]"
+              />
+              {attachmentHasPassword && (
+                <label className="flex items-center gap-2 text-sm text-[#555]">
+                  <input
+                    type="checkbox"
+                    checked={clearAttachmentPassword}
+                    onChange={event => {
+                      setClearAttachmentPassword(event.target.checked);
+                      if (event.target.checked) setAttachmentPassword('');
+                    }}
+                    disabled={loading || uploadingAttachment}
+                  />
+                  기존 비밀번호 제거 (공개 다운로드로 변경)
+                </label>
+              )}
+              {attachmentHasPassword && !clearAttachmentPassword && attachmentPassword === '' && (
+                <p className="text-xs text-[#888]">
+                  비밀번호가 설정되어 있습니다. 변경하려면 새 비밀번호를 입력하세요.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {error !== null && (

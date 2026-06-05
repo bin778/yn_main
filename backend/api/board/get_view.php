@@ -194,9 +194,11 @@ try {
 
     // ── 첨부파일 조회 ─────────────────────────────────────────────────────
 
+    require_once __DIR__ . '/../../lib/board_files.php';
+
     $files_sql = "
         SELECT bf_no, bf_source, bf_file, bf_filesize,
-               bf_width, bf_height
+               bf_width, bf_height, bf_content
         FROM   g5_board_file
         WHERE  bo_table = :bo_table
         AND    wr_id    = :wr_id
@@ -208,19 +210,10 @@ try {
     $files_stmt->execute();
     $file_rows = $files_stmt->fetchAll();
 
-    $files = array_map(function (array $file) use ($bo_table): array {
-        $is_image = (int) $file['bf_width'] > 0;
-
-        return [
-            'no'       => (int) $file['bf_no'],
-            'source'   => $file['bf_source'],
-            'url'      => BOARD_FILE_BASE . '/' . $bo_table . '/' . $file['bf_file'],
-            'size'     => (int) $file['bf_filesize'],
-            'is_image' => $is_image,
-            'width'    => $is_image ? (int) $file['bf_width']  : null,
-            'height'   => $is_image ? (int) $file['bf_height'] : null,
-        ];
-    }, $file_rows);
+    $files = array_map(
+        static fn (array $file): array => board_format_attachment_meta($file, $bo_table),
+        $file_rows
+    );
 
     // ── 응답 조립 ──────────────────────────────────────────────────────────
 

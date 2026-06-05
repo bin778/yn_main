@@ -11,6 +11,23 @@ const PBKDF2_COMPAT_SALT_BYTES = 24;
 const PBKDF2_COMPAT_HASH_BYTES = 24;
 const G5_MYSQL_PASSWORD_LENGTH = 41;
 
+function pbkdf2_create_hash(string $password): string
+{
+    $salt = random_bytes(PBKDF2_COMPAT_SALT_BYTES);
+    $hash = pbkdf2_default(
+        PBKDF2_COMPAT_HASH_ALGORITHM,
+        $password,
+        $salt,
+        PBKDF2_COMPAT_ITERATIONS,
+        PBKDF2_COMPAT_HASH_BYTES
+    );
+
+    return PBKDF2_COMPAT_HASH_ALGORITHM
+        . ':' . PBKDF2_COMPAT_ITERATIONS
+        . ':' . base64_encode($salt)
+        . ':' . base64_encode($hash);
+}
+
 function pbkdf2_validate_password(string $password, string $hash): bool
 {
     $params = explode(':', $hash);

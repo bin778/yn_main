@@ -124,12 +124,18 @@ export async function deleteBoardPost(boTable: BoTable, wrId: number): Promise<v
   await parseJson(res);
 }
 
+export type BoardUploadResult = {
+  url: string | null;
+  has_password: boolean;
+};
+
 export async function uploadBoardFile(
   boTable: BoTable,
   file: File,
   purpose: BoardUploadPurpose,
   wrId?: number,
-): Promise<string> {
+  attachmentPassword?: string,
+): Promise<BoardUploadResult> {
   const form = new FormData();
   form.set('bo_table', boTable);
   form.set('purpose', purpose);
@@ -137,12 +143,19 @@ export async function uploadBoardFile(
   if (wrId !== undefined && wrId > 0) {
     form.set('wr_id', String(wrId));
   }
+  if (purpose === 'attachment' && attachmentPassword !== undefined && attachmentPassword.trim() !== '') {
+    form.set('attachment_password', attachmentPassword.trim());
+  }
 
   const res = await fetch(UPLOAD_API, {
     method: 'POST',
     credentials: 'include',
     body: form,
   });
-  const data = await parseJson<{ ok: boolean; url: string }>(res);
-  return data.url;
+  const data = await parseJson<{ ok: boolean; url: string | null; file?: { has_password?: boolean } }>(res);
+
+  return {
+    url: data.url,
+    has_password: data.file?.has_password ?? false,
+  };
 }

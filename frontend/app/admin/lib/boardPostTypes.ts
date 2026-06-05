@@ -10,17 +10,23 @@ export type BoardPostPayload = {
   wr_seo_slug: string;
   wr_seo_description: string;
   remove_attachment?: boolean;
+  attachment_password?: string;
+  clear_attachment_password?: boolean;
 };
 
 export type BoardPostFile = {
   no: number;
   source: string;
-  url: string;
+  url: string | null;
   size: number;
   is_image: boolean;
   width: number | null;
   height: number | null;
+  has_password: boolean;
 };
+
+export const BOARD_ATTACHMENT_PASSWORD_MIN = 4;
+export const BOARD_ATTACHMENT_PASSWORD_MAX = 64;
 
 export type BoardPostAdmin = {
   wr_id: number;
