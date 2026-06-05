@@ -2,7 +2,12 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { createBoardPost, updateBoardPost, uploadBoardFile } from '@/app/(story)/lib/boardAdminApi';
+import {
+  createBoardPost,
+  revalidateBoardPost,
+  updateBoardPost,
+  uploadBoardFile,
+} from '@/app/(story)/lib/boardAdminApi';
 import { stripHtmlForMetaDescription } from '@/app/(story)/lib/boardSeo';
 import type { BoTable } from '@/app/(story)/types/board';
 
@@ -237,6 +242,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         setDownloadMode(uploaded.has_password ? 'password' : 'public');
       }
 
+      await revalidateBoardPost(boTable, savedId);
       onSaved(savedId);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '저장에 실패했습니다.');
@@ -285,7 +291,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       setError(null);
       const passwordForUpload = downloadMode === 'password' ? attachmentPassword : '';
       uploadBoardFile(boTable, file, 'attachment', wrId, passwordForUpload)
-        .then(uploaded => {
+        .then(async uploaded => {
           setAttachment({
             no: 0,
             source: file.name,
@@ -300,6 +306,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
           setPendingAttachment(null);
           setAttachmentPassword('');
           setDownloadMode(uploaded.has_password ? 'password' : 'public');
+          await revalidateBoardPost(boTable, wrId);
         })
         .catch(uploadError => {
           setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');

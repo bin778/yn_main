@@ -280,6 +280,23 @@ function board_delete_stored_file(string $bo_table, string $stored_name): void
     }
 }
 
+function board_delete_all_attachment_rows(PDO $pdo, string $bo_table, int $wr_id): void
+{
+    $existing = $pdo->prepare(
+        'SELECT bf_file FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id'
+    );
+    $existing->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id]);
+    while ($row = $existing->fetch(PDO::FETCH_ASSOC)) {
+        if (!empty($row['bf_file'])) {
+            board_delete_stored_file($bo_table, (string) $row['bf_file']);
+        }
+    }
+
+    $pdo->prepare(
+        'DELETE FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id'
+    )->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id]);
+}
+
 function board_upsert_attachment(
     PDO $pdo,
     string $bo_table,
@@ -290,18 +307,7 @@ function board_upsert_attachment(
     $write_table = 'g5_write_' . $bo_table;
     $bf_no = 0;
 
-    $existing = $pdo->prepare(
-        'SELECT bf_file FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id AND bf_no = :bf_no LIMIT 1'
-    );
-    $existing->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id, 'bf_no' => $bf_no]);
-    $old = $existing->fetch(PDO::FETCH_ASSOC);
-    if ($old && !empty($old['bf_file'])) {
-        board_delete_stored_file($bo_table, (string) $old['bf_file']);
-    }
-
-    $pdo->prepare(
-        'DELETE FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id AND bf_no = :bf_no'
-    )->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id, 'bf_no' => $bf_no]);
+    board_delete_all_attachment_rows($pdo, $bo_table, $wr_id);
 
     $width = $stored['width'] ?? 0;
     $height = $stored['height'] ?? 0;
@@ -336,20 +342,8 @@ function board_upsert_attachment(
 function board_remove_attachment(PDO $pdo, string $bo_table, int $wr_id): void
 {
     $write_table = 'g5_write_' . $bo_table;
-    $bf_no = 0;
 
-    $existing = $pdo->prepare(
-        'SELECT bf_file FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id AND bf_no = :bf_no LIMIT 1'
-    );
-    $existing->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id, 'bf_no' => $bf_no]);
-    $old = $existing->fetch(PDO::FETCH_ASSOC);
-    if ($old && !empty($old['bf_file'])) {
-        board_delete_stored_file($bo_table, (string) $old['bf_file']);
-    }
-
-    $pdo->prepare(
-        'DELETE FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id AND bf_no = :bf_no'
-    )->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id, 'bf_no' => $bf_no]);
+    board_delete_all_attachment_rows($pdo, $bo_table, $wr_id);
 
     $pdo->prepare("UPDATE `{$write_table}` SET wr_file = 0 WHERE wr_id = :wr_id")
         ->execute(['wr_id' => $wr_id]);
