@@ -35,12 +35,17 @@ function pbkdf2_validate_password(string $password, string $hash): bool
         return false;
     }
 
+    $salt = base64_decode($params[2], true);
+    if ($salt === false) {
+        return false;
+    }
+
     $pbkdf2 = base64_decode($params[3], true);
     if ($pbkdf2 === false) {
         return false;
     }
 
-    $pbkdf2_check = pbkdf2_default($params[0], $password, $params[2], (int) $params[1], strlen($pbkdf2));
+    $pbkdf2_check = pbkdf2_default($params[0], $password, $salt, (int) $params[1], strlen($pbkdf2));
 
     return pbkdf2_slow_equals($pbkdf2, $pbkdf2_check);
 }
