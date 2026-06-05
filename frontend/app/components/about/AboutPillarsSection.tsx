@@ -21,15 +21,15 @@ export default function AboutPillarsSection() {
                   alt=""
                   width={90}
                   height={90}
-                  className="h-20 w-auto object-contain md:h-[80px]"
+                  className="h-16 md:h-20 w-auto object-contain md:h-[80px]"
                 />
-                <h3 className="mt-4 text-[28px] font-bold leading-[1.35] tracking-tight text-[#222]">
+                <h3 className="mt-4 text-[24px] md:text-[28px] font-bold leading-[1.35] tracking-tight text-[#222]">
                   {pillar.titleLine1}
                   <br />
                   <span className="text-[#023373]">{pillar.titleLine2}</span>
                 </h3>
               </div>
-              <div className="mt-6 space-y-4 text-base leading-[1.7] tracking-tight text-[#555] md:col-span-7 md:mt-0 md:text-[16px]">
+              <div className="mt-4 md:mt-6 space-y-2 md:space-y-4 text-[14px] md:text-[16px] leading-[1.7] tracking-tight text-[#555] md:col-span-7 md:mt-0">
                 {pillar.paragraphs.map((paragraph, paragraphIndex) => (
                   <p
                     key={paragraph.slice(0, 24)}

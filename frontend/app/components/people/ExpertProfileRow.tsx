@@ -17,7 +17,7 @@ export default function ExpertProfileRow({ person }: ExpertProfileRowProps) {
 
   return (
     <article className={sectionBg}>
-      <div className="mx-auto max-w-[1200px] px-6 py-12 md:grid md:grid-cols-2 md:items-end md:gap-0 md:px-5 md:py-0">
+      <div className="mx-auto max-w-[1200px] px-6 py-8 md:py-12 md:grid md:grid-cols-2 md:items-end md:gap-0 md:px-5 md:py-0">
         <div
           className={`flex justify-center pt-8 md:pt-[100px] ${
             person.imageSide === 'left' ? 'md:order-1 md:justify-end' : 'md:order-2 md:justify-start'

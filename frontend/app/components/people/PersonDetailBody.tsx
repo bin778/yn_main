@@ -24,18 +24,18 @@ export default function PersonDetailBody({ person }: PersonDetailBodyProps) {
   const hasCareer = detail.careerLines && detail.careerLines.length > 0;
 
   return (
-    <section className="bg-white px-6 py-12 md:px-12 md:py-[130px]">
+    <section className="bg-white px-6 py-16 md:px-12 md:py-24">
       <div className="mx-auto max-w-[1200px]">
         {detail.headline && (
-          <h2 className="text-left text-[22px] font-bold leading-[2.1] tracking-tight text-[#373737] md:text-[32px] md:leading-snug">
+          <h2 className="text-left text-[20px] md:text-[28px] font-bold leading-[1.5] tracking-tight text-[#373737] md:leading-snug mb-4">
             {detail.headline}
           </h2>
         )}
 
         {(detail.introQuote || detail.introParagraphs) && (
-          <div className={`space-y-4 ${detail.headline ? 'mt-6 md:mt-0' : ''}`}>
+          <div className={`space-y-1 ${detail.headline ? 'mt-6 md:mt-0' : ''}`}>
             {detail.introQuote && (
-              <blockquote className="border-none p-0 text-[15px] leading-[1.7] tracking-tight text-[#555] md:text-[17px] md:leading-[1.8]">
+              <blockquote className="border-none p-0 text-[15px] md:text-[17px] leading-[1.7] tracking-tight text-[#555] md:leading-[1.8]">
                 {detail.introQuote}
               </blockquote>
             )}
@@ -52,11 +52,11 @@ export default function PersonDetailBody({ person }: PersonDetailBodyProps) {
 
         {hasEducation && (
           <>
-            <div className="my-10 md:my-[70px]">
+            <div className="my-6 md:my-10">
               <SectionDivider />
             </div>
             <h3 className="text-xl font-bold tracking-tight text-[#373737] md:text-[32px]">학력 및 자격</h3>
-            <div className="mt-2.5 md:mt-[18px]">
+            <div className="mt-2.5 md:mt-3">
               <BulletList lines={detail.educationLines!} />
             </div>
           </>
@@ -74,7 +74,7 @@ export default function PersonDetailBody({ person }: PersonDetailBodyProps) {
           </>
         )}
 
-        <div className="mt-16 md:mt-[130px]" aria-hidden />
+        <div className="mt-8 md:mt-16" aria-hidden />
       </div>
     </section>
   );

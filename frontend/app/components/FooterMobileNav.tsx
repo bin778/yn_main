@@ -15,7 +15,7 @@ export default function FooterMobileNav() {
   const [storyOpen, setStoryOpen] = useState(false);
 
   return (
-    <nav className="border-b border-black/5 pb-6 lg:hidden" aria-label="사이트 메뉴">
+    <nav className="border-b border-black/5 pb-2 md:pb-6 lg:hidden" aria-label="사이트 메뉴">
       <ul className="flex flex-col">
         {MAIN_NAV_LINKS.map(item => (
           <li key={item.href} className="border-t border-gray-100">

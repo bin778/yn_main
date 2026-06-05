@@ -50,7 +50,7 @@ export default function Header() {
           scrolled ? 'border-b border-black/10 bg-white shadow-sm' : 'border-b border-black/10 bg-white shadow-none',
         ].join(' ')}
       >
-        <div className="mx-auto flex h-[80px] max-w-[1200px] items-center justify-between px-8 lg:px-16">
+        <div className="mx-auto flex h-[80px] max-w-[1200px] items-center justify-between px-4 md:px-8 lg:px-16">
           <Link href="/" className="shrink-0 p-2.5" onClick={() => setMobileOpen(false)}>
             <span className="relative block h-[42px] w-[176px] lg:h-12 lg:w-[200px]">
               <Image
@@ -141,7 +141,7 @@ export default function Header() {
               <div className="border-b border-gray-100">
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between px-5 py-4 text-left text-[16px] font-bold text-black"
+                  className="flex w-full items-center justify-between px-5 py-4 text-left text-[14px] md:text-[16px] font-bold text-black"
                   onClick={() => setMobileStoryOpen(v => !v)}
                   aria-expanded={mobileStoryOpen}
                 >
@@ -154,7 +154,7 @@ export default function Header() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="block px-8 py-3 text-[14px] text-black hover:bg-[#1a3151] hover:text-white"
+                        className="block px-8 py-3 text-[12px] md:text-[14px] text-black hover:bg-[#1a3151] hover:text-white"
                         onClick={() => setMobileOpen(false)}
                       >
                         {item.label}
@@ -165,7 +165,7 @@ export default function Header() {
               </div>
               <Link
                 href={CONTACT_NAV_HREF}
-                className="border-b border-gray-100 px-5 py-4 text-[16px] font-bold text-black"
+                className="border-b border-gray-100 px-5 py-4 text-[14px] md:text-[16px] font-bold text-black"
                 onClick={() => setMobileOpen(false)}
               >
                 {CONTACT_NAV_LABEL}

@@ -10,7 +10,7 @@ import 'swiper/css';
 
 export default function CertificatesSwiper() {
   return (
-    <section className="bg-white py-12 md:py-16" aria-labelledby="certificates-heading">
+    <section className="bg-white py-8 md:py-16" aria-labelledby="certificates-heading">
       <div className="mx-auto max-w-[1200px] px-6 md:px-12">
         <h2 id="certificates-heading" className="sr-only">
           자격 및 증명서
@@ -40,9 +40,7 @@ export default function CertificatesSwiper() {
                     sizes="(max-width: 768px) 85vw, 280px"
                   />
                 </div>
-                <figcaption className="mt-3 text-base font-medium text-[#555]">
-                  {slide.label}
-                </figcaption>
+                <figcaption className="mt-3 text-base font-medium text-[#555]">{slide.label}</figcaption>
               </figure>
             </SwiperSlide>
           ))}

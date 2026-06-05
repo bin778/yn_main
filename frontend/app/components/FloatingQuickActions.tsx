@@ -53,7 +53,7 @@ export default function FloatingQuickActions() {
 
   return (
     <div className="fixed bottom-4 right-3 z-[100] flex flex-col items-center md:bottom-8 md:right-10">
-      <div className="flex w-[68px] flex-col items-center rounded-[999px] bg-[#023373] px-2 py-2 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:w-[80px] md:px-4 md:py-3">
+      <div className="flex w-[60px] md:w-[80px] flex-col items-center rounded-[999px] bg-[#023373] px-2 py-2 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:px-4 md:py-3">
         {QUICK_ACTIONS.map((action, index) => {
           const content = (
             <>
@@ -95,7 +95,7 @@ export default function FloatingQuickActions() {
 
       <button
         type="button"
-        className="mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[#023373] shadow-[0_10px_24px_rgba(15,23,42,0.14)] transition-transform hover:scale-105 md:mt-6 md:h-16 md:w-16"
+        className="mt-2 md:mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[#023373] shadow-[0_10px_24px_rgba(15,23,42,0.14)] transition-transform hover:scale-105 md:mt-6 md:h-16 md:w-16"
         onClick={handleScrollTop}
         aria-label="맨 위로 이동"
       >
