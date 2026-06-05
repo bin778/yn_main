@@ -61,10 +61,9 @@ try {
     $files_stmt->execute(['bo_table' => $bo_table, 'wr_id' => $wr_id]);
     $file_rows = $files_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $files = array_map(
-        static fn (array $file): array => board_format_attachment_meta($file, $bo_table),
-        $file_rows
-    );
+    $files = array_map(function (array $file) use ($bo_table): array {
+        return board_format_attachment_meta($file, $bo_table);
+    }, $file_rows);
 
     $item = board_format_admin_post($row, $bo_table);
     $item['files'] = $files;

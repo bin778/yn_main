@@ -22,6 +22,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowed_origins = [
     'https://yeoon.co.kr',
     'https://www.yeoon.co.kr',
+    'https://yn-main-orcin.vercel.app',
     'http://localhost:3000',
     'http://localhost:4173',
 ];
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 require_once __DIR__ . '/../../config/db_conn.php';
+require_once __DIR__ . '/../../lib/board_files.php';
 
 const ALLOWED_TABLES  = ['review', 'success', 'column', 'news'];
 const BOARD_FILE_BASE = 'https://yeoon.co.kr/board/data/file';
@@ -134,8 +136,7 @@ if ($wr_id <= 0) {
 
 try {
     $view_sql = "
-        SELECT wr_id, wr_num, wr_subject, wr_content,
-               wr_name, wr_datetime, wr_hit, wr_file, wr_4
+        SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_4
         FROM   `{$table}`
         WHERE  wr_id = :wr_id
         AND    wr_is_comment = 0
@@ -194,11 +195,8 @@ try {
 
     // ── 첨부파일 조회 ─────────────────────────────────────────────────────
 
-    require_once __DIR__ . '/../../lib/board_files.php';
-
     $files_sql = "
-        SELECT bf_no, bf_source, bf_file, bf_filesize,
-               bf_width, bf_height, bf_content
+        SELECT bf_no, bf_source, bf_file, bf_filesize, bf_width, bf_height, bf_content
         FROM   g5_board_file
         WHERE  bo_table = :bo_table
         AND    wr_id    = :wr_id
@@ -210,10 +208,9 @@ try {
     $files_stmt->execute();
     $file_rows = $files_stmt->fetchAll();
 
-    $files = array_map(
-        static fn (array $file): array => board_format_attachment_meta($file, $bo_table),
-        $file_rows
-    );
+    $files = array_map(function (array $file) use ($bo_table): array {
+        return board_format_attachment_meta($file, $bo_table);
+    }, $file_rows);
 
     // ── 응답 조립 ──────────────────────────────────────────────────────────
 

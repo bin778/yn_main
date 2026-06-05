@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/board_write.php';
 require_once __DIR__ . '/pbkdf2.php';
 require_once __DIR__ . '/password_verify.php';
 
