@@ -84,6 +84,16 @@ function board_public_file_url(string $bo_table, string $stored_name): string
     return board_file_url_base() . '/' . $bo_table . '/' . rawurlencode($stored_name);
 }
 
+/** 공개 첨부 다운로드 — 실제 저장 경로(BOARD_FILE_DIR)를 통해 스트리밍 */
+function board_attachment_download_url(string $bo_table, int $wr_id, int $bf_no): string
+{
+    return '/api/board/download_file.php?' . http_build_query([
+        'bo_table' => $bo_table,
+        'wr_id'      => $wr_id,
+        'bf_no'      => $bf_no,
+    ]);
+}
+
 /**
  * @param array<string, mixed> $file
  * @return array{url: string, stored_name: string, source: string, size: int, width: int|null, height: int|null}
@@ -176,7 +186,7 @@ function board_fetch_attachment(PDO $pdo, string $bo_table, int $wr_id, int $bf_
 /**
  * @return array{no: int, source: string, url: string|null, size: int, is_image: bool, width: int|null, height: int|null, has_password: bool}
  */
-function board_format_attachment_meta(array $file, string $bo_table): array
+function board_format_attachment_meta(array $file, string $bo_table, int $wr_id): array
 {
     $is_image = (int) $file['bf_width'] > 0;
     $has_password = board_attachment_has_password((string) ($file['bf_content'] ?? ''));
@@ -184,7 +194,7 @@ function board_format_attachment_meta(array $file, string $bo_table): array
     return [
         'no'           => (int) $file['bf_no'],
         'source'       => $file['bf_source'],
-        'url'          => $has_password ? null : board_public_file_url($bo_table, (string) $file['bf_file']),
+        'url'          => $has_password ? null : board_attachment_download_url($bo_table, $wr_id, (int) $file['bf_no']),
         'size'         => (int) $file['bf_filesize'],
         'is_image'     => $is_image,
         'width'        => $is_image ? (int) $file['bf_width'] : null,

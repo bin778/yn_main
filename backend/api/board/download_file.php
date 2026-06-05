@@ -13,27 +13,34 @@ if ($origin !== '' && in_array($origin, BOARD_ALLOWED_ORIGINS, true)) {
 }
 
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+$method = strtoupper((string) $_SERVER['REQUEST_METHOD']);
+if ($method !== 'GET' && $method !== 'POST') {
     header('Content-Type: application/json; charset=UTF-8');
     board_json_response(['error' => '허용되지 않은 요청입니다.'], 405);
 }
 
-$raw = file_get_contents('php://input');
-$body = json_decode($raw === false ? '' : $raw, true);
-if (!is_array($body)) {
-    $body = $_POST;
+if ($method === 'GET') {
+    $params = $_GET;
+    $password = '';
+} else {
+    $raw = file_get_contents('php://input');
+    $body = json_decode($raw === false ? '' : $raw, true);
+    if (!is_array($body)) {
+        $body = $_POST;
+    }
+    $params = $body;
+    $password = (string) ($body['password'] ?? '');
 }
 
-$bo_table = trim((string) ($body['bo_table'] ?? ''));
-$wr_id = (int) ($body['wr_id'] ?? 0);
-$bf_no = (int) ($body['bf_no'] ?? 0);
-$password = (string) ($body['password'] ?? '');
+$bo_table = trim((string) ($params['bo_table'] ?? ''));
+$wr_id = (int) ($params['wr_id'] ?? 0);
+$bf_no = (int) ($params['bf_no'] ?? 0);
 
 if (
     !preg_match('/^[a-z0-9_]{1,20}$/', $bo_table) ||
@@ -67,6 +74,10 @@ try {
 
     $stored_hash = (string) ($attachment['bf_content'] ?? '');
     if (board_attachment_has_password($stored_hash)) {
+        if ($method === 'GET') {
+            header('Content-Type: application/json; charset=UTF-8');
+            board_json_response(['error' => '다운로드 비밀번호가 필요합니다.'], 403);
+        }
         if ($password === '') {
             header('Content-Type: application/json; charset=UTF-8');
             board_json_response(['error' => '다운로드 비밀번호를 입력해 주세요.'], 403);

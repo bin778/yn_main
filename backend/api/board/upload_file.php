@@ -67,9 +67,16 @@ try {
 
     $has_password = $purpose === 'attachment' && $password_hash !== '';
 
+    $public_url = null;
+    if ($purpose === 'attachment' && !$has_password && $wr_id > 0) {
+        $public_url = board_attachment_download_url($bo_table, $wr_id, 0);
+    } elseif (!$has_password) {
+        $public_url = $stored['url'];
+    }
+
     board_json_response([
         'ok'   => true,
-        'url'  => $has_password ? null : $stored['url'],
+        'url'  => $public_url,
         'file' => [
             'source'       => $stored['source'],
             'size'         => $stored['size'],

@@ -32,6 +32,20 @@ export default function BoardAttachmentItem({ boTable, wrId, file }: BoardAttach
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  async function handlePublicDownload() {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const blob = await downloadBoardAttachment(boTable, wrId, file.no);
+      saveBlobAsFile(blob, file.source);
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : '다운로드에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleProtectedDownload(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
@@ -58,16 +72,28 @@ export default function BoardAttachmentItem({ boTable, wrId, file }: BoardAttach
     </>
   );
 
-  if (!file.has_password && file.url) {
+  if (!file.has_password) {
+    if (file.url) {
+      return (
+        <a
+          href={file.url}
+          download={file.source}
+          className="inline-flex items-center gap-2 text-[14px] text-[#1a3151] underline underline-offset-2 hover:text-[#1a3151]/70"
+        >
+          {fileLabel}
+        </a>
+      );
+    }
+
     return (
-      <a
-        href={file.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-[14px] text-[#1a3151] underline underline-offset-2 hover:text-[#1a3151]/70"
+      <button
+        type="button"
+        onClick={() => void handlePublicDownload()}
+        disabled={loading}
+        className="inline-flex items-center gap-2 text-[14px] text-[#1a3151] underline underline-offset-2 hover:text-[#1a3151]/70 disabled:opacity-60"
       >
         {fileLabel}
-      </a>
+      </button>
     );
   }
 

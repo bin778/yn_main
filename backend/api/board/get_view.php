@@ -208,8 +208,8 @@ try {
     $files_stmt->execute();
     $file_rows = $files_stmt->fetchAll();
 
-    $files = array_map(function (array $file) use ($bo_table): array {
-        return board_format_attachment_meta($file, $bo_table);
+    $files = array_map(function (array $file) use ($bo_table, $wr_id): array {
+        return board_format_attachment_meta($file, $bo_table, $wr_id);
     }, $file_rows);
 
     // ── 응답 조립 ──────────────────────────────────────────────────────────
