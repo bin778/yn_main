@@ -8,21 +8,27 @@ Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`) 및 레거시 그
 
 ## 기술 스택
 
-| 영역     | 스택                                                      |
-| -------- | --------------------------------------------------------- |
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Swiper |
-| Backend  | PHP 7.3+, MariaDB 10.x                                    |
-| Hosting  | 카페24 (Apache + `.htaccess`)                             |
+| 영역     | 스택                                                                   |
+| -------- | ---------------------------------------------------------------------- |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Swiper, Tiptap 3.25 |
+| Backend  | PHP 7.3+, MariaDB 10.x                                                 |
+| Hosting  | 카페24 (Apache + `.htaccess`)                                          |
 
 ## 프로젝트 구조
 
 ```
 yn_main/
 ├── frontend/          # Next.js 앱 (개발·빌드·런타임)
-│   ├── app/           # 페이지·컴포넌트
+│   ├── app/
+│   │   ├── (story)/   # 게시판 목록·상세 (review, column 등)
+│   │   └── admin/     # 관리자 대시보드·글쓰기/수정
+│   │       ├── components/   # AdminPostForm, BoardRichEditor 등
+│   │       ├── hooks/        # useAdminPostForm, useClickOutside 등
+│   │       └── lib/          # payload·dirty·업로드 검증 등 순수 로직
 │   ├── public/        # 정적 에셋 (img, css 등)
 ├── backend/           # 상담 API (카페24 FTP 업로드)
 │   ├── config/        # DB·Aligo 설정 (*.sample.php → 운영 파일)
+│   ├── lib/           # board_files.php, board_auth.php 등
 │   └── api/
 ├── .htaccess          # 카페24 루트용 Apache 리라이트·301 규칙
 └── schema.sql         # user_inquiry 테이블 DDL
@@ -101,19 +107,59 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 
 - `GET /api/board/get_list.php` : 후기/성공사례/칼럼/여온소식 목록 (`sort`: 최신순·조회수·제목 가나다순 등)
 - `GET /api/board/get_view.php` : 게시물 상세 + 이전/다음 + 첨부 파일
+- `GET /api/board/download_file.php` : 첨부 다운로드 (비밀번호·JWT 검증)
 - 허용 게시판: `review`, `success`, `column`, `news`
-- 배포 시 `backend/api/board/*.php` 및 `backend/lib/*.php`를 서버 `/api/board/`, `/lib/` 경로에 반영
+- **PHP 7.3** 호환: 화살표 함수 등 PHP 7.4+ 문법 사용 금지 (`.cursor/rules/php-7.3.mdc` 참고)
+- 배포 시 `backend/api/board/*.php` 및 `backend/lib/*.php`(특히 `board_files.php`)를 서버 `/api/board/`, `/lib/` 경로에 반영
 
 #### 게시판 관리자 (JWT, 그누보드 세션 불필요)
 
 - 로그인 UI: **`/admin/login/`** (URL 직접 입력, UI에 노출하지 않음) → JWT
 - 대시보드: **`/admin/`** (로그인 후 기본 이동)
+- 글쓰기: **`/admin/{bo_table}/write/`** · 수정: **`/admin/{bo_table}/{wr_id}/edit/`**
 - 구 **`/board/bbs/login.php`** → `/admin/login/`, **`/board/adm/`** → `/admin/` (`next.config` redirect)
 - 로그아웃: JWT + `/board/bbs/logout.php` (그누보드 쿠키 정리)
 - 세션 확인: `GET /api/board/auth/me.php` (BoardAdminBar는 `?bo_table=news` 등)
 - 글 CRUD: `POST|PUT|DELETE /api/board/write_post.php` (게시판 관리자 JWT)
+- 파일 업로드: `POST /api/board/upload_file.php` (썸네일·본문 이미지·첨부, 최대 **10MB**)
+- 첨부 다운로드: `GET /api/board/download_file.php` (비밀번호 설정 시 입력 후 다운로드)
 - `get_session.php`는 deprecated → `auth/me.php`로 위임
 - `app_config.php`에 `JWT_SECRET`(32자 이상 랜덤) 필수
+
+##### 글쓰기/수정 UI (`AdminPostForm` + `BoardRichEditor`)
+
+| 기능          | 설명                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| 리치 에디터   | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지 |
+| 미리보기      | 저장 전 본문·SEO 미리보기 모달                                                                   |
+| 임시저장      | 브라우저 `localStorage`에 초안 저장·불러오기                                                     |
+| 썸네일·첨부   | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                      |
+| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, 상세 페이지에서 입력 후 다운로드                                   |
+| SEO           | 제목·슬러그·설명 메타 + 미리보기                                                                 |
+| 이탈 경고     | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                     |
+
+##### 관리자 프론트엔드 구조 (2026-06 리팩토링)
+
+대형 컴포넌트를 역할별로 분리했습니다. 기존 import 경로(`AdminPostForm`, `BoardRichEditor`)는 그대로 유지합니다.
+
+```
+frontend/app/admin/
+├── components/
+│   ├── AdminPostForm.tsx          # 훅 + 섹션 조립 (~200줄)
+│   ├── BoardRichEditor.tsx        # 에디터 셸 (~100줄)
+│   ├── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 액션 버튼
+│   └── board-rich-editor/         # 툴바, ColorPickerDropdown, useBoardRichEditor
+├── hooks/
+│   ├── useAdminPostForm.ts        # 폼 state·핸들러
+│   ├── useAdminPostLeaveGuard.ts  # 이탈 가드
+│   └── useClickOutside.ts         # 툴바 드롭다운 outside-click
+└── lib/
+    ├── adminPostFormTypes.ts      # AdminPostInitial, emptyAdminPostInitial
+    ├── buildBoardPostPayload.ts   # API payload 조립
+    ├── adminPostFormDirty.ts      # dirty 판별·이탈 메시지
+    ├── validateAttachmentPassword.ts
+    └── boardAttachmentAccept.ts   # 업로드 확장자·10MB 검증 (백엔드와 동기)
+```
 
 #### 상담 문의 관리 (JWT, 최고관리자만)
 
@@ -199,11 +245,33 @@ cd frontend && npm run start
 검증 체크:
 
 - `/contact/`에서 상담 제출 → DB 적재 및 응답 `result: "1"` 확인
-- `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 확인
+- `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 확인 (첨부 있는 글 500 없음)
 - `/admin/login` → `admin` 로그인 → `/news/` 관리자 바(글쓰기) 노출
 - `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
 - `/admin/news/write`에서 글 작성 → 목록/상세 반영 (ISR 최대 60초)
+- 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고(취소·링크)
+- `BoardRichEditor`: 기본/마크다운/HTML 탭, 색상·리스트·표·이미지 삽입
+- 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드
 - 상세 페이지에서 수정·삭제 동작 확인
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
 
-카페24 배포 시 업로드: `backend/lib/`, `backend/api/board/auth/`, `write_post.php`, `config/app_config.php`(JWT_SECRET).
+카페24 배포 시 업로드: `backend/lib/`(board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
+
+## 최근 변경 (2026-06-05)
+
+### 프론트엔드
+
+- **관리자 글쓰기 강화**: Tiptap 리치 에디터(마크다운·HTML 탭, 표·배경색·구분선 등), 저장 전 미리보기, 임시저장
+- **업로드 UX**: 썸네일·본문 이미지·첨부 10MB 클라이언트 선검증 및 실패 시 UI 초기화
+- **이탈 경고**: 작성 중 취소·내부 링크·탭 닫기 시 확인 (`useAdminPostLeaveGuard`)
+- **첨부 비밀번호**: 관리자 폼에서 설정·해제, 상세 `BoardAttachmentItem`에서 다운로드 전 입력
+- **게시글 상세 500 수정**: `BoardAttachmentItem`의 `formatFileSize`를 컴포넌트 내부로 이동 (Server→Client 함수 props 제거)
+- **코드 구조**: `AdminPostForm`·`BoardRichEditor`를 lib/hooks/섹션 컴포넌트로 분리 (동작·import 경로 유지)
+- **의존성**: `@tiptap/*` 패키지 `^3.25.0`으로 버전 통일 (Vercel peer dependency 충돌 방지)
+
+### 백엔드 (카페24 FTP 반영 필요)
+
+- **PHP 7.3 호환**: `get_view.php`, `get_post.php` 등 화살표 함수 → 익명 함수
+- **`board_files.php`**: 첨부·이미지 업로드/저장, 10MB 제한, 첨부 비밀번호 PBKDF2 해시
+- **`download_file.php`**: 첨부 다운로드 API 신설
+- **`write_post.php` / `upload_file.php`**: 첨부 비밀번호 설정·해제 연동
