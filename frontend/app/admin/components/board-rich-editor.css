@@ -1,29 +1,36 @@
+@import '../../board-typography.css';
+
 .board-rich-editor .ProseMirror {
   min-height: 320px;
+  max-height: 520px;
+  overflow-y: scroll;
   padding: 12px 14px;
   outline: none;
 }
 
-.board-rich-editor .ProseMirror p {
-  margin: 0 0 0.75em;
-}
-
-.board-rich-editor .ProseMirror h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.board-rich-editor .ProseMirror h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0.85em 0 0.4em;
+.board-rich-editor-textarea {
+  min-height: 320px;
+  max-height: 520px;
+  overflow-y: scroll;
+  resize: none;
 }
 
 .board-rich-editor .ProseMirror ul,
 .board-rich-editor .ProseMirror ol {
   margin: 0 0 0.75em;
   padding-left: 1.5em;
+}
+
+.board-rich-editor .ProseMirror ul {
+  list-style-type: disc;
+}
+
+.board-rich-editor .ProseMirror ul[data-list-style='circle'] {
+  list-style-type: circle;
+}
+
+.board-rich-editor .ProseMirror ol {
+  list-style-type: decimal;
 }
 
 .board-rich-editor .ProseMirror a {
@@ -36,6 +43,68 @@
   height: auto;
 }
 
+.board-rich-editor .ProseMirror blockquote {
+  border-left: 3px solid #1a3151;
+  padding-left: 1em;
+  color: #555;
+  margin: 1em 0;
+}
+
+.board-rich-editor .ProseMirror blockquote p {
+  margin: 0 0 0.5em;
+}
+
+.board-rich-editor .ProseMirror blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.board-rich-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e8e8e8;
+  margin: 1.25em 0;
+}
+
 .board-rich-editor .ProseMirror-focused {
   outline: none;
+}
+
+.board-preview ul,
+.board-preview ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+
+.board-preview ul {
+  list-style-type: disc;
+}
+
+.board-preview ul[data-list-style='circle'] {
+  list-style-type: circle;
+}
+
+.board-preview ol {
+  list-style-type: decimal;
+}
+
+.board-preview a {
+  color: #1a3151;
+  text-decoration: underline;
+}
+
+.board-preview img {
+  max-width: 100%;
+  height: auto;
+}
+
+.board-preview blockquote {
+  border-left: 3px solid #1a3151;
+  margin: 1em 0;
+  padding-left: 1em;
+  color: #555;
+}
+
+.board-preview hr {
+  border: none;
+  border-top: 1px solid #e8e8e8;
+  margin: 1.25em 0;
 }

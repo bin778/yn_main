@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { BOARD_META } from '@/app/(story)/constants/boardContent';
 import { createBoardPost, updateBoardPost, uploadBoardFile } from '@/app/(story)/lib/boardAdminApi';
@@ -20,7 +20,7 @@ import {
 } from '../lib/boardPostTypes';
 import { getAdminListPath } from '../lib/adminBoard';
 import { BOARD_ATTACHMENT_ACCEPT, BOARD_ATTACHMENT_HINT, BOARD_IMAGE_ACCEPT } from '../lib/boardAttachmentAccept';
-import { boardHtmlIsEmpty, sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
+import { boardHtmlIsEmpty, sanitizeBoardHtml, sanitizeBoardHtmlForSave } from '../lib/sanitizeBoardHtml';
 
 import BoardRichEditor from './BoardRichEditor';
 import FilePickerField from './FilePickerField';
@@ -90,6 +90,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [draftRefreshKey, setDraftRefreshKey] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
 
   const meta = BOARD_META[boTable];
   const listPath = getAdminListPath(boTable);
@@ -134,7 +135,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   }
 
   function handleSaveDraft() {
-    const cleaned = sanitizeBoardHtml(content);
+    const cleaned = sanitizeBoardHtmlForSave(content);
     saveBoardDraft(boTable, buildCurrentPayload(cleaned));
     setDraftRefreshKey(key => key + 1);
     window.alert('임시 저장되었습니다.');
@@ -142,7 +143,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
 
   function loadDraft(draft: BoardPostPayload & { preview: string }) {
     setSubject(draft.wr_subject);
-    setContent(sanitizeBoardHtml(draft.wr_content));
+    setContent(sanitizeBoardHtmlForSave(draft.wr_content));
     setNotice(draft.notice);
     setDatetimeLocal(toDatetimeLocalValue(draft.wr_datetime) || defaultDatetimeLocal());
     setThumbnailUrl(draft.wr_1);
@@ -158,7 +159,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
     event.preventDefault();
     setError(null);
 
-    const cleanedContent = sanitizeBoardHtml(content);
+    const cleanedContent = sanitizeBoardHtmlForSave(content);
     if (boardHtmlIsEmpty(cleanedContent)) {
       setError('내용을 입력해 주세요.');
       return;
@@ -204,6 +205,17 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       setLoading(false);
     }
   }
+
+  const handleClosePreview = useCallback(() => setShowPreview(false), []);
+
+  useEffect(() => {
+    if (!showPreview) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') handleClosePreview();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showPreview, handleClosePreview]);
 
   const attachmentLabel = pendingAttachment?.name ?? attachment?.source ?? null;
   const hasThumbnail = thumbnailUrl !== '';
@@ -355,9 +367,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
                 rows={3}
                 maxLength={SEO_DESCRIPTION_MAX}
                 value={seoDescription}
-                placeholder={
-                  bodyDescriptionFallback || '본문을 입력하면 검색 결과 설명 미리보기에 반영됩니다'
-                }
+                placeholder={bodyDescriptionFallback || '본문을 입력하면 검색 결과 설명 미리보기에 반영됩니다'}
                 onChange={event => setSeoDescription(event.target.value)}
                 className="w-full resize-y border border-[#ddd] px-3 py-2 text-sm leading-relaxed"
               />
@@ -478,6 +488,14 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           >
             {loading ? '저장 중…' : '저장'}
           </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => setShowPreview(true)}
+            className="border border-[#1a3151] px-4 py-2 text-sm font-medium text-[#1a3151] hover:bg-[#f0f4f9] disabled:opacity-60"
+          >
+            미리보기
+          </button>
           <Link href={listPath} className="inline-flex items-center border border-[#ddd] px-4 py-2 text-sm">
             취소
           </Link>
@@ -493,6 +511,37 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           )}
         </div>
       </form>
+
+      {/* 미리보기 모달 */}
+      {showPreview && (
+        <div
+          className="fixed inset-0 z-[110] flex items-start justify-center bg-black/50 px-4 pb-6 pt-[120px]"
+          onClick={handleClosePreview}
+        >
+          <div
+            className="relative w-full max-w-3xl max-h-[calc(100vh-8.5rem)] overflow-y-auto rounded bg-white shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 flex items-center justify-between border-b border-[#e8e8e8] bg-white px-6 py-4">
+              <div>
+                <p className="text-xs text-[#999]">미리보기</p>
+                <h2 className="text-lg font-semibold text-[#1a3151]">{subject || '(제목 없음)'}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={handleClosePreview}
+                className="rounded border border-[#ddd] px-3 py-1.5 text-sm text-[#666] hover:bg-[#f5f5f5]"
+              >
+                닫기 (ESC)
+              </button>
+            </div>
+            <div
+              className="board-preview px-6 py-6 text-sm text-[#333]"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
