@@ -16,8 +16,10 @@ const ALLOWED_TAGS = [
   'li',
   'h2',
   'h3',
+  'h4',
   'img',
   'blockquote',
+  'hr',
   'div',
   'span',
   'table',
@@ -28,9 +30,39 @@ const ALLOWED_TAGS = [
   'td',
 ];
 
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'target', 'rel'];
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'target', 'rel', 'style', 'data-list-style', 'data-body', 'start'];
 
-/** 레거시 Nano·붙여넣기 HTML에서 편집 가능한 형태로 정리 */
+function purifyHtml(html: string): string {
+  const purified = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+    FORBID_ATTR: ['class', 'id', 'face', 'size', 'color', 'width', 'height'],
+  });
+
+  // style 속성에서 color 값만 허용하고 나머지 제거
+  if (typeof document === 'undefined') {
+    return purified;
+  }
+
+  const root = document.createElement('div');
+  root.innerHTML = purified;
+
+  root.querySelectorAll('[style]').forEach(el => {
+    const colorMatch = (el.getAttribute('style') ?? '').match(/color\s*:\s*([^;]+)/);
+    if (colorMatch) {
+      el.setAttribute('style', `color:${colorMatch[1].trim()}`);
+    } else {
+      el.removeAttribute('style');
+    }
+  });
+
+  return root.innerHTML;
+}
+
+/**
+ * 에디터에서 실시간으로 호출 — collapseEmptyBlocks 없이 XSS 정제만 수행.
+ * 빈 단락을 제거하지 않아야 엔터 줄바꿈과 글머리 기호가 유지됨.
+ */
 export function sanitizeBoardHtml(html: string): string {
   const trimmed = html.trim();
   if (trimmed === '') {
@@ -38,13 +70,20 @@ export function sanitizeBoardHtml(html: string): string {
   }
 
   const normalized = normalizeLegacyThumbUrls(trimmed);
+  return purifyHtml(normalized);
+}
 
-  const purified = DOMPurify.sanitize(normalized, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    FORBID_ATTR: ['style', 'class', 'id', 'face', 'size', 'color', 'width', 'height'],
-  });
+/**
+ * 저장(제출) 직전에만 호출 — 빈 단락 제거 포함.
+ */
+export function sanitizeBoardHtmlForSave(html: string): string {
+  const trimmed = html.trim();
+  if (trimmed === '') {
+    return '';
+  }
 
+  const normalized = normalizeLegacyThumbUrls(trimmed);
+  const purified = purifyHtml(normalized);
   return collapseEmptyBlocks(purified);
 }
 
@@ -65,7 +104,10 @@ function collapseEmptyBlocks(html: string): string {
   const root = document.createElement('div');
   root.innerHTML = html;
 
-  root.querySelectorAll('p, div, h2, h3').forEach(node => {
+  root.querySelectorAll('p, div, h2, h3, h4').forEach(node => {
+    // <li> 안의 단락은 Tiptap 구조이므로 제거하지 않음
+    if (node.closest('li') !== null) return;
+
     const text = (node.textContent ?? '').replace(/\u00a0/g, ' ').trim();
     const hasMedia = node.querySelector('img, table, ul, ol, blockquote') !== null;
     if (text === '' && !hasMedia) {
