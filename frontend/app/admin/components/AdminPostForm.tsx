@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { BOARD_META } from '@/app/(story)/constants/boardContent';
@@ -102,7 +102,51 @@ function validateAttachmentPassword(password: string): string | null {
   return null;
 }
 
+const LEAVE_CONFIRM_MESSAGE = '작성 중인 내용이 저장되지 않습니다.\n이 페이지를 나가면 입력한 내용이 사라집니다.';
+
+function confirmLeave(): boolean {
+  return window.confirm(LEAVE_CONFIRM_MESSAGE);
+}
+
+type PostFormSnapshot = {
+  subject: string;
+  content: string;
+  notice: boolean;
+  datetimeLocal: string;
+  thumbnailUrl: string;
+  seoTitle: string;
+  seoSlug: string;
+  seoDescription: string;
+  attachment: BoardPostFile | null;
+  pendingAttachment: File | null;
+  removeAttachment: boolean;
+  attachmentPassword: string;
+  clearAttachmentPassword: boolean;
+};
+
+function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnapshot): boolean {
+  if (current.subject !== initial.subject) return true;
+  if (sanitizeBoardHtmlForSave(current.content) !== sanitizeBoardHtmlForSave(initial.content)) return true;
+  if (current.notice !== initial.notice) return true;
+  if (current.datetimeLocal !== initial.datetimeLocal) return true;
+  if (current.thumbnailUrl !== initial.thumbnailUrl) return true;
+  if (current.seoTitle !== initial.seoTitle) return true;
+  if (current.seoSlug !== initial.seoSlug) return true;
+  if (current.seoDescription !== initial.seoDescription) return true;
+  if (current.pendingAttachment !== null) return true;
+  if (current.removeAttachment) return true;
+  if (current.attachmentPassword.trim() !== '') return true;
+  if (current.clearAttachmentPassword) return true;
+
+  const initialAttachmentSource = initial.attachment?.source ?? null;
+  const currentAttachmentSource = current.removeAttachment ? null : (current.attachment?.source ?? null);
+  if (initialAttachmentSource !== currentAttachmentSource) return true;
+
+  return false;
+}
+
 export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, onDelete }: AdminPostFormProps) {
+  const router = useRouter();
   const [subject, setSubject] = useState(initial.subject);
   const [content, setContent] = useState(() => sanitizeBoardHtml(initial.content));
   const [notice, setNotice] = useState(initial.notice);
@@ -130,6 +174,83 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
 
   const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
   const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
+
+  const isDirty = useMemo(
+    () =>
+      isPostFormDirty(initial, {
+        subject,
+        content,
+        notice,
+        datetimeLocal,
+        thumbnailUrl,
+        seoTitle,
+        seoSlug,
+        seoDescription,
+        attachment,
+        pendingAttachment,
+        removeAttachment,
+        attachmentPassword,
+        clearAttachmentPassword,
+      }),
+    [
+      initial,
+      subject,
+      content,
+      notice,
+      datetimeLocal,
+      thumbnailUrl,
+      seoTitle,
+      seoSlug,
+      seoDescription,
+      attachment,
+      pendingAttachment,
+      removeAttachment,
+      attachmentPassword,
+      clearAttachmentPassword,
+    ],
+  );
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    function handleDocumentClick(event: MouseEvent) {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const anchor = target.closest('a[href]');
+      if (!anchor || anchor.getAttribute('target') === '_blank') return;
+
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+      if (!confirmLeave()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+
+    document.addEventListener('click', handleDocumentClick, true);
+    return () => document.removeEventListener('click', handleDocumentClick, true);
+  }, [isDirty]);
+
+  function handleCancel() {
+    if (isDirty && !confirmLeave()) return;
+    router.push(listPath);
+  }
 
   function handleSubjectChange(value: string) {
     setSubject(value);
@@ -623,9 +744,14 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           >
             미리보기
           </button>
-          <Link href={listPath} className="inline-flex items-center border border-[#ddd] px-4 py-2 text-sm">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleCancel}
+            className="inline-flex items-center border border-[#ddd] px-4 py-2 text-sm disabled:opacity-60"
+          >
             취소
-          </Link>
+          </button>
           {mode === 'edit' && onDelete !== undefined && (
             <button
               type="button"
