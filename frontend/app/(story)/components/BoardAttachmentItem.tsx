@@ -9,8 +9,13 @@ type BoardAttachmentItemProps = {
   boTable: BoTable;
   wrId: number;
   file: BoardFile;
-  formatFileSize: (bytes: number) => string;
 };
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 function saveBlobAsFile(blob: Blob, filename: string): void {
   const objectUrl = URL.createObjectURL(blob);
@@ -21,7 +26,7 @@ function saveBlobAsFile(blob: Blob, filename: string): void {
   URL.revokeObjectURL(objectUrl);
 }
 
-export default function BoardAttachmentItem({ boTable, wrId, file, formatFileSize }: BoardAttachmentItemProps) {
+export default function BoardAttachmentItem({ boTable, wrId, file }: BoardAttachmentItemProps) {
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

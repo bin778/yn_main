@@ -14,12 +14,6 @@ function formatDate(datetime: string): string {
   return datetime.slice(0, 10).replace(/-/g, '.');
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export default function BoardViewSection({ boTable, post }: BoardViewSectionProps) {
   const pathSlug = getBoardPathSlug(boTable);
   const listHref = `/${pathSlug}`;
@@ -66,12 +60,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
             <ul className="space-y-2">
               {post.files.map(file => (
                 <li key={file.no}>
-                  <BoardAttachmentItem
-                    boTable={boTable}
-                    wrId={post.wr_id}
-                    file={file}
-                    formatFileSize={formatFileSize}
-                  />
+                  <BoardAttachmentItem boTable={boTable} wrId={post.wr_id} file={file} />
                 </li>
               ))}
             </ul>
