@@ -21,7 +21,9 @@ export function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnap
   if (current.pendingAttachment !== null) return true;
   if (current.removeAttachment) return true;
   if (current.attachmentPassword.trim() !== '') return true;
-  if (current.clearAttachmentPassword) return true;
+
+  const initialDownloadMode = initial.attachment?.has_password === true ? 'password' : 'public';
+  if (current.downloadMode !== initialDownloadMode) return true;
 
   const initialAttachmentSource = initial.attachment?.source ?? null;
   const currentAttachmentSource = current.removeAttachment ? null : (current.attachment?.source ?? null);

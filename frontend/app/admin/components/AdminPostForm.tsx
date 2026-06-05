@@ -160,17 +160,11 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           attachmentHint={form.attachmentHint}
           attachmentPassword={form.attachmentPassword}
           attachmentHasPassword={form.attachmentHasPassword}
-          clearAttachmentPassword={form.clearAttachmentPassword}
+          downloadMode={form.downloadMode}
           onFileSelect={form.handleAttachmentFile}
           onRemove={form.handleRemoveAttachment}
-          onPasswordChange={value => {
-            form.setAttachmentPassword(value);
-            if (value.trim() !== '') form.setClearAttachmentPassword(false);
-          }}
-          onClearPasswordToggle={checked => {
-            form.setClearAttachmentPassword(checked);
-            if (checked) form.setAttachmentPassword('');
-          }}
+          onPasswordChange={form.setAttachmentPassword}
+          onDownloadModeChange={form.handleDownloadModeChange}
         />
 
         {form.error !== null && (

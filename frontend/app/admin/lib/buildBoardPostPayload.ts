@@ -1,5 +1,7 @@
 import { toMysqlDatetime, type BoardPostPayload } from './boardPostTypes';
 
+export type AttachmentDownloadMode = 'public' | 'password';
+
 export function buildBoardPostPayload(
   subject: string,
   content: string,
@@ -11,7 +13,8 @@ export function buildBoardPostPayload(
   seoDescription: string,
   removeAttachment: boolean,
   attachmentPassword: string,
-  clearAttachmentPassword: boolean,
+  downloadMode: AttachmentDownloadMode,
+  attachmentHasPassword: boolean,
 ): BoardPostPayload {
   const payload: BoardPostPayload = {
     wr_subject: subject.trim(),
@@ -26,9 +29,9 @@ export function buildBoardPostPayload(
   };
 
   if (!removeAttachment) {
-    if (clearAttachmentPassword) {
+    if (downloadMode === 'public' && attachmentHasPassword) {
       payload.clear_attachment_password = true;
-    } else if (attachmentPassword.trim() !== '') {
+    } else if (downloadMode === 'password' && attachmentPassword.trim() !== '') {
       payload.attachment_password = attachmentPassword.trim();
     }
   }

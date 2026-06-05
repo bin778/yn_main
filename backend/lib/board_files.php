@@ -115,7 +115,22 @@ function board_store_uploaded_file(string $bo_table, array $file, bool $images_o
 
 function board_attachment_has_password(string $bf_content): bool
 {
-    return trim($bf_content) !== '';
+    $content = trim($bf_content);
+    if ($content === '') {
+        return false;
+    }
+
+    // PBKDF2 해시만 비밀번호로 인식 (SHA256:12000:... 형식)
+    if (preg_match('/^SHA\d+:\d+:/', $content)) {
+        return true;
+    }
+
+    // 그누보드 레거시 MySQL PASSWORD() 해시
+    $len = strlen($content);
+    if ($len === G5_MYSQL_PASSWORD_LENGTH || $len === 16) {
+        return true;
+    }
+    return false;
 }
 
 function board_validate_attachment_password(string $password): void

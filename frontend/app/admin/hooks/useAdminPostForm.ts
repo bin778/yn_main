@@ -8,7 +8,7 @@ import type { BoTable } from '@/app/(story)/types/board';
 
 import { isPostFormDirty } from '../lib/adminPostFormDirty';
 import type { AdminPostInitial } from '../lib/adminPostFormTypes';
-import { buildBoardPostPayload } from '../lib/buildBoardPostPayload';
+import { buildBoardPostPayload, type AttachmentDownloadMode } from '../lib/buildBoardPostPayload';
 import { validateBoardAttachmentFile, validateBoardImageFile } from '../lib/boardAttachmentAccept';
 import { saveBoardDraft } from '../lib/boardDraftStorage';
 import {
@@ -43,7 +43,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
   const [attachmentPassword, setAttachmentPassword] = useState('');
-  const [clearAttachmentPassword, setClearAttachmentPassword] = useState(false);
+  const [downloadMode, setDownloadMode] = useState<AttachmentDownloadMode>(
+    initial.attachment?.has_password === true ? 'password' : 'public',
+  );
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         pendingAttachment,
         removeAttachment,
         attachmentPassword,
-        clearAttachmentPassword,
+        downloadMode,
       }),
     [
       initial,
@@ -87,7 +89,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       pendingAttachment,
       removeAttachment,
       attachmentPassword,
-      clearAttachmentPassword,
+      downloadMode,
     ],
   );
 
@@ -127,7 +129,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       seoDescription,
       removeAttachment,
       attachmentPassword,
-      clearAttachmentPassword,
+      downloadMode,
+      attachmentHasPassword,
     );
   }
 
@@ -190,10 +193,16 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       return;
     }
 
-    const passwordError = validateAttachmentPassword(attachmentPassword);
-    if (passwordError !== null) {
-      setError(passwordError);
-      return;
+    if (downloadMode === 'password') {
+      const passwordError = validateAttachmentPassword(attachmentPassword);
+      if (passwordError !== null) {
+        setError(passwordError);
+        return;
+      }
+      if (attachmentPassword.trim() === '' && !attachmentHasPassword) {
+        setError('비밀번호 보호를 선택했으면 다운로드 비밀번호를 입력해 주세요.');
+        return;
+      }
     }
 
     const payload = buildCurrentPayload(cleanedContent);
@@ -211,7 +220,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       }
 
       if (pendingAttachment !== null && savedId > 0) {
-        const passwordForUpload = clearAttachmentPassword ? '' : attachmentPassword;
+        const passwordForUpload = downloadMode === 'password' ? attachmentPassword : '';
         const uploaded = await uploadBoardFile(boTable, pendingAttachment, 'attachment', savedId, passwordForUpload);
         setAttachment({
           no: 0,
@@ -225,7 +234,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         });
         setPendingAttachment(null);
         setAttachmentPassword('');
-        setClearAttachmentPassword(false);
+        setDownloadMode(uploaded.has_password ? 'password' : 'public');
       }
 
       onSaved(savedId);
@@ -259,16 +268,22 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       return;
     }
 
-    const passwordError = validateAttachmentPassword(attachmentPassword);
-    if (passwordError !== null) {
-      setError(passwordError);
-      return;
+    if (downloadMode === 'password') {
+      const passwordError = validateAttachmentPassword(attachmentPassword);
+      if (passwordError !== null) {
+        setError(passwordError);
+        return;
+      }
+      if (attachmentPassword.trim() === '' && !attachmentHasPassword) {
+        setError('비밀번호 보호를 선택했으면 다운로드 비밀번호를 입력해 주세요.');
+        return;
+      }
     }
 
     if (mode === 'edit' && wrId !== undefined && wrId > 0) {
       setUploadingAttachment(true);
       setError(null);
-      const passwordForUpload = clearAttachmentPassword ? '' : attachmentPassword;
+      const passwordForUpload = downloadMode === 'password' ? attachmentPassword : '';
       uploadBoardFile(boTable, file, 'attachment', wrId, passwordForUpload)
         .then(uploaded => {
           setAttachment({
@@ -284,7 +299,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
           setRemoveAttachment(false);
           setPendingAttachment(null);
           setAttachmentPassword('');
-          setClearAttachmentPassword(false);
+          setDownloadMode(uploaded.has_password ? 'password' : 'public');
         })
         .catch(uploadError => {
           setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');
@@ -301,7 +316,14 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setRemoveAttachment(true);
     setPendingAttachment(null);
     setAttachmentPassword('');
-    setClearAttachmentPassword(false);
+    setDownloadMode('public');
+  }
+
+  function handleDownloadModeChange(mode: AttachmentDownloadMode) {
+    setDownloadMode(mode);
+    if (mode === 'public') {
+      setAttachmentPassword('');
+    }
   }
 
   return {
@@ -329,8 +351,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setShowSlugInput,
     attachmentPassword,
     setAttachmentPassword,
-    clearAttachmentPassword,
-    setClearAttachmentPassword,
+    downloadMode,
+    handleDownloadModeChange,
     error,
     loading,
     draftRefreshKey,

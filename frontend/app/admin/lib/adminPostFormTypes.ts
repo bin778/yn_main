@@ -1,3 +1,4 @@
+import type { AttachmentDownloadMode } from './buildBoardPostPayload';
 import { defaultDatetimeLocal, type BoardPostFile } from './boardPostTypes';
 
 export type AdminPostInitial = {
@@ -25,7 +26,7 @@ export type PostFormSnapshot = {
   pendingAttachment: File | null;
   removeAttachment: boolean;
   attachmentPassword: string;
-  clearAttachmentPassword: boolean;
+  downloadMode: AttachmentDownloadMode;
 };
 
 export function emptyAdminPostInitial(): AdminPostInitial {
