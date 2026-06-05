@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ADMIN_HUB_PATH } from '@/app/constants/adminAuth';
 
 import { getBoardPathSlug } from '../constants/boardContent';
+import { getAdminScheduledListPath } from '@/app/admin/lib/adminBoard';
 import { boardAdminLogout, deleteBoardPost, fetchBoardAdminMe, type BoardAdminMe } from '../lib/boardAdminApi';
 import type { BoTable } from '../types/board';
 
@@ -71,7 +72,7 @@ export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
   if (session === null || session.is_admin === '') return null;
 
   const buttonClass =
-    'inline-flex h-10 items-center justify-center border border-[#1a3151] px-4 text-[13px] font-medium text-[#1a3151] transition-colors hover:bg-[#1a3151] hover:text-white';
+    'inline-flex h-10 cursor-pointer items-center justify-center border border-[#1a3151] px-4 text-[13px] font-medium text-[#1a3151] transition-colors hover:bg-[#1a3151] hover:text-white';
 
   return (
     <div className="mx-auto mb-4 max-w-[900px] px-4 md:px-6" aria-label="게시판 관리">
@@ -90,6 +91,9 @@ export default function BoardAdminBar({ boTable, wrId }: BoardAdminBarProps) {
             글쓰기
           </Link>
         )}
+        <Link href={getAdminScheduledListPath(boTable)} className={buttonClass}>
+          예약글 목록
+        </Link>
         {session.update_href !== null && (
           <Link href={session.update_href} className={buttonClass}>
             수정

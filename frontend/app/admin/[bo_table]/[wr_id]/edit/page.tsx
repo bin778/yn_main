@@ -6,9 +6,8 @@ import { useEffect, useState } from 'react';
 import { deleteBoardPost, fetchBoardPostAdmin } from '@/app/(story)/lib/boardAdminApi';
 import type { BoTable } from '@/app/(story)/types/board';
 
-import AdminPostForm, { emptyAdminPostInitial, type AdminPostInitial } from '../../../components/AdminPostForm';
-import { getAdminListPath, resolveAdminBoTable } from '../../../lib/adminBoard';
-import { toDatetimeLocalValue } from '../../../lib/boardPostTypes';
+import AdminPostForm, { type AdminPostInitial } from '../../../components/AdminPostForm';
+import { getAdminListPath, getRedirectPathAfterSave, resolveAdminBoTable } from '../../../lib/adminBoard';
 
 type AdminEditFormProps = {
   boTable: BoTable;
@@ -31,7 +30,7 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
           subject: item.wr_subject,
           content: item.wr_content,
           notice: item.notice,
-          datetimeLocal: toDatetimeLocalValue(item.wr_datetime) || emptyAdminPostInitial().datetimeLocal,
+          wrDatetime: item.wr_datetime,
           thumbnailUrl: item.wr_1,
           seoTitle: item.wr_seo_title,
           seoSlug: item.wr_seo_slug,
@@ -69,8 +68,8 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
       mode="edit"
       wrId={wrId}
       initial={initial}
-      onSaved={() => {
-        router.push(`${getAdminListPath(boTable)}${wrId}/`);
+      onSaved={(_wrId, publishMode) => {
+        router.push(getRedirectPathAfterSave(boTable, wrId, publishMode));
         router.refresh();
       }}
       onDelete={handleDelete}

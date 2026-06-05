@@ -13,7 +13,6 @@ export function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnap
   if (current.subject !== initial.subject) return true;
   if (sanitizeBoardHtmlForSave(current.content) !== sanitizeBoardHtmlForSave(initial.content)) return true;
   if (current.notice !== initial.notice) return true;
-  if (current.datetimeLocal !== initial.datetimeLocal) return true;
   if (current.thumbnailUrl !== initial.thumbnailUrl) return true;
   if (current.seoTitle !== initial.seoTitle) return true;
   if (current.seoSlug !== initial.seoSlug) return true;

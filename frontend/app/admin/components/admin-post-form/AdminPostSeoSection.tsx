@@ -83,7 +83,7 @@ export default function AdminPostSeoSection({
         </div>
         <div>
           {!showSlugInput ? (
-            <button type="button" className="text-xs text-[#1a3151] underline" onClick={onShowSlugInput}>
+            <button type="button" className="cursor-pointer text-xs text-[#1a3151] underline" onClick={onShowSlugInput}>
               Slug 직접 입력 (기본: 글 번호)
             </button>
           ) : (
@@ -100,7 +100,7 @@ export default function AdminPostSeoSection({
                 />
                 <button
                   type="button"
-                  className="border border-[#ddd] px-3 py-2 text-xs text-[#999] hover:text-[#b42318]"
+                  className="cursor-pointer border border-[#ddd] px-3 py-2 text-xs text-[#999] hover:text-[#b42318]"
                   onClick={onResetSlug}
                 >
                   초기화

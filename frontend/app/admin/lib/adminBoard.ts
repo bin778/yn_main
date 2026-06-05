@@ -13,4 +13,17 @@ export function getAdminListPath(boTable: BoTable): string {
   return `/${getBoardPathSlug(boTable)}/`;
 }
 
+export type AdminSavePublishMode = 'now' | 'scheduled';
+
+export function getAdminScheduledListPath(boTable: BoTable): string {
+  return `/admin/${getBoardPathSlug(boTable)}/scheduled/`;
+}
+
+export function getRedirectPathAfterSave(boTable: BoTable, wrId: number, publishMode: AdminSavePublishMode): string {
+  if (publishMode === 'scheduled') {
+    return getAdminListPath(boTable);
+  }
+  return `${getAdminListPath(boTable)}${wrId}/`;
+}
+
 export { ALLOWED_BO_TABLES, getBoardPathSlug };

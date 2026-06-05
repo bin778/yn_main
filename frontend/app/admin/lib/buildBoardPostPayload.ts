@@ -6,7 +6,7 @@ export function buildBoardPostPayload(
   subject: string,
   content: string,
   notice: boolean,
-  datetimeLocal: string,
+  wrDatetime: string,
   thumbnailUrl: string,
   seoTitle: string,
   seoSlug: string,
@@ -15,18 +15,23 @@ export function buildBoardPostPayload(
   attachmentPassword: string,
   downloadMode: AttachmentDownloadMode,
   attachmentHasPassword: boolean,
+  options?: { scheduled?: boolean },
 ): BoardPostPayload {
   const payload: BoardPostPayload = {
     wr_subject: subject.trim(),
     wr_content: content,
     notice,
-    wr_datetime: toMysqlDatetime(datetimeLocal),
+    wr_datetime: toMysqlDatetime(wrDatetime),
     wr_1: thumbnailUrl.trim(),
     wr_seo_title: seoTitle.trim(),
     wr_seo_slug: seoSlug.trim(),
     wr_seo_description: seoDescription.trim(),
     remove_attachment: removeAttachment,
   };
+
+  if (options?.scheduled === true) {
+    payload.scheduled = true;
+  }
 
   if (!removeAttachment) {
     if (downloadMode === 'public' && attachmentHasPassword) {

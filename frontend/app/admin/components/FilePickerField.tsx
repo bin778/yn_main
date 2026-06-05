@@ -17,10 +17,10 @@ type FilePickerFieldProps = {
 };
 
 const PICK_BUTTON_CLASS =
-  'rounded border border-[#1a3151] bg-[#1a3151] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#243d66] disabled:cursor-not-allowed disabled:opacity-50';
+  'cursor-pointer rounded border border-[#1a3151] bg-[#1a3151] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#243d66] disabled:cursor-not-allowed disabled:opacity-50';
 
 const CHANGE_BUTTON_CLASS =
-  'rounded border border-[#ddd] bg-white px-3 py-2 text-sm font-medium text-[#333] transition-colors hover:bg-[#f5f7fb] disabled:cursor-not-allowed disabled:opacity-50';
+  'cursor-pointer rounded border border-[#ddd] bg-white px-3 py-2 text-sm font-medium text-[#333] transition-colors hover:bg-[#f5f7fb] disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function FilePickerField({
   accept,
@@ -78,7 +78,7 @@ export default function FilePickerField({
           <button
             type="button"
             disabled={controlDisabled}
-            className="text-xs text-[#b42318] underline disabled:opacity-50"
+            className="cursor-pointer text-xs text-[#b42318] underline disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onRemove}
           >
             {removeLabel}

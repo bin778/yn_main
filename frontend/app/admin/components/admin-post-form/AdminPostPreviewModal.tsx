@@ -22,7 +22,7 @@ export default function AdminPostPreviewModal({ subject, content, onClose }: Adm
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-[#ddd] px-3 py-1.5 text-sm text-[#666] hover:bg-[#f5f5f5]"
+            className="cursor-pointer rounded border border-[#ddd] px-3 py-1.5 text-sm text-[#666] hover:bg-[#f5f5f5]"
           >
             닫기 (ESC)
           </button>

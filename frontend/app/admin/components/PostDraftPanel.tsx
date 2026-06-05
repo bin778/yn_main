@@ -41,7 +41,7 @@ export default function PostDraftPanel({ boTable, onLoad, refreshKey = 0 }: Post
       <button
         type="button"
         onClick={handleToggle}
-        className="flex items-center gap-1 rounded border border-[#ddd] bg-white px-3 py-1.5 text-sm text-[#333] hover:bg-[#f5f7fb]"
+        className="cursor-pointer flex items-center gap-1 rounded border border-[#ddd] bg-white px-3 py-1.5 text-sm text-[#333] hover:bg-[#f5f7fb]"
       >
         불러오기
         {drafts.length > 0 && (
@@ -69,7 +69,7 @@ export default function PostDraftPanel({ boTable, onLoad, refreshKey = 0 }: Post
                   <li key={draft.id} className="flex items-start gap-1 px-2 py-1 hover:bg-[#f5f7fb]">
                     <button
                       type="button"
-                      className="min-w-0 flex-1 px-1 py-1 text-left"
+                      className="min-w-0 flex-1 cursor-pointer px-1 py-1 text-left"
                       onClick={() => {
                         onLoad(draft);
                         setOpen(false);
@@ -81,7 +81,7 @@ export default function PostDraftPanel({ boTable, onLoad, refreshKey = 0 }: Post
                     <button
                       type="button"
                       aria-label="임시 글 삭제"
-                      className="shrink-0 px-2 py-2 text-[#999] hover:text-[#b42318]"
+                      className="shrink-0 cursor-pointer px-2 py-2 text-[#999] hover:text-[#b42318]"
                       onClick={event => handleDelete(draft.id, event)}
                     >
                       ✕
@@ -91,7 +91,11 @@ export default function PostDraftPanel({ boTable, onLoad, refreshKey = 0 }: Post
               </ul>
             )}
             <div className="border-t border-[#eee] p-2 text-right">
-              <button type="button" className="text-xs text-[#666] underline" onClick={() => setOpen(false)}>
+              <button
+                type="button"
+                className="cursor-pointer text-xs text-[#666] underline"
+                onClick={() => setOpen(false)}
+              >
                 닫기
               </button>
             </div>

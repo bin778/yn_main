@@ -52,6 +52,13 @@ if ($method === 'POST') {
         board_json_response(['error' => '제목이 너무 깁니다.'], 400);
     }
 
+    if (!empty($body['scheduled'])) {
+        $schedule_error = board_validate_scheduled_datetime($parsed['wr_datetime'], $now);
+        if ($schedule_error !== null) {
+            board_json_response(['error' => $schedule_error], 400);
+        }
+    }
+
     try {
         $pdo->beginTransaction();
 
@@ -149,6 +156,13 @@ if ($method === 'PUT' || $method === 'PATCH') {
 
     if ($parsed['wr_subject'] === '' || $parsed['wr_content'] === '') {
         board_json_response(['error' => '제목과 내용을 입력해 주세요.'], 400);
+    }
+
+    if (!empty($body['scheduled'])) {
+        $schedule_error = board_validate_scheduled_datetime($parsed['wr_datetime'], $now);
+        if ($schedule_error !== null) {
+            board_json_response(['error' => $schedule_error], 400);
+        }
     }
 
     $check = $pdo->prepare(

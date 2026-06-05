@@ -8,17 +8,19 @@ import type { BoTable } from '@/app/(story)/types/board';
 import { getAdminListPath } from '../lib/adminBoard';
 import { emptyAdminPostInitial, type AdminPostInitial } from '../lib/adminPostFormTypes';
 import { handleAdminPostCancel, useAdminPostLeaveGuard } from '../hooks/useAdminPostLeaveGuard';
-import { useAdminPostForm } from '../hooks/useAdminPostForm';
+import { useAdminPostForm, type PublishMode } from '../hooks/useAdminPostForm';
 
 import AdminPostAttachmentSection from './admin-post-form/AdminPostAttachmentSection';
 import AdminPostFormActions from './admin-post-form/AdminPostFormActions';
 import AdminPostPreviewModal from './admin-post-form/AdminPostPreviewModal';
 import AdminPostSeoSection from './admin-post-form/AdminPostSeoSection';
 import AdminPostThumbnailSection from './admin-post-form/AdminPostThumbnailSection';
+import SchedulePublishModal from './admin-post-form/SchedulePublishModal';
+import ScheduledPostBanner from './admin-post-form/ScheduledPostBanner';
 import BoardRichEditor from './BoardRichEditor';
 import PostDraftPanel from './PostDraftPanel';
 
-export type { AdminPostInitial };
+export type { AdminPostInitial, PublishMode };
 export { emptyAdminPostInitial };
 
 type AdminPostFormProps = {
@@ -26,7 +28,7 @@ type AdminPostFormProps = {
   mode: 'create' | 'edit';
   wrId?: number;
   initial: AdminPostInitial;
-  onSaved: (wrId: number) => void;
+  onSaved: (wrId: number, publishMode: PublishMode) => void;
   onDelete?: () => Promise<void>;
 };
 
@@ -51,15 +53,23 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         {mode === 'edit' && wrId !== undefined ? ` #${wrId}` : ''}
       </h1>
 
+      {form.isScheduled && (
+        <ScheduledPostBanner
+          wrDatetime={form.scheduledAt}
+          loading={form.loading}
+          onCancelSchedule={() => void form.handleCancelSchedule()}
+        />
+      )}
+
       <form onSubmit={form.handleSubmit} className="space-y-5 border border-[#e8e8e8] bg-white p-6">
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-[#333]">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-[#333]">
             <input
               type="checkbox"
               checked={form.notice}
               onChange={event => form.setNotice(event.target.checked)}
               disabled={form.loading}
-              className="h-4 w-4"
+              className="h-4 w-4 cursor-pointer disabled:cursor-not-allowed"
             />
             공지
           </label>
@@ -72,7 +82,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
               type="button"
               disabled={form.loading}
               onClick={form.handleSaveDraft}
-              className="rounded bg-[#f0f2f5] px-3 py-1.5 text-sm font-medium text-[#333] hover:bg-[#e4e7ec]"
+              className="cursor-pointer rounded bg-[#f0f2f5] px-3 py-1.5 text-sm font-medium text-[#333] hover:bg-[#e4e7ec] disabled:cursor-not-allowed disabled:opacity-60"
             >
               임시 저장
             </button>
@@ -92,19 +102,6 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             value={form.subject}
             onChange={event => form.setSubject(event.target.value)}
             className="w-full border border-[#ddd] px-3 py-2 text-sm focus:border-[#1a3151] focus:outline-none"
-          />
-        </div>
-
-        <div className="w-full sm:w-72">
-          <label htmlFor="wr_datetime" className="mb-1 block text-sm font-medium">
-            발행일 <span className="text-xs font-normal text-[#999]">(기본: 현재 시각)</span>
-          </label>
-          <input
-            id="wr_datetime"
-            type="datetime-local"
-            value={form.datetimeLocal}
-            onChange={event => form.setDatetimeLocal(event.target.value)}
-            className="w-full border border-[#ddd] px-3 py-2 text-sm"
           />
         </div>
 
@@ -176,12 +173,21 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         <AdminPostFormActions
           loading={form.loading}
           mode={mode}
-          showDelete={onDelete !== undefined}
+          showDelete={onDelete !== undefined && !form.isScheduled}
           onPreview={() => form.setShowPreview(true)}
           onCancel={handleCancel}
           onDelete={() => void form.handleDelete()}
+          onScheduleClick={() => form.setShowScheduleModal(true)}
         />
       </form>
+
+      {form.showScheduleModal && (
+        <SchedulePublishModal
+          loading={form.loading}
+          onClose={() => form.setShowScheduleModal(false)}
+          onConfirm={scheduledLocal => void form.handleScheduleSubmit(scheduledLocal)}
+        />
+      )}
 
       {form.showPreview && (
         <AdminPostPreviewModal subject={form.subject} content={form.content} onClose={form.handleClosePreview} />

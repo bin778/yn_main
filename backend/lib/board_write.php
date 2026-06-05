@@ -60,6 +60,27 @@ function board_normalize_datetime(?string $value): ?string
     return date('Y-m-d H:i:s', $timestamp);
 }
 
+/**
+ * 예약 발행 요청 시 wr_datetime이 현재보다 이후인지 검증한다.
+ *
+ * @return string|null 오류 메시지 또는 null
+ */
+function board_validate_scheduled_datetime(string $wr_datetime, string $now): ?string
+{
+    $scheduled = strtotime($wr_datetime);
+    $current = strtotime($now);
+
+    if ($scheduled === false || $current === false) {
+        return '예약 발행 시각이 올바르지 않습니다.';
+    }
+
+    if ($scheduled <= $current) {
+        return '예약 발행 시각은 현재보다 이후여야 합니다.';
+    }
+
+    return null;
+}
+
 function board_slugify(string $text): string
 {
     $text = trim($text);

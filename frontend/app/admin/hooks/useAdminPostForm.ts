@@ -18,19 +18,24 @@ import { validateBoardAttachmentFile, validateBoardImageFile } from '../lib/boar
 import { saveBoardDraft } from '../lib/boardDraftStorage';
 import {
   defaultDatetimeLocal,
+  formatScheduledDatetime,
+  isScheduledPost,
   toDatetimeLocalValue,
+  validateFutureDatetime,
   type BoardPostFile,
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
 import { boardHtmlIsEmpty, sanitizeBoardHtml, sanitizeBoardHtmlForSave } from '../lib/sanitizeBoardHtml';
 import { validateAttachmentPassword } from '../lib/validateAttachmentPassword';
 
+export type PublishMode = 'now' | 'scheduled';
+
 type UseAdminPostFormOptions = {
   boTable: BoTable;
   mode: 'create' | 'edit';
   wrId?: number;
   initial: AdminPostInitial;
-  onSaved: (wrId: number) => void;
+  onSaved: (wrId: number, publishMode: PublishMode) => void;
   onDelete?: () => Promise<void>;
 };
 
@@ -38,7 +43,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const [subject, setSubject] = useState(initial.subject);
   const [content, setContent] = useState(() => sanitizeBoardHtml(initial.content));
   const [notice, setNotice] = useState(initial.notice);
-  const [datetimeLocal, setDatetimeLocal] = useState(initial.datetimeLocal);
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
   const [seoTitle, setSeoTitle] = useState(initial.seoTitle);
   const [seoSlug, setSeoSlug] = useState(initial.seoSlug);
@@ -57,8 +61,10 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const [loading, setLoading] = useState(false);
   const [draftRefreshKey, setDraftRefreshKey] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}`;
+  const isScheduled = isScheduledPost(initial.wrDatetime);
 
   const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
   const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
@@ -69,7 +75,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         subject,
         content,
         notice,
-        datetimeLocal,
         thumbnailUrl,
         seoTitle,
         seoSlug,
@@ -85,7 +90,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       subject,
       content,
       notice,
-      datetimeLocal,
       thumbnailUrl,
       seoTitle,
       seoSlug,
@@ -122,12 +126,51 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     return `현재: ${attachmentLabel}`;
   })();
 
-  function buildCurrentPayload(cleanedContent: string): BoardPostPayload {
-    return buildBoardPostPayload(
+  function validateBeforeSubmit(): string | null {
+    const cleanedContent = sanitizeBoardHtmlForSave(content);
+    if (boardHtmlIsEmpty(cleanedContent)) {
+      return '내용을 입력해 주세요.';
+    }
+
+    if (downloadMode === 'password') {
+      const passwordError = validateAttachmentPassword(attachmentPassword);
+      if (passwordError !== null) return passwordError;
+      if (attachmentPassword.trim() === '' && !attachmentHasPassword) {
+        return '비밀번호 보호를 선택했으면 다운로드 비밀번호를 입력해 주세요.';
+      }
+    }
+
+    return null;
+  }
+
+  async function submitPost(publishMode: PublishMode, scheduledLocal?: string) {
+    const validationError = validateBeforeSubmit();
+    if (validationError !== null) {
+      setError(validationError);
+      return;
+    }
+
+    if (publishMode === 'scheduled') {
+      const scheduleError = validateFutureDatetime(scheduledLocal ?? '');
+      if (scheduleError !== null) {
+        setError(scheduleError);
+        return;
+      }
+    }
+
+    const cleanedContent = sanitizeBoardHtmlForSave(content);
+    const wrDatetimeLocal =
+      publishMode === 'scheduled'
+        ? (scheduledLocal ?? '')
+        : mode === 'edit'
+          ? toDatetimeLocalValue(initial.wrDatetime) || initial.wrDatetime
+          : defaultDatetimeLocal();
+
+    const payload = buildBoardPostPayload(
       subject,
       cleanedContent,
       notice,
-      datetimeLocal,
+      wrDatetimeLocal,
       thumbnailUrl,
       seoTitle,
       seoSlug,
@@ -136,7 +179,56 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       attachmentPassword,
       downloadMode,
       attachmentHasPassword,
+      publishMode === 'scheduled' ? { scheduled: true } : undefined,
     );
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      let savedId = wrId ?? 0;
+
+      if (mode === 'create') {
+        const created = await createBoardPost(boTable, payload);
+        savedId = created.wr_id;
+      } else if (wrId !== undefined) {
+        await updateBoardPost(boTable, wrId, payload);
+        savedId = wrId;
+      }
+
+      if (pendingAttachment !== null && savedId > 0) {
+        const passwordForUpload = downloadMode === 'password' ? attachmentPassword : '';
+        const uploaded = await uploadBoardFile(boTable, pendingAttachment, 'attachment', savedId, passwordForUpload);
+        setAttachment({
+          no: 0,
+          source: pendingAttachment.name,
+          url: uploaded.url,
+          size: pendingAttachment.size,
+          is_image: pendingAttachment.type.startsWith('image/'),
+          width: null,
+          height: null,
+          has_password: uploaded.has_password,
+        });
+        setPendingAttachment(null);
+        setAttachmentPassword('');
+        setDownloadMode(uploaded.has_password ? 'password' : 'public');
+      }
+
+      await revalidateBoardPost(boTable, savedId);
+
+      if (publishMode === 'scheduled') {
+        window.alert(
+          `${formatScheduledDatetime(payload.wr_datetime)}에 발행 예정입니다.\n발행 시각 이후 목록에 표시됩니다.`,
+        );
+      }
+
+      setShowScheduleModal(false);
+      onSaved(savedId, publishMode);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : '저장에 실패했습니다.');
+      setPendingAttachment(null);
+      setLoading(false);
+    }
   }
 
   async function handleThumbnailFile(file: File) {
@@ -169,7 +261,23 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
 
   function handleSaveDraft() {
     const cleaned = sanitizeBoardHtmlForSave(content);
-    saveBoardDraft(boTable, buildCurrentPayload(cleaned));
+    saveBoardDraft(
+      boTable,
+      buildBoardPostPayload(
+        subject,
+        cleaned,
+        notice,
+        '',
+        thumbnailUrl,
+        seoTitle,
+        seoSlug,
+        seoDescription,
+        removeAttachment,
+        attachmentPassword,
+        downloadMode,
+        attachmentHasPassword,
+      ),
+    );
     setDraftRefreshKey(key => key + 1);
     window.alert('임시 저장되었습니다.');
   }
@@ -178,7 +286,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setSubject(draft.wr_subject);
     setContent(sanitizeBoardHtmlForSave(draft.wr_content));
     setNotice(draft.notice);
-    setDatetimeLocal(toDatetimeLocalValue(draft.wr_datetime) || defaultDatetimeLocal());
     setThumbnailUrl(draft.wr_1);
     setSeoTitle(draft.wr_seo_title);
     setSeoSlug(draft.wr_seo_slug);
@@ -191,64 +298,12 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    await submitPost('now');
+  }
 
-    const cleanedContent = sanitizeBoardHtmlForSave(content);
-    if (boardHtmlIsEmpty(cleanedContent)) {
-      setError('내용을 입력해 주세요.');
-      return;
-    }
-
-    if (downloadMode === 'password') {
-      const passwordError = validateAttachmentPassword(attachmentPassword);
-      if (passwordError !== null) {
-        setError(passwordError);
-        return;
-      }
-      if (attachmentPassword.trim() === '' && !attachmentHasPassword) {
-        setError('비밀번호 보호를 선택했으면 다운로드 비밀번호를 입력해 주세요.');
-        return;
-      }
-    }
-
-    const payload = buildCurrentPayload(cleanedContent);
-    setLoading(true);
-
-    try {
-      let savedId = wrId ?? 0;
-
-      if (mode === 'create') {
-        const created = await createBoardPost(boTable, payload);
-        savedId = created.wr_id;
-      } else if (wrId !== undefined) {
-        await updateBoardPost(boTable, wrId, payload);
-        savedId = wrId;
-      }
-
-      if (pendingAttachment !== null && savedId > 0) {
-        const passwordForUpload = downloadMode === 'password' ? attachmentPassword : '';
-        const uploaded = await uploadBoardFile(boTable, pendingAttachment, 'attachment', savedId, passwordForUpload);
-        setAttachment({
-          no: 0,
-          source: pendingAttachment.name,
-          url: uploaded.url,
-          size: pendingAttachment.size,
-          is_image: pendingAttachment.type.startsWith('image/'),
-          width: null,
-          height: null,
-          has_password: uploaded.has_password,
-        });
-        setPendingAttachment(null);
-        setAttachmentPassword('');
-        setDownloadMode(uploaded.has_password ? 'password' : 'public');
-      }
-
-      await revalidateBoardPost(boTable, savedId);
-      onSaved(savedId);
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : '저장에 실패했습니다.');
-      setPendingAttachment(null);
-      setLoading(false);
-    }
+  async function handleScheduleSubmit(scheduledLocal: string) {
+    setError(null);
+    await submitPost('scheduled', scheduledLocal);
   }
 
   async function handleDelete() {
@@ -262,6 +317,21 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       await onDelete();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : '삭제에 실패했습니다.');
+      setLoading(false);
+    }
+  }
+
+  async function handleCancelSchedule() {
+    if (onDelete === undefined) return;
+    if (!window.confirm('정말 예약을 취소하고 글을 삭제하시겠습니까?')) return;
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await onDelete();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : '예약 취소에 실패했습니다.');
       setLoading(false);
     }
   }
@@ -326,9 +396,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setDownloadMode('public');
   }
 
-  function handleDownloadModeChange(mode: AttachmentDownloadMode) {
-    setDownloadMode(mode);
-    if (mode === 'public') {
+  function handleDownloadModeChange(nextMode: AttachmentDownloadMode) {
+    setDownloadMode(nextMode);
+    if (nextMode === 'public') {
       setAttachmentPassword('');
     }
   }
@@ -344,8 +414,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setContent,
     notice,
     setNotice,
-    datetimeLocal,
-    setDatetimeLocal,
     thumbnailUrl,
     setThumbnailUrl,
     seoTitle,
@@ -365,9 +433,13 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     draftRefreshKey,
     showPreview,
     setShowPreview,
+    showScheduleModal,
+    setShowScheduleModal,
     uploadingThumb,
     uploadingAttachment,
     isDirty,
+    isScheduled,
+    scheduledAt: initial.wrDatetime,
     hasThumbnail,
     hasAttachment,
     attachmentHasPassword,
@@ -380,7 +452,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     handleSaveDraft,
     loadDraft,
     handleSubmit,
+    handleScheduleSubmit,
     handleDelete,
+    handleCancelSchedule,
     handleAttachmentFile,
     handleRemoveAttachment,
   };

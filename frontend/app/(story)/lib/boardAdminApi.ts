@@ -5,6 +5,7 @@ import type { BoardPostAdmin, BoardPostPayload, BoardUploadPurpose } from '@/app
 const AUTH_BASE = '/api/board/auth';
 const WRITE_API = '/api/board/write_post.php';
 const GET_POST_API = '/api/board/get_post.php';
+const GET_SCHEDULED_LIST_API = '/api/board/get_scheduled_list.php';
 const UPLOAD_API = '/api/board/upload_file.php';
 const GNUBOARD_LOGOUT = '/board/bbs/logout.php';
 
@@ -84,6 +85,27 @@ export function isSuperAdmin(me: BoardAdminMe): boolean {
 
 export function isAnyAdmin(me: BoardAdminMe): boolean {
   return me.is_admin === 'super' || me.is_admin === 'board';
+}
+
+export type ScheduledBoardListItem = {
+  wr_id: number;
+  wr_subject: string;
+  wr_name: string;
+  wr_datetime: string;
+};
+
+export type ScheduledBoardListResponse = {
+  ok: boolean;
+  total: number;
+  items: ScheduledBoardListItem[];
+};
+
+export async function fetchScheduledBoardList(boTable: BoTable): Promise<ScheduledBoardListResponse> {
+  const res = await fetch(`${GET_SCHEDULED_LIST_API}?bo_table=${encodeURIComponent(boTable)}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  return parseJson<ScheduledBoardListResponse>(res);
 }
 
 export async function fetchBoardPostAdmin(boTable: BoTable, wrId: number): Promise<BoardPostAdmin> {

@@ -12,6 +12,7 @@ export type BoardPostPayload = {
   remove_attachment?: boolean;
   attachment_password?: string;
   clear_attachment_password?: boolean;
+  scheduled?: boolean;
 };
 
 export type BoardPostFile = {
@@ -66,10 +67,53 @@ export function toMysqlDatetime(localValue: string): string {
   return withSeconds.replace('T', ' ');
 }
 
-export function defaultDatetimeLocal(): string {
-  const now = new Date();
+function formatDatetimeLocal(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function defaultDatetimeLocal(): string {
+  return formatDatetimeLocal(new Date());
+}
+
+export function offsetDatetimeLocal(minutes: number): string {
+  return formatDatetimeLocal(new Date(Date.now() + minutes * 60 * 1000));
+}
+
+export function validateFutureDatetime(localValue: string): string | null {
+  const trimmed = localValue.trim();
+  if (trimmed === '') {
+    return '예약 발행 시각을 선택해 주세요.';
+  }
+
+  const selected = new Date(trimmed);
+  if (Number.isNaN(selected.getTime())) {
+    return '예약 발행 시각이 올바르지 않습니다.';
+  }
+
+  if (selected.getTime() <= Date.now()) {
+    return '예약 발행 시각은 현재보다 이후여야 합니다.';
+  }
+
+  return null;
+}
+
+export function isScheduledPost(wrDatetime: string): boolean {
+  const trimmed = wrDatetime.trim();
+  if (trimmed === '') return false;
+
+  const normalized = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
+  const scheduled = new Date(normalized);
+  if (Number.isNaN(scheduled.getTime())) return false;
+
+  return scheduled.getTime() > Date.now();
+}
+
+export function formatScheduledDatetime(wrDatetime: string): string {
+  const normalized = wrDatetime.trim().replace(' ', 'T');
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return wrDatetime;
+  return date.toLocaleString('ko-KR');
 }
 
 export function slugifySubject(subject: string): string {

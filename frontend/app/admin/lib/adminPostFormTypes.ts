@@ -1,11 +1,11 @@
 import type { AttachmentDownloadMode } from './buildBoardPostPayload';
-import { defaultDatetimeLocal, type BoardPostFile } from './boardPostTypes';
+import type { BoardPostFile } from './boardPostTypes';
 
 export type AdminPostInitial = {
   subject: string;
   content: string;
   notice: boolean;
-  datetimeLocal: string;
+  wrDatetime: string;
   thumbnailUrl: string;
   seoTitle: string;
   seoSlug: string;
@@ -17,7 +17,6 @@ export type PostFormSnapshot = {
   subject: string;
   content: string;
   notice: boolean;
-  datetimeLocal: string;
   thumbnailUrl: string;
   seoTitle: string;
   seoSlug: string;
@@ -34,7 +33,7 @@ export function emptyAdminPostInitial(): AdminPostInitial {
     subject: '',
     content: '',
     notice: false,
-    datetimeLocal: defaultDatetimeLocal(),
+    wrDatetime: '',
     thumbnailUrl: '',
     seoTitle: '',
     seoSlug: '',

@@ -5,7 +5,7 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import type { BoTable } from '@/app/(story)/types/board';
 
 import AdminPostForm, { emptyAdminPostInitial } from '../../components/AdminPostForm';
-import { getAdminListPath, resolveAdminBoTable } from '../../lib/adminBoard';
+import { getRedirectPathAfterSave, resolveAdminBoTable } from '../../lib/adminBoard';
 
 type AdminWriteFormProps = {
   boTable: BoTable;
@@ -19,8 +19,8 @@ function AdminWriteForm({ boTable }: AdminWriteFormProps) {
       boTable={boTable}
       mode="create"
       initial={emptyAdminPostInitial()}
-      onSaved={wrId => {
-        router.push(`${getAdminListPath(boTable)}${wrId}/`);
+      onSaved={(wrId, publishMode) => {
+        router.push(getRedirectPathAfterSave(boTable, wrId, publishMode));
         router.refresh();
       }}
     />
