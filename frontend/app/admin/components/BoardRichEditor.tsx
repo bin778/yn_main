@@ -17,11 +17,20 @@ import {
   paragraphStyleLabel,
   type ParagraphStyleId,
 } from '../lib/boardParagraphStyles';
+import { boardHtmlToMarkdown, boardMarkdownToHtml } from '../lib/boardMarkdown';
 import { sanitizeBoardHtml } from '../lib/sanitizeBoardHtml';
 
 import './board-rich-editor.css';
 
-type EditorTab = 'editor' | 'html';
+type EditorTab = 'default' | 'markdown' | 'html';
+
+const TAB_LABELS: Record<EditorTab, string> = {
+  default: '기본',
+  markdown: '마크다운',
+  html: 'HTML',
+};
+
+const EMPTY_DEFAULT_HTML = '<p data-body="2"></p>';
 
 type BoardRichEditorProps = {
   value: string;
@@ -119,8 +128,9 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
   const labelId = useId();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState<EditorTab>('editor');
+  const [tab, setTab] = useState<EditorTab>('default');
   const [htmlDraft, setHtmlDraft] = useState(value);
+  const [markdownDraft, setMarkdownDraft] = useState(() => boardHtmlToMarkdown(value));
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
@@ -141,7 +151,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
 
   const editor = useEditor({
     immediatelyRender: false,
-    editable: !disabled && tab === 'editor',
+    editable: !disabled && tab === 'default',
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3, 4] },
@@ -162,7 +172,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     ],
     content: value,
     onUpdate: ({ editor: ed }) => {
-      if (tab === 'editor') {
+      if (tab === 'default') {
         emitChange(ed.getHTML());
       }
     },
@@ -173,16 +183,15 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
 
   useEffect(() => {
     if (editor === null) return;
-    editor.setEditable(!disabled && tab === 'editor');
+    editor.setEditable(!disabled && tab === 'default');
   }, [disabled, editor, tab]);
 
   useEffect(() => {
-    if (editor === null || tab !== 'editor') return;
-    // 입력 중에는 부모 value로 덮어쓰지 않음 (문단 스타일·커서 유지)
+    if (editor === null || tab !== 'default') return;
     if (editor.isFocused) return;
     const current = editor.getHTML();
     if (current !== value) {
-      editor.commands.setContent(value || '<p data-body="2"></p>', { emitUpdate: false });
+      editor.commands.setContent(value || EMPTY_DEFAULT_HTML, { emitUpdate: false });
     }
   }, [editor, tab, value]);
 
@@ -204,22 +213,63 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  function switchToHtml() {
-    if (editor === null) return;
-    const next = editor.getHTML();
-    setHtmlDraft(next);
-    setTab('html');
-    emitChange(next);
+  function closeToolbarMenus() {
+    setShowColorPicker(false);
+    setShowListMenu(false);
+    setShowParagraphMenu(false);
   }
 
-  function switchToEditor() {
-    const cleaned = sanitizeBoardHtml(htmlDraft);
+  function resolveHtmlFromTab(sourceTab: EditorTab): string {
+    if (sourceTab === 'default' && editor !== null) {
+      return editor.getHTML();
+    }
+    if (sourceTab === 'html') {
+      return sanitizeBoardHtml(htmlDraft);
+    }
+    if (sourceTab === 'markdown') {
+      return boardMarkdownToHtml(markdownDraft);
+    }
+    return value;
+  }
+
+  function switchToDefault() {
+    const html = resolveHtmlFromTab(tab);
+    const cleaned = sanitizeBoardHtml(html);
+    closeToolbarMenus();
     setHtmlDraft(cleaned);
-    setTab('editor');
+    setMarkdownDraft(boardHtmlToMarkdown(cleaned));
+    setTab('default');
     if (editor !== null) {
-      editor.commands.setContent(cleaned || '<p data-body="2"></p>', { emitUpdate: false });
+      editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
     }
     emitChange(cleaned);
+  }
+
+  function switchToMarkdown() {
+    const html = resolveHtmlFromTab(tab);
+    const cleaned = sanitizeBoardHtml(html);
+    closeToolbarMenus();
+    setHtmlDraft(cleaned);
+    setMarkdownDraft(boardHtmlToMarkdown(cleaned));
+    setTab('markdown');
+    emitChange(cleaned);
+  }
+
+  function switchToHtml() {
+    const html = resolveHtmlFromTab(tab);
+    const cleaned = sanitizeBoardHtml(html);
+    closeToolbarMenus();
+    setHtmlDraft(cleaned);
+    setMarkdownDraft(boardHtmlToMarkdown(cleaned));
+    setTab('html');
+    emitChange(cleaned);
+  }
+
+  function handleTabSelect(nextTab: EditorTab) {
+    if (tab === nextTab) return;
+    if (nextTab === 'default') switchToDefault();
+    else if (nextTab === 'markdown') switchToMarkdown();
+    else switchToHtml();
   }
 
   function insertEditorImage(src: string): boolean {
@@ -385,7 +435,7 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     : null;
   const isListActive = (editor?.isActive('bulletList') ?? false) || (editor?.isActive('orderedList') ?? false);
 
-  const toolbarDisabled = disabled || tab === 'html' || editor === null;
+  const toolbarDisabled = disabled || tab !== 'default' || editor === null;
 
   return (
     <div className="board-rich-editor">
@@ -683,10 +733,24 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
         </div>
       </div>
 
-      {tab === 'editor' ? (
+      {tab === 'default' ? (
         <div className="border border-[#ddd] bg-white text-sm text-[#333]" aria-labelledby={labelId}>
           <EditorContent editor={editor} />
         </div>
+      ) : tab === 'markdown' ? (
+        <textarea
+          id={labelId}
+          disabled={disabled}
+          value={markdownDraft}
+          onChange={event => {
+            const nextMarkdown = event.target.value;
+            setMarkdownDraft(nextMarkdown);
+            emitChange(boardMarkdownToHtml(nextMarkdown));
+          }}
+          className="board-rich-editor-textarea w-full border border-[#ddd] bg-white px-3 py-2 font-mono text-xs leading-relaxed text-[#333]"
+          spellCheck={false}
+          placeholder="마크다운으로 작성하세요…"
+        />
       ) : (
         <textarea
           id={labelId}
@@ -701,31 +765,27 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
         />
       )}
 
-      <div className="flex justify-end gap-0 border border-t-0 border-[#ddd] bg-[#f8f9fb]">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            if (tab === 'html') switchToEditor();
-          }}
-          className={`px-4 py-1.5 text-xs font-medium ${
-            tab === 'editor' ? 'bg-white text-[#1a3151] shadow-sm' : 'text-[#666] hover:text-[#333]'
-          }`}
-        >
-          에디터
-        </button>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            if (tab === 'editor') switchToHtml();
-          }}
-          className={`px-4 py-1.5 text-xs font-medium ${
-            tab === 'html' ? 'bg-white text-[#1a3151] shadow-sm' : 'text-[#666] hover:text-[#333]'
-          }`}
-        >
-          HTML
-        </button>
+      <div className="flex flex-col gap-1 border border-t-0 border-[#ddd] bg-[#f8f9fb]">
+        {tab === 'markdown' && (
+          <p className="px-3 pt-2 text-[10px] leading-snug text-[#999]">
+            색상·문단 단계 등 복잡한 서식은 기본 탭에서 편집하는 것을 권장합니다.
+          </p>
+        )}
+        <div className="flex justify-end gap-0">
+          {(['default', 'markdown', 'html'] as const).map(tabId => (
+            <button
+              key={tabId}
+              type="button"
+              disabled={disabled}
+              onClick={() => handleTabSelect(tabId)}
+              className={`px-4 py-1.5 text-xs font-medium ${
+                tab === tabId ? 'bg-white text-[#1a3151] shadow-sm' : 'text-[#666] hover:text-[#333]'
+              }`}
+            >
+              {TAB_LABELS[tabId]}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
