@@ -80,7 +80,7 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
             <p className="mb-2 text-[13px] font-medium uppercase tracking-widest text-white/50">여온의 이야기</p>
             <h1
               id="story-hero-heading"
-              className="text-[35px] font-bold leading-none tracking-tight text-white md:text-[55px] md:tracking-[-1.5px]"
+              className="text-[30px] md:text-[45px] font-bold leading-none tracking-tight text-white md:tracking-[-1.5px]"
             >
               {label}
             </h1>
