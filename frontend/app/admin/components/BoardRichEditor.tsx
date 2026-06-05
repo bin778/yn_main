@@ -1,8 +1,13 @@
 'use client';
 
 import Color from '@tiptap/extension-color';
+import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
+import { Table } from '@tiptap/extension-table';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TableRow from '@tiptap/extension-table-row';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -46,7 +51,7 @@ type ToolbarButtonProps = {
   onClick: () => void;
 };
 
-const PRESET_COLORS = [
+const PRESET_TEXT_COLORS = [
   '#000000',
   '#1a1a2e',
   '#2d3436',
@@ -73,7 +78,64 @@ const PRESET_COLORS = [
   '#dfe6e9',
 ];
 
+/** 글자색과 동일한 팔레트 — 배경 하이라이트용 */
+const PRESET_HIGHLIGHT_COLORS = PRESET_TEXT_COLORS;
+
+const DEFAULT_HIGHLIGHT_COLOR = '#ffffff';
+
 type ListStyle = 'disc' | 'circle';
+
+type TablePickerSize = { rows: number; cols: number };
+
+const TABLE_PICKER_MAX_ROWS = 8;
+const TABLE_PICKER_MAX_COLS = 8;
+const TABLE_PICKER_DEFAULT: TablePickerSize = { rows: 3, cols: 3 };
+
+type TableInsertPickerProps = {
+  size: TablePickerSize;
+  withHeaderRow: boolean;
+  onHover: (size: TablePickerSize) => void;
+  onSelect: (size: TablePickerSize) => void;
+};
+
+function TableInsertPicker({ size, withHeaderRow, onHover, onSelect }: TableInsertPickerProps) {
+  return (
+    <div className="p-2">
+      <p className="mb-2 text-center text-xs font-medium text-[#333]">
+        {size.cols}열 × {size.rows}행
+      </p>
+      <div
+        className="inline-grid gap-0.5 border border-[#ddd] p-1"
+        style={{ gridTemplateColumns: `repeat(${TABLE_PICKER_MAX_COLS}, 1fr)` }}
+        onMouseLeave={() => onHover(TABLE_PICKER_DEFAULT)}
+      >
+        {Array.from({ length: TABLE_PICKER_MAX_ROWS }, (_, rowIndex) =>
+          Array.from({ length: TABLE_PICKER_MAX_COLS }, (_, colIndex) => {
+            const row = rowIndex + 1;
+            const col = colIndex + 1;
+            const selected = row <= size.rows && col <= size.cols;
+            const isHeaderCell = withHeaderRow && row === 1 && selected;
+
+            return (
+              <button
+                key={`${row}-${col}`}
+                type="button"
+                title={`${col}열 × ${row}행`}
+                aria-label={`${col}열 ${row}행 표 삽입`}
+                className={`h-4 w-4 border border-[#ccc] transition-colors ${
+                  selected ? (isHeaderCell ? 'bg-[#e9ecef]' : 'bg-[#c5d4f0]') : 'bg-white hover:bg-[#f0f4fa]'
+                }`}
+                onMouseEnter={() => onHover({ rows: row, cols: col })}
+                onClick={() => onSelect({ rows: row, cols: col })}
+              />
+            );
+          }),
+        )}
+      </div>
+      <p className="mt-2 text-center text-[10px] text-[#999]">칸에 마우스를 올려 크기를 선택하세요</p>
+    </div>
+  );
+}
 
 type DropdownMenuOptionProps = {
   label: string;
@@ -128,18 +190,26 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
   const labelId = useId();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
+  const bgColorInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<EditorTab>('default');
   const [htmlDraft, setHtmlDraft] = useState(value);
   const [markdownDraft, setMarkdownDraft] = useState(() => boardHtmlToMarkdown(value));
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showTextColorPicker, setShowTextColorPicker] = useState(false);
+  const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
   const [showParagraphMenu, setShowParagraphMenu] = useState(false);
+  const [showTablePicker, setShowTablePicker] = useState(false);
+  const [tablePickerSize, setTablePickerSize] = useState<TablePickerSize>(TABLE_PICKER_DEFAULT);
+  const [tableWithHeaderRow, setTableWithHeaderRow] = useState(true);
   const [selectionRevision, setSelectionRevision] = useState(0);
-  const [customColor, setCustomColor] = useState('#000000');
-  const colorPickerRef = useRef<HTMLDivElement>(null);
+  const [customTextColor, setCustomTextColor] = useState('#000000');
+  const [customBgColor, setCustomBgColor] = useState(DEFAULT_HIGHLIGHT_COLOR);
+  const textColorPickerRef = useRef<HTMLDivElement>(null);
+  const bgColorPickerRef = useRef<HTMLDivElement>(null);
   const listMenuRef = useRef<HTMLDivElement>(null);
   const paragraphMenuRef = useRef<HTMLDivElement>(null);
+  const tableMenuRef = useRef<HTMLDivElement>(null);
 
   const emitChange = useCallback(
     (html: string) => {
@@ -167,6 +237,11 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
       }),
       TextStyle,
       Color,
+      Highlight.configure({ multicolor: true }),
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
       Image.configure({ inline: true }),
       Placeholder.configure({ placeholder: '내용을 입력하세요…' }),
     ],
@@ -181,6 +256,17 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     },
   });
 
+  const applyHtmlToEditor = useCallback(
+    (html: string) => {
+      if (editor === null) return '';
+      const cleaned = sanitizeBoardHtml(html);
+      editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
+      editor.commands.fixTables();
+      return cleaned;
+    },
+    [editor],
+  );
+
   useEffect(() => {
     if (editor === null) return;
     editor.setEditable(!disabled && tab === 'default');
@@ -189,18 +275,22 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
   useEffect(() => {
     if (editor === null || tab !== 'default') return;
     if (editor.isFocused) return;
-    const current = editor.getHTML();
-    if (current !== value) {
-      editor.commands.setContent(value || EMPTY_DEFAULT_HTML, { emitUpdate: false });
+    const current = sanitizeBoardHtml(editor.getHTML());
+    const next = sanitizeBoardHtml(value);
+    if (current !== next) {
+      applyHtmlToEditor(value);
     }
-  }, [editor, tab, value]);
+  }, [applyHtmlToEditor, editor, tab, value]);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      if (colorPickerRef.current !== null && !colorPickerRef.current.contains(target)) {
-        setShowColorPicker(false);
+      if (textColorPickerRef.current !== null && !textColorPickerRef.current.contains(target)) {
+        setShowTextColorPicker(false);
+      }
+      if (bgColorPickerRef.current !== null && !bgColorPickerRef.current.contains(target)) {
+        setShowBgColorPicker(false);
       }
       if (listMenuRef.current !== null && !listMenuRef.current.contains(target)) {
         setShowListMenu(false);
@@ -208,15 +298,22 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
       if (paragraphMenuRef.current !== null && !paragraphMenuRef.current.contains(target)) {
         setShowParagraphMenu(false);
       }
+      if (tableMenuRef.current !== null && !tableMenuRef.current.contains(target)) {
+        setShowTablePicker(false);
+        setTablePickerSize(TABLE_PICKER_DEFAULT);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   function closeToolbarMenus() {
-    setShowColorPicker(false);
+    setShowTextColorPicker(false);
+    setShowBgColorPicker(false);
     setShowListMenu(false);
     setShowParagraphMenu(false);
+    setShowTablePicker(false);
+    setTablePickerSize(TABLE_PICKER_DEFAULT);
   }
 
   function resolveHtmlFromTab(sourceTab: EditorTab): string {
@@ -234,14 +331,11 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
 
   function switchToDefault() {
     const html = resolveHtmlFromTab(tab);
-    const cleaned = sanitizeBoardHtml(html);
+    const cleaned = applyHtmlToEditor(sanitizeBoardHtml(html));
     closeToolbarMenus();
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
     setTab('default');
-    if (editor !== null) {
-      editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
-    }
     emitChange(cleaned);
   }
 
@@ -324,18 +418,43 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     }
   }
 
-  function applyColor(color: string) {
+  function applyTextColor(color: string) {
     if (editor === null) return;
     if (color === '') {
       editor.chain().focus().unsetColor().run();
     } else {
       editor.chain().focus().setColor(color).run();
     }
-    setShowColorPicker(false);
+    setShowTextColorPicker(false);
   }
 
-  function handleCustomColorApply() {
-    applyColor(customColor);
+  function handleCustomTextColorApply() {
+    applyTextColor(customTextColor);
+  }
+
+  function applyBgColor(color: string) {
+    if (editor === null) return;
+    if (color === '') {
+      editor.chain().focus().unsetHighlight().run();
+    } else {
+      editor.chain().focus().setHighlight({ color }).run();
+    }
+    setShowBgColorPicker(false);
+  }
+
+  function handleCustomBgColorApply() {
+    applyBgColor(customBgColor);
+  }
+
+  function insertBoardTable({ rows, cols }: TablePickerSize) {
+    if (editor === null) return;
+    editor.chain().focus().insertTable({ rows, cols, withHeaderRow: tableWithHeaderRow }).run();
+    closeToolbarMenus();
+  }
+
+  function removeBoardTable() {
+    if (editor === null) return;
+    editor.chain().focus().deleteTable().run();
   }
 
   function applyBulletList(style: ListStyle) {
@@ -429,11 +548,13 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
     // selectionRevision: 커서 이동 시 툴바 라벨 갱신
     // eslint-disable-next-line react-hooks/exhaustive-deps -- selectionRevision은 의도적 트리거
   }, [editor, selectionRevision]);
-  const activeColor = editor?.getAttributes('textStyle').color as string | undefined;
+  const activeTextColor = editor?.getAttributes('textStyle').color as string | undefined;
+  const activeBgColor = editor?.getAttributes('highlight').color as string | undefined;
   const activeBulletStyle = editor?.isActive('bulletList')
     ? ((editor.getAttributes('bulletList').listStyleType as ListStyle | undefined) ?? 'disc')
     : null;
   const isListActive = (editor?.isActive('bulletList') ?? false) || (editor?.isActive('orderedList') ?? false);
+  const isTableActive = editor?.isActive('table') ?? false;
 
   const toolbarDisabled = disabled || tab !== 'default' || editor === null;
 
@@ -462,6 +583,12 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
           active={editor?.isActive('underline') ?? false}
           onClick={() => editor?.chain().focus().toggleUnderline().run()}
         />
+        <ToolbarButton
+          label="취소선"
+          disabled={toolbarDisabled}
+          active={editor?.isActive('strike') ?? false}
+          onClick={() => editor?.chain().focus().toggleStrike().run()}
+        />
         <span className="mx-1 w-px self-stretch bg-[#ddd]" aria-hidden />
 
         {/* 문단 모양 */}
@@ -471,8 +598,10 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
             disabled={toolbarDisabled}
             onClick={() => {
               setShowParagraphMenu(prev => !prev);
-              setShowColorPicker(false);
+              setShowTextColorPicker(false);
+              setShowBgColorPicker(false);
               setShowListMenu(false);
+              setShowTablePicker(false);
             }}
             className="flex min-w-[72px] items-center justify-between gap-1 rounded border border-[#ddd] bg-white px-2 py-1 text-xs font-medium text-[#333] transition-colors hover:bg-[#f5f7fb] disabled:opacity-40"
           >
@@ -527,8 +656,10 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
               disabled={toolbarDisabled}
               onClick={() => {
                 setShowListMenu(prev => !prev);
-                setShowColorPicker(false);
+                setShowTextColorPicker(false);
+                setShowBgColorPicker(false);
                 setShowParagraphMenu(false);
+                setShowTablePicker(false);
               }}
               aria-pressed={isListActive}
               className={toolbarIconButtonClass(isListActive)}
@@ -628,6 +759,46 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
           disabled={toolbarDisabled}
           onClick={() => editor?.chain().focus().setHorizontalRule().run()}
         />
+        <div className="relative" ref={tableMenuRef}>
+          <button
+            type="button"
+            disabled={toolbarDisabled}
+            onClick={() => {
+              setShowTablePicker(prev => !prev);
+              setShowTextColorPicker(false);
+              setShowBgColorPicker(false);
+              setShowListMenu(false);
+              setShowParagraphMenu(false);
+            }}
+            className={toolbarIconButtonClass(showTablePicker)}
+          >
+            표
+            <span className="text-[10px] text-[#999]" aria-hidden>
+              ▾
+            </span>
+          </button>
+
+          {showTablePicker && (
+            <div className="absolute left-0 top-full z-50 mt-1 rounded border border-[#ddd] bg-white shadow-xl">
+              <TableInsertPicker
+                size={tablePickerSize}
+                withHeaderRow={tableWithHeaderRow}
+                onHover={setTablePickerSize}
+                onSelect={insertBoardTable}
+              />
+              <label className="flex cursor-pointer items-center gap-2 border-t border-[#eee] px-3 py-2 text-xs text-[#555]">
+                <input
+                  type="checkbox"
+                  checked={tableWithHeaderRow}
+                  onChange={event => setTableWithHeaderRow(event.target.checked)}
+                  className="accent-[#1a3151]"
+                />
+                머리글 행
+              </label>
+            </div>
+          )}
+        </div>
+        <ToolbarButton label="표 삭제" disabled={toolbarDisabled || !isTableActive} onClick={removeBoardTable} />
         <ToolbarButton label="링크" disabled={toolbarDisabled} onClick={setLink} />
         <ToolbarButton
           label={uploadingImage ? '업로드…' : '이미지'}
@@ -643,86 +814,169 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
         />
         <span className="mx-1 w-px self-stretch bg-[#ddd]" aria-hidden />
 
-        {/* 글씨 색상 */}
-        <div className="relative" ref={colorPickerRef}>
+        {/* 글자색 */}
+        <div className="relative" ref={textColorPickerRef}>
           <button
             type="button"
             disabled={toolbarDisabled}
             onClick={() => {
-              setShowColorPicker(prev => !prev);
+              setShowTextColorPicker(prev => !prev);
+              setShowBgColorPicker(false);
               setShowListMenu(false);
               setShowParagraphMenu(false);
+              setShowTablePicker(false);
             }}
             className="flex items-center gap-1 rounded border border-[#ddd] bg-white px-2 py-1 text-xs font-medium text-[#333] transition-colors hover:bg-[#f5f7fb] disabled:opacity-40"
           >
             <span
               className="inline-block h-3 w-3 rounded-sm border border-[#ccc]"
-              style={{ backgroundColor: activeColor ?? 'transparent' }}
+              style={{ backgroundColor: activeTextColor ?? '#333' }}
             />
-            색상
+            글자색
           </button>
 
-          {showColorPicker && (
-            <div className="absolute left-0 top-full z-50 mt-1 w-[200px] rounded border border-[#ddd] bg-white p-3 shadow-xl">
-              {/* 색상 초기화 */}
+          {showTextColorPicker && (
+            <div className="absolute right-0 top-full z-50 mt-1 w-[200px] rounded border border-[#ddd] bg-white p-3 shadow-xl">
               <button
                 type="button"
-                title="색상 제거"
-                onClick={() => applyColor('')}
+                title="글자색 제거"
+                onClick={() => applyTextColor('')}
                 className="mb-2 flex w-full items-center gap-2 rounded border border-[#ddd] px-2 py-1 text-xs text-[#555] hover:bg-[#f5f5f5]"
               >
                 <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-[#ccc] bg-white text-[10px] font-bold text-[#999]">
                   ✕
                 </span>
-                색상 제거
+                글자색 제거
               </button>
-
-              {/* 프리셋 팔레트 */}
               <div className="mb-3 grid grid-cols-6 gap-1">
-                {PRESET_COLORS.map(color => (
+                {PRESET_TEXT_COLORS.map(color => (
                   <button
                     key={color}
                     type="button"
                     title={color}
-                    onClick={() => applyColor(color)}
+                    onClick={() => applyTextColor(color)}
                     className={`h-7 w-7 rounded border transition-transform hover:scale-110 hover:shadow-md ${
-                      activeColor === color ? 'ring-2 ring-[#1a3151] ring-offset-1' : 'border-[#ccc]'
+                      activeTextColor === color ? 'ring-2 ring-[#1a3151] ring-offset-1' : 'border-[#ccc]'
                     }`}
                     style={{ backgroundColor: color }}
                   />
                 ))}
               </div>
-
-              {/* 직접 입력 */}
               <div className="flex items-center gap-1">
                 <input
                   ref={colorInputRef}
                   type="color"
-                  value={customColor}
-                  onChange={e => setCustomColor(e.target.value)}
+                  value={customTextColor}
+                  onChange={e => setCustomTextColor(e.target.value)}
                   className="h-7 w-7 shrink-0 cursor-pointer rounded border border-[#ddd] p-0.5"
-                  title="색상 직접 선택"
+                  title="글자색 직접 선택"
                 />
                 <input
                   type="text"
-                  value={customColor}
+                  value={customTextColor}
                   maxLength={7}
                   onChange={e => {
                     const val = e.target.value;
-                    setCustomColor(val);
+                    setCustomTextColor(val);
                     if (/^#[0-9a-fA-F]{6}$/.test(val) && colorInputRef.current) {
                       colorInputRef.current.value = val;
                     }
                   }}
                   onKeyDown={e => {
-                    if (e.key === 'Enter') handleCustomColorApply();
+                    if (e.key === 'Enter') handleCustomTextColorApply();
                   }}
                   placeholder="#000000"
                   className="min-w-0 flex-1 border border-[#ddd] px-2 py-1 font-mono text-xs"
                 />
                 <button
                   type="button"
-                  onClick={handleCustomColorApply}
+                  onClick={handleCustomTextColorApply}
+                  className="shrink-0 rounded bg-[#1a3151] px-2 py-1 text-xs font-medium text-white hover:bg-[#142640]"
+                >
+                  적용
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 배경색 */}
+        <div className="relative" ref={bgColorPickerRef}>
+          <button
+            type="button"
+            disabled={toolbarDisabled}
+            onClick={() => {
+              setShowBgColorPicker(prev => !prev);
+              setShowTextColorPicker(false);
+              setShowListMenu(false);
+              setShowParagraphMenu(false);
+              setShowTablePicker(false);
+            }}
+            className="flex items-center gap-1 rounded border border-[#ddd] bg-white px-2 py-1 text-xs font-medium text-[#333] transition-colors hover:bg-[#f5f7fb] disabled:opacity-40"
+          >
+            <span
+              className="inline-block h-3 w-3 rounded-sm border border-[#ccc]"
+              style={{ backgroundColor: activeBgColor ?? DEFAULT_HIGHLIGHT_COLOR }}
+            />
+            배경색
+          </button>
+
+          {showBgColorPicker && (
+            <div className="absolute right-0 top-full z-50 mt-1 w-[200px] rounded border border-[#ddd] bg-white p-3 shadow-xl">
+              <button
+                type="button"
+                title="배경색 제거"
+                onClick={() => applyBgColor('')}
+                className="mb-2 flex w-full items-center gap-2 rounded border border-[#ddd] px-2 py-1 text-xs text-[#555] hover:bg-[#f5f5f5]"
+              >
+                <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-[#ccc] bg-white text-[10px] font-bold text-[#999]">
+                  ✕
+                </span>
+                배경색 제거
+              </button>
+              <div className="mb-3 grid grid-cols-6 gap-1">
+                {PRESET_HIGHLIGHT_COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    title={color}
+                    onClick={() => applyBgColor(color)}
+                    className={`h-7 w-7 rounded border transition-transform hover:scale-110 hover:shadow-md ${
+                      activeBgColor === color ? 'ring-2 ring-[#1a3151] ring-offset-1' : 'border-[#ccc]'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-1">
+                <input
+                  ref={bgColorInputRef}
+                  type="color"
+                  value={customBgColor}
+                  onChange={e => setCustomBgColor(e.target.value)}
+                  className="h-7 w-7 shrink-0 cursor-pointer rounded border border-[#ddd] p-0.5"
+                  title="배경색 직접 선택"
+                />
+                <input
+                  type="text"
+                  value={customBgColor}
+                  maxLength={7}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setCustomBgColor(val);
+                    if (/^#[0-9a-fA-F]{6}$/.test(val) && bgColorInputRef.current) {
+                      bgColorInputRef.current.value = val;
+                    }
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleCustomBgColorApply();
+                  }}
+                  placeholder={DEFAULT_HIGHLIGHT_COLOR}
+                  className="min-w-0 flex-1 border border-[#ddd] px-2 py-1 font-mono text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={handleCustomBgColorApply}
                   className="shrink-0 rounded bg-[#1a3151] px-2 py-1 text-xs font-medium text-white hover:bg-[#142640]"
                 >
                   적용
@@ -762,15 +1016,20 @@ export default function BoardRichEditor({ value, onChange, disabled = false, onU
           }}
           className="board-rich-editor-textarea w-full border border-[#ddd] bg-white px-3 py-2 font-mono text-xs leading-relaxed text-[#333]"
           spellCheck={false}
+          placeholder="HTML 코드로 작성하세요…"
         />
       )}
 
       <div className="flex flex-col gap-1 border border-t-0 border-[#ddd] bg-[#f8f9fb]">
-        {tab === 'markdown' && (
-          <p className="px-3 pt-2 text-[10px] leading-snug text-[#999]">
-            색상·문단 단계 등 복잡한 서식은 기본 탭에서 편집하는 것을 권장합니다.
-          </p>
-        )}
+        <div className="px-3 pt-2 text-[10px] leading-relaxed text-[#777]">
+          <p className="mb-1 font-medium text-[#555]">주의사항</p>
+          <ul className="list-disc space-y-0.5 pl-4">
+            <li>
+              기본·마크다운·HTML 작성 모드를 바꾸면 글자색, 배경색, 문단 스타일 등 일부 서식이 초기화될 수 있습니다.
+            </li>
+            <li>글자색·배경색·문단 모양 등 서식은 기본 모드에서 편집하는 것을 권장합니다.</li>
+          </ul>
+        </div>
         <div className="flex justify-end gap-0">
           {(['default', 'markdown', 'html'] as const).map(tabId => (
             <button

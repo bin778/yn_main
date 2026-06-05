@@ -1,5 +1,8 @@
 import DOMPurify from 'isomorphic-dompurify';
 
+import { buildSafeInlineStyle, normalizeHexColorOrNull } from './boardSanitizeStyle';
+import { normalizeTablesForEditor } from './boardTableHtml';
+
 const ALLOWED_TAGS = [
   'p',
   'br',
@@ -10,6 +13,8 @@ const ALLOWED_TAGS = [
   'u',
   's',
   'strike',
+  'del',
+  'mark',
   'a',
   'ul',
   'ol',
@@ -30,7 +35,21 @@ const ALLOWED_TAGS = [
   'td',
 ];
 
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'target', 'rel', 'style', 'data-list-style', 'data-body', 'start'];
+const ALLOWED_ATTR = [
+  'href',
+  'src',
+  'alt',
+  'title',
+  'target',
+  'rel',
+  'style',
+  'data-list-style',
+  'data-body',
+  'data-color',
+  'start',
+  'colspan',
+  'rowspan',
+];
 
 function purifyHtml(html: string): string {
   const purified = DOMPurify.sanitize(html, {
@@ -39,7 +58,6 @@ function purifyHtml(html: string): string {
     FORBID_ATTR: ['class', 'id', 'face', 'size', 'color', 'width', 'height'],
   });
 
-  // style 속성에서 color 값만 허용하고 나머지 제거
   if (typeof document === 'undefined') {
     return purified;
   }
@@ -47,21 +65,38 @@ function purifyHtml(html: string): string {
   const root = document.createElement('div');
   root.innerHTML = purified;
 
+  root.querySelectorAll('del').forEach(el => {
+    const replacement = document.createElement('s');
+    replacement.innerHTML = el.innerHTML;
+    el.replaceWith(replacement);
+  });
+
   root.querySelectorAll('[style]').forEach(el => {
-    const colorMatch = (el.getAttribute('style') ?? '').match(/color\s*:\s*([^;]+)/);
-    if (colorMatch) {
-      el.setAttribute('style', `color:${colorMatch[1].trim()}`);
+    const safeStyle = buildSafeInlineStyle(el.getAttribute('style') ?? '');
+    if (safeStyle) {
+      el.setAttribute('style', safeStyle);
     } else {
       el.removeAttribute('style');
     }
   });
 
-  return root.innerHTML;
+  root.querySelectorAll('mark').forEach(el => {
+    const dataColor = el.getAttribute('data-color');
+    const safeColor = dataColor ? normalizeHexColorOrNull(dataColor) : null;
+    if (safeColor) {
+      el.setAttribute('data-color', safeColor);
+      el.setAttribute('style', `background-color:${safeColor};color:inherit`);
+    } else {
+      el.removeAttribute('data-color');
+      el.removeAttribute('style');
+    }
+  });
+
+  return normalizeTablesForEditor(root.innerHTML);
 }
 
 /**
  * 에디터에서 실시간으로 호출 — collapseEmptyBlocks 없이 XSS 정제만 수행.
- * 빈 단락을 제거하지 않아야 엔터 줄바꿈과 글머리 기호가 유지됨.
  */
 export function sanitizeBoardHtml(html: string): string {
   const trimmed = html.trim();
@@ -105,7 +140,6 @@ function collapseEmptyBlocks(html: string): string {
   root.innerHTML = html;
 
   root.querySelectorAll('p, div, h2, h3, h4').forEach(node => {
-    // <li> 안의 단락은 Tiptap 구조이므로 제거하지 않음
     if (node.closest('li') !== null) return;
 
     const text = (node.textContent ?? '').replace(/\u00a0/g, ' ').trim();
@@ -129,7 +163,6 @@ function normalizeLegacyThumbUrls(html: string): string {
 function normalizeLegacyThumbUrl(src: string): string {
   const decoded = decodeHtmlEntities(src.trim());
 
-  // /.../thumb-<name>_<w>x<h>.<ext> 또는 https://.../thumb-... 패턴을 원본 파일 경로로 치환
   const match = decoded.match(/^(https?:\/\/[^/]+)?(\/.+\/)thumb-([^/]+)_\d+x\d+\.(jpe?g|png|gif|webp)(\?.*)?$/i);
   if (match === null) {
     return src;

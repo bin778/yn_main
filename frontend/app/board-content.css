@@ -64,4 +64,15 @@
     border-top: 1px solid #e8e8e8;
     margin: 1.5em 0;
   }
+
+  .board-content s,
+  .board-content strike,
+  .board-content del {
+    text-decoration: line-through;
+  }
+
+  .board-content mark {
+    border-radius: 2px;
+    padding: 0 0.1em;
+  }
 }
