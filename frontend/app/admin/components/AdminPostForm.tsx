@@ -21,7 +21,14 @@ import {
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
 import { getAdminListPath } from '../lib/adminBoard';
-import { BOARD_ATTACHMENT_ACCEPT, BOARD_ATTACHMENT_HINT, BOARD_IMAGE_ACCEPT } from '../lib/boardAttachmentAccept';
+import {
+  BOARD_ATTACHMENT_ACCEPT,
+  BOARD_ATTACHMENT_HINT,
+  BOARD_IMAGE_ACCEPT,
+  BOARD_IMAGE_HINT,
+  validateBoardAttachmentFile,
+  validateBoardImageFile,
+} from '../lib/boardAttachmentAccept';
 import { boardHtmlIsEmpty, sanitizeBoardHtml, sanitizeBoardHtmlForSave } from '../lib/sanitizeBoardHtml';
 
 import BoardRichEditor from './BoardRichEditor';
@@ -129,6 +136,12 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   }
 
   async function handleThumbnailFile(file: File) {
+    const validationError = validateBoardImageFile(file);
+    if (validationError !== null) {
+      setError(validationError);
+      return;
+    }
+
     setUploadingThumb(true);
     setError(null);
     try {
@@ -142,6 +155,9 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   }
 
   async function handleEditorImageUpload(file: File): Promise<string> {
+    const validationError = validateBoardImageFile(file);
+    if (validationError !== null) throw new Error(validationError);
+
     const uploaded = await uploadBoardFile(boTable, file, 'editor_image', wrId);
     if (!uploaded.url) throw new Error('이미지 URL을 받지 못했습니다.');
     return uploaded.url;
@@ -235,6 +251,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       onSaved(savedId);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '저장에 실패했습니다.');
+      setPendingAttachment(null);
       setLoading(false);
     }
   }
@@ -270,6 +287,13 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   const hasAttachment = attachmentLabel !== null && !removeAttachment;
 
   function handleAttachmentFile(file: File) {
+    const fileError = validateBoardAttachmentFile(file);
+    if (fileError !== null) {
+      setError(fileError);
+      setPendingAttachment(null);
+      return;
+    }
+
     const passwordError = validateAttachmentPassword(attachmentPassword);
     if (passwordError !== null) {
       setError(passwordError);
@@ -299,6 +323,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         })
         .catch(uploadError => {
           setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');
+          setPendingAttachment(null);
         })
         .finally(() => setUploadingAttachment(false));
       return;
@@ -495,6 +520,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
               disabled={loading}
               busy={uploadingThumb}
               hasSelection={hasThumbnail}
+              hint={BOARD_IMAGE_HINT}
               onFileSelect={file => void handleThumbnailFile(file)}
               onRemove={() => setThumbnailUrl('')}
             />
