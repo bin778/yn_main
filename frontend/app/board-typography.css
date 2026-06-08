@@ -1,9 +1,9 @@
 @layer base {
-  /* 게시판 본문·에디터·미리보기 공통 문단 타이포 */
+  /* 게시판 본문·에디터·미리보기 공통 문단 타이포 — 모바일 기본, md(768px) 이상 확대 */
   .board-content h2,
   .board-rich-editor .ProseMirror h2,
   .board-preview h2 {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 700;
     line-height: 1.3;
     margin: 1.25em 0 0.5em;
@@ -12,7 +12,7 @@
   .board-content h3,
   .board-rich-editor .ProseMirror h3,
   .board-preview h3 {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1.35;
     margin: 1em 0 0.45em;
@@ -21,7 +21,7 @@
   .board-content h4,
   .board-rich-editor .ProseMirror h4,
   .board-preview h4 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.4;
     margin: 0.85em 0 0.4em;
@@ -40,18 +40,53 @@
   .board-content p:not([data-body]),
   .board-rich-editor .ProseMirror p:not([data-body]),
   .board-preview p:not([data-body]) {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .board-content p[data-body='1'],
   .board-rich-editor .ProseMirror p[data-body='1'],
   .board-preview p[data-body='1'] {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .board-content p[data-body='3'],
   .board-rich-editor .ProseMirror p[data-body='3'],
   .board-preview p[data-body='3'] {
     font-size: 12px;
+  }
+
+  @media (min-width: 768px) {
+    .board-content h2,
+    .board-rich-editor .ProseMirror h2,
+    .board-preview h2 {
+      font-size: 28px;
+    }
+
+    .board-content h3,
+    .board-rich-editor .ProseMirror h3,
+    .board-preview h3 {
+      font-size: 22px;
+    }
+
+    .board-content h4,
+    .board-rich-editor .ProseMirror h4,
+    .board-preview h4 {
+      font-size: 18px;
+    }
+
+    .board-content p[data-body='2'],
+    .board-rich-editor .ProseMirror p[data-body='2'],
+    .board-preview p[data-body='2'],
+    .board-content p:not([data-body]),
+    .board-rich-editor .ProseMirror p:not([data-body]),
+    .board-preview p:not([data-body]) {
+      font-size: 15px;
+    }
+
+    .board-content p[data-body='1'],
+    .board-rich-editor .ProseMirror p[data-body='1'],
+    .board-preview p[data-body='1'] {
+      font-size: 18px;
+    }
   }
 }

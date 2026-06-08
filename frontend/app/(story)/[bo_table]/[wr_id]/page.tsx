@@ -74,7 +74,7 @@ export default async function BoardViewPage({ params }: PageProps) {
         )}
         <div className="relative z-[1] mx-auto max-w-[1200px] px-6 py-20 md:px-12 md:py-28">
           <p className="mb-2 text-[13px] font-medium uppercase tracking-widest text-white/50">여온의 이야기</p>
-          <p id="story-detail-hero-heading" className="text-[22px] font-bold tracking-tight text-white md:text-[32px]">
+          <p id="story-detail-hero-heading" className="text-[30px] font-bold tracking-tight text-white md:text-[45px]">
             {label}
           </p>
         </div>

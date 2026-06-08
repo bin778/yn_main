@@ -11,7 +11,7 @@ export default function ContactInquirySection() {
       <div className="absolute inset-0 bg-black/35" aria-hidden />
 
       <div className="relative z-[1] mx-auto max-w-[1200px] px-6 py-16 md:px-12 md:py-24">
-        <p className="text-center text-[17px] font-medium leading-[1.65] tracking-tight text-white/90 md:text-left md:text-xl">
+        <p className="text-center text-[15px] md:text-[17px] font-medium leading-[1.65] tracking-tight text-white/90 md:text-left md:text-xl">
           {CONTACT_INQUIRY.tagline}
         </p>
 
@@ -19,7 +19,7 @@ export default function ContactInquirySection() {
           <div className="text-center md:max-w-[45%] md:pt-9 md:text-left">
             <h2
               id="contact-inquiry-heading"
-              className="text-[34px] font-bold leading-[1.25] tracking-[-1.5px] text-white md:text-[46px] md:leading-[1.3]"
+              className="text-[30px] md:text-[45px] font-bold leading-[1.25] tracking-[-1.5px] text-white md:leading-[1.3]"
             >
               {headlineLines.map((line, index) => (
                 <span key={line} className={index > 0 ? 'block' : undefined}>

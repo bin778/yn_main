@@ -28,6 +28,13 @@ type KakaoRoughMapProps = {
   className?: string;
 };
 
+/** Kakao roughmap injects `.address` / `.phone` with `.tit`(주소·전화) and `.txt` values. */
+const KAKAO_MAP_CONTACT_INFO_CLASSES =
+  '[&_.address_.tit]:!text-[12px] md:[&_.address_.tit]:!text-[14px] ' +
+  '[&_.address_.txt]:!text-[12px] md:[&_.address_.txt]:!text-[14px] ' +
+  '[&_.phone_.tit]:!text-[12px] md:[&_.phone_.tit]:!text-[14px] ' +
+  '[&_.phone_.txt]:!text-[12px] md:[&_.phone_.txt]:!text-[14px]';
+
 function KakaoRoughMapInner({ embed, className }: KakaoRoughMapProps) {
   const containerId = `daumRoughmapContainer${embed.timestamp}`;
   const renderedRef = useRef(false);
@@ -83,7 +90,7 @@ function KakaoRoughMapInner({ embed, className }: KakaoRoughMapProps) {
     <div className={`w-full min-w-0 max-w-full overflow-hidden ${className ?? ''}`}>
       <div
         id={containerId}
-        className="root_daum_roughmap root_daum_roughmap_landing mx-auto w-full max-w-full min-h-[280px] lg:min-h-[450px] [&_iframe]:max-w-full"
+        className={`root_daum_roughmap root_daum_roughmap_landing mx-auto w-full max-w-full min-h-[280px] lg:min-h-[450px] [&_iframe]:max-w-full ${KAKAO_MAP_CONTACT_INFO_CLASSES}`}
       />
     </div>
   );

@@ -49,7 +49,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
 
         {/* 본문 — 그누보드 에디터 HTML (관리자 작성 신뢰 콘텐츠) */}
         <div
-          className="board-content mt-8 min-h-[200px] text-[15px] leading-[1.75] text-[#333] md:text-[16px]"
+          className="board-content mt-8 min-h-[200px] leading-[1.75] text-[#333]"
           dangerouslySetInnerHTML={{ __html: post.wr_content }}
         />
 

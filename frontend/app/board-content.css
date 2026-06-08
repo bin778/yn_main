@@ -3,7 +3,7 @@
 @layer base {
   /* 그누보드 에디터(Summernote) HTML 콘텐츠 렌더링 — 스토리 게시판 전용 */
   .board-content h1 {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 700;
     line-height: 1.25;
     margin: 1.25em 0 0.5em;
@@ -52,6 +52,7 @@
     border: 1px solid #ddd;
     padding: 0.5em 0.75em;
     text-align: left;
+    vertical-align: top;
   }
 
   .board-content th {
@@ -74,5 +75,46 @@
   .board-content mark {
     border-radius: 2px;
     padding: 0 0.1em;
+  }
+
+  @media (min-width: 768px) {
+    .board-content h1 {
+      font-size: 32px;
+    }
+  }
+
+  /* 모바일: 레거시 2열 카드형 테이블 → 세로 스택, 그 외 테이블은 가로 스크롤 */
+  @media (max-width: 767px) {
+    .board-content table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .board-content tbody {
+      display: block;
+    }
+
+    .board-content tr:has(> td:nth-child(2):last-child),
+    .board-content tr:has(> th:nth-child(2):last-child) {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .board-content tr:has(> td:nth-child(2):last-child) > td,
+    .board-content tr:has(> th:nth-child(2):last-child) > th,
+    .board-content tr:has(> td:nth-child(2):last-child) > th {
+      display: block;
+      width: 100%;
+      padding: 0;
+      background-color: transparent;
+    }
+
+    .board-content tr:has(> td:nth-child(2):last-child) td img {
+      width: 100%;
+      margin: 0 0 8px;
+    }
   }
 }

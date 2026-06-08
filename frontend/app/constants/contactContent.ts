@@ -39,7 +39,7 @@ export const CONTACT_OFFICES: readonly ContactOffice[] = [
   {
     id: 'seoul',
     title: '서울 주사무소',
-    address: '서울특별시 중구 남대문로 10길 28, 10층 1002호, 1003호, 1006호 (수하동, 우석빌딩)',
+    address: '서울특별시 중구 남대문로 10길 28, 10층 1003호 (수하동, 우석빌딩)',
     directions: [
       {
         id: 'seoul-euljiro',
@@ -66,8 +66,8 @@ export const CONTACT_OFFICES: readonly ContactOffice[] = [
       key: 'm6x7wqeywdg',
     },
     mapMobile: {
-      timestamp: '1776663886555',
-      key: 'mzxa6htowqv',
+      timestamp: '1776314533103',
+      key: 'm6x7wqeywdg',
     },
   },
   {

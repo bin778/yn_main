@@ -81,13 +81,13 @@ export default function ContactInquiryForm() {
   };
 
   const inputClass =
-    'w-full rounded-[3px] border border-[#ccc] bg-white/10 px-2.5 py-2.5 text-white placeholder:text-white/60';
+    'w-full rounded-[3px] border border-[#ccc] bg-white/10 px-2 md:px-2.5 py-2 md:py-2.5 text-white placeholder:text-white/60';
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-[580px]">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-3">
         <div>
-          <label htmlFor="c_name" className="text-base font-medium text-white">
+          <label htmlFor="c_name" className="text-[13px] md:text-[15px] font-medium text-white">
             성함
           </label>
           <input
@@ -102,7 +102,7 @@ export default function ContactInquiryForm() {
           />
         </div>
         <div>
-          <label htmlFor="c_tel" className="text-base font-medium text-white">
+          <label htmlFor="c_tel" className="text-[13px] md:text-[15px] font-medium text-white">
             연락처
           </label>
           <input
@@ -121,7 +121,7 @@ export default function ContactInquiryForm() {
       </div>
 
       <div className="mt-5">
-        <label htmlFor="c_content" className="text-base font-medium text-white">
+        <label htmlFor="c_content" className="text-[13px] md:text-[15px] font-medium text-white">
           문의사항
         </label>
         <textarea
@@ -144,7 +144,7 @@ export default function ContactInquiryForm() {
           required
           className="mt-1"
         />
-        <span className="text-sm md:text-base">
+        <span className="text-[13px] md:text-[15px]">
           개인정보 수집 및 이용동의{' '}
           <Link href="/privacy" className="underline">
             [보기]
@@ -156,7 +156,7 @@ export default function ContactInquiryForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="cursor-pointer rounded-[3px] bg-[#023373] px-6 py-3 text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="cursor-pointer rounded-[3px] bg-[#023373] px-6 py-3 text-[13px] md:text-[15px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? '접수 중…' : '바로 문의하기 >'}
         </button>
