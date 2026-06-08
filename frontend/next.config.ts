@@ -2,18 +2,68 @@ import type { NextConfig } from 'next';
 
 const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 const LEGACY_BOARD_PATH = '/board/bbs/board.php';
+const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
+
   async rewrites() {
-    const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
-    return [
-      { source: '/img/:path*', destination: `${CAFE24}/img/:path*` },
-      { source: '/board/:path*', destination: `${CAFE24}/board/:path*` },
-      { source: '/api/:path*', destination: `${CAFE24}/api/:path*` },
-      { source: '/backend/:path*', destination: `${CAFE24}/backend/:path*` },
-    ];
+    return {
+      // Next.js 내부 라우트보다 먼저 실행 (정적파일 등)
+      beforeFiles: [],
+
+      // Next.js 페이지 매칭 후, 없을 때만 프록시
+      afterFiles: [
+        // 이미지/미디어
+        { source: '/img/:path*', destination: `${CAFE24}/img/:path*` },
+        { source: '/data/:path*', destination: `${CAFE24}/data/:path*` },
+
+        // 그누보드 전체
+        { source: '/board/:path*', destination: `${CAFE24}/board/:path*` },
+
+        // PHP API - Next.js /api/board/revalidate/ 제외하고 개별 지정
+        { source: '/api/board/get_list.php', destination: `${CAFE24}/api/board/get_list.php` },
+        { source: '/api/board/get_view.php', destination: `${CAFE24}/api/board/get_view.php` },
+        { source: '/api/board/get_post.php', destination: `${CAFE24}/api/board/get_post.php` },
+        { source: '/api/board/get_scheduled_list.php', destination: `${CAFE24}/api/board/get_scheduled_list.php` },
+        { source: '/api/board/write_post.php', destination: `${CAFE24}/api/board/write_post.php` },
+        { source: '/api/board/upload_file.php', destination: `${CAFE24}/api/board/upload_file.php` },
+        { source: '/api/board/download_file.php', destination: `${CAFE24}/api/board/download_file.php` },
+        { source: '/api/board/get_session.php', destination: `${CAFE24}/api/board/get_session.php` },
+        { source: '/api/board/auth/:path*', destination: `${CAFE24}/api/board/auth/:path*` },
+
+        // 상담문의 API
+        { source: '/api/inquiry/:path*', destination: `${CAFE24}/api/inquiry/:path*` },
+        { source: '/api/submit_inquiry.php', destination: `${CAFE24}/api/submit_inquiry.php` },
+
+        // 랜딩페이지들 (PHP 레거시)
+        { source: '/landing/:path*', destination: `${CAFE24}/landing/:path*` },
+        { source: '/landing_new/:path*', destination: `${CAFE24}/landing_new/:path*` },
+        { source: '/landing_defense/:path*', destination: `${CAFE24}/landing_defense/:path*` },
+        { source: '/landing_realestate/:path*', destination: `${CAFE24}/landing_realestate/:path*` },
+        { source: '/drunk/:path*', destination: `${CAFE24}/drunk/:path*` },
+        { source: '/your/:path*', destination: `${CAFE24}/your/:path*` },
+        { source: '/mobileapp/:path*', destination: `${CAFE24}/mobileapp/:path*` },
+        { source: '/special_event/:path*', destination: `${CAFE24}/special_event/:path*` },
+        { source: '/receipt/:path*', destination: `${CAFE24}/receipt/:path*` },
+        { source: '/complete/:path*', destination: `${CAFE24}/complete/:path*` },
+
+        // 기타 PHP 파일
+        { source: '/kakao_link.php', destination: `${CAFE24}/kakao_link.php` },
+        { source: '/tel_link.php', destination: `${CAFE24}/tel_link.php` },
+        { source: '/dpcrm_reservation.php', destination: `${CAFE24}/dpcrm_reservation.php` },
+        { source: '/dpcrm_reservation_temp.php', destination: `${CAFE24}/dpcrm_reservation_temp.php` },
+
+        // common, js, css 레거시 리소스
+        { source: '/common/:path*', destination: `${CAFE24}/common/:path*` },
+        { source: '/js/:path*', destination: `${CAFE24}/js/:path*` },
+        { source: '/css/:path*', destination: `${CAFE24}/css/:path*` },
+      ],
+
+      fallback: [],
+    };
   },
+
   async redirects() {
     const legacyBoardRedirects = [
       {
@@ -59,6 +109,12 @@ const nextConfig: NextConfig = {
         destination: '/admin/',
         permanent: false,
       },
+      // dbpma 직접 접근 차단 (보안)
+      {
+        source: '/dbpma/:path*',
+        destination: '/',
+        permanent: false,
+      },
       { source: '/success', destination: '/success-story', permanent: true },
       { source: '/success/:wr_id', destination: '/success-story/:wr_id', permanent: true },
       { source: '/about.php', destination: '/about', permanent: true },
@@ -68,6 +124,7 @@ const nextConfig: NextConfig = {
       { source: '/privacy.php', destination: '/privacy', permanent: true },
     ];
   },
+
   async headers() {
     return [
       {
@@ -78,8 +135,17 @@ const nextConfig: NextConfig = {
         source: '/fonts/:path*',
         headers: [{ key: 'Cache-Control', value: ONE_YEAR_CACHE }],
       },
+      // 어드민 페이지 캐시 완전 차단
+      {
+        source: '/admin/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      },
     ];
   },
+
   images: {
     remotePatterns: [
       {
