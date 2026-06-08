@@ -3,7 +3,7 @@
 Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`) 및 레거시 그누보드(`/board/`)를 함께 운영하는 메인 사이트 레포입니다.
 
 - **프론트**: Next.js App Router (`npm run build` → `npm run start`)
-- **백엔드**: PHP API 유지 (`/backend/api/` 상담, `/api/board/` 게시판 조회)
+- **백엔드**: PHP API 유지 (`/backend/api/` 상담, `/api/board/` 게시판 조회·관리)
 - **레거시**: 그누보드 게시판(`/board/`)은 기존 호스팅 경로 그대로 사용 (adm에서 생성/수정/삭제)
 
 ## 기술 스택
@@ -20,15 +20,17 @@ Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`) 및 레거시 그
 yn_main/
 ├── frontend/          # Next.js 앱 (개발·빌드·런타임)
 │   ├── app/
-│   │   ├── (story)/   # 게시판 목록·상세 (review, column 등)
-│   │   └── admin/     # 관리자 대시보드·글쓰기/수정
+│   │   ├── (story)/   # 게시판 목록·상세 (review, success-story, column, news)
+│   │   ├── board-content.css    # 게시판 본문 HTML 렌더링 (표·이미지·모바일 레이아웃)
+│   │   ├── board-typography.css # 본문·에디터·미리보기 공통 타이포 (md 반응형)
+│   │   └── admin/     # 관리자 대시보드·글쓰기/수정·예약글
 │   │       ├── components/   # AdminPostForm, BoardRichEditor 등
 │   │       ├── hooks/        # useAdminPostForm, useClickOutside 등
 │   │       └── lib/          # payload·dirty·업로드 검증 등 순수 로직
-│   ├── public/        # 정적 에셋 (img, css 등)
-├── backend/           # 상담 API (카페24 FTP 업로드)
-│   ├── config/        # DB·Aligo 설정 (*.sample.php → 운영 파일)
-│   ├── lib/           # board_files.php, board_auth.php 등
+│   ├── public/        # 정적 에셋 (img, css, yeoon_brochure.pdf 등)
+├── backend/           # 상담·게시판 API (카페24 FTP 업로드)
+│   ├── config/        # DB·Aligo·JWT 설정 (*.sample.php → 운영 파일)
+│   ├── lib/           # board_files.php, board_auth.php, pbkdf2.php 등
 │   └── api/
 ├── .htaccess          # 카페24 루트용 Apache 리라이트·301 규칙
 └── schema.sql         # user_inquiry 테이블 DDL
@@ -44,19 +46,37 @@ npm run dev
 
 개발 서버: [http://localhost:3000](http://localhost:3000)
 
+로컬 개발 시 `next.config.ts`의 **rewrite**로 `/img`, `/board`, `/api`, `/backend` 요청이 카페24 운영 서버로 프록시됩니다.
+
 ### 페이지
 
-| 경로            | 설명                            |
-| --------------- | ------------------------------- |
-| `/`             | 메인                            |
-| `/about/`       | 여온의 약속                     |
-| `/people/`      | 여온의 사람들 목록              |
-| `/people/[id]/` | 구성원 상세 (빌드 시 정적 생성) |
-| `/field/`       | 여온이 하는 일                  |
-| `/contact/`     | 오시는 길·상담 문의             |
-| `/privacy/`     | 개인정보처리방침                |
+| 경로               | 설명                               |
+| ------------------ | ---------------------------------- |
+| `/`                | 메인                               |
+| `/about/`          | 여온의 약속                        |
+| `/people/`         | 여온의 사람들 목록                 |
+| `/people/[id]/`    | 구성원 상세 (빌드 시 정적 생성)    |
+| `/field/`          | 여온이 하는 일                     |
+| `/contact/`        | 오시는 길·상담 문의                |
+| `/privacy/`        | 개인정보처리방침                   |
+| `/review/`         | 후기 목록 (`bo_table=review`)      |
+| `/success-story/`  | 성공사례 목록 (`bo_table=success`) |
+| `/column/`         | 칼럼 목록                          |
+| `/news/`           | 여온소식 목록                      |
+| `/{slug}/[wr_id]/` | 게시물 상세 (ISR `revalidate: 60`) |
 
 `trailingSlash: true` 설정으로 운영 URL은 슬래시(`/`)로 끝납니다.
+
+### 게시판 본문 스타일 (`board-content.css`)
+
+그누보드·Summernote 레거시 HTML을 `(story)` 상세에서 렌더링할 때 사용합니다.
+
+| 파일                   | 역할                                                                   |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `board-typography.css` | h2~h4, `data-body` 문단 크기 — 모바일 기본, `md`(768px) 이상 확대      |
+| `board-content.css`    | 목록·이미지·인용·표; 모바일 2열 카드형 `table` 행은 세로 스택 (`:has`) |
+
+에디터·미리보기(`board-rich-editor.css`)는 `board-typography.css`를 공유합니다.
 
 ### 환경 변수
 
@@ -106,25 +126,29 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 #### 게시판 조회 API
 
 - `GET /api/board/get_list.php` : 후기/성공사례/칼럼/여온소식 목록 (`sort`: 최신순·조회수·제목 가나다순 등)
-- `GET /api/board/get_view.php` : 게시물 상세 + 이전/다음 + 첨부 파일
+- `GET /api/board/get_view.php` : 게시물 상세 + 이전/다음 + 첨부 파일 (`wr_datetime <= NOW()` 미래 글 제외)
+- `GET /api/board/get_post.php` : 관리자 수정 폼용 단건 조회 (JWT)
 - `GET /api/board/download_file.php` : 첨부 다운로드 (비밀번호·JWT 검증)
 - 허용 게시판: `review`, `success`, `column`, `news`
 - **PHP 7.3** 호환: 화살표 함수 등 PHP 7.4+ 문법 사용 금지 (`.cursor/rules/php-7.3.mdc` 참고)
-- 배포 시 `backend/api/board/*.php` 및 `backend/lib/*.php`(특히 `board_files.php`)를 서버 `/api/board/`, `/lib/` 경로에 반영
+- 배포 시 `backend/api/board/*.php` 및 `backend/lib/*.php`(특히 `board_files.php`, `pbkdf2.php`)를 서버 `/api/board/`, `/lib/` 경로에 반영
 
 #### 게시판 관리자 (JWT, 그누보드 세션 불필요)
 
 - 로그인 UI: **`/admin/login/`** (URL 직접 입력, UI에 노출하지 않음) → JWT
 - 대시보드: **`/admin/`** (로그인 후 기본 이동)
 - 글쓰기: **`/admin/{bo_table}/write/`** · 수정: **`/admin/{bo_table}/{wr_id}/edit/`**
+- 예약글: **`/admin/{bo_table}/scheduled/`** (`wr_datetime > NOW()` 목록·예약 취소)
 - 구 **`/board/bbs/login.php`** → `/admin/login/`, **`/board/adm/`** → `/admin/` (`next.config` redirect)
 - 로그아웃: JWT + `/board/bbs/logout.php` (그누보드 쿠키 정리)
 - 세션 확인: `GET /api/board/auth/me.php` (BoardAdminBar는 `?bo_table=news` 등)
 - 글 CRUD: `POST|PUT|DELETE /api/board/write_post.php` (게시판 관리자 JWT)
+- 예약 목록: `GET /api/board/get_scheduled_list.php?bo_table=` (JWT)
 - 파일 업로드: `POST /api/board/upload_file.php` (썸네일·본문 이미지·첨부, 최대 **10MB**)
 - 첨부 다운로드: `GET /api/board/download_file.php` (비밀번호 설정 시 입력 후 다운로드)
 - `get_session.php`는 deprecated → `auth/me.php`로 위임
 - `app_config.php`에 `JWT_SECRET`(32자 이상 랜덤) 필수
+- 저장·삭제 후 Next ISR 갱신: `POST /api/board/revalidate` (프론트 Route Handler)
 
 ##### 글쓰기/수정 UI (`AdminPostForm` + `BoardRichEditor`)
 
@@ -133,29 +157,32 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 | 리치 에디터   | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지 |
 | 미리보기      | 저장 전 본문·SEO 미리보기 모달                                                                   |
 | 임시저장      | 브라우저 `localStorage`에 초안 저장·불러오기                                                     |
+| 예약 발행     | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                         |
 | 썸네일·첨부   | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                      |
-| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, 상세 페이지에서 입력 후 다운로드                                   |
+| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드            |
 | SEO           | 제목·슬러그·설명 메타 + 미리보기                                                                 |
 | 이탈 경고     | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                     |
 
-##### 관리자 프론트엔드 구조 (2026-06 리팩토링)
+상세·목록의 **BoardAdminBar**: 관리자 로그인 시 글쓰기·수정·삭제·예약글 목록·관리자 허브 링크 노출.
+
+##### 관리자 프론트엔드 구조
 
 대형 컴포넌트를 역할별로 분리했습니다. 기존 import 경로(`AdminPostForm`, `BoardRichEditor`)는 그대로 유지합니다.
 
 ```
 frontend/app/admin/
 ├── components/
-│   ├── AdminPostForm.tsx          # 훅 + 섹션 조립 (~200줄)
-│   ├── BoardRichEditor.tsx        # 에디터 셸 (~100줄)
-│   ├── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 액션 버튼
+│   ├── AdminPostForm.tsx          # 훅 + 섹션 조립
+│   ├── BoardRichEditor.tsx        # 에디터 셸
+│   ├── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 예약 모달, 액션 버튼
 │   └── board-rich-editor/         # 툴바, ColorPickerDropdown, useBoardRichEditor
 ├── hooks/
-│   ├── useAdminPostForm.ts        # 폼 state·핸들러
+│   ├── useAdminPostForm.ts        # 폼 state·즉시/예약 저장·삭제
 │   ├── useAdminPostLeaveGuard.ts  # 이탈 가드
 │   └── useClickOutside.ts         # 툴바 드롭다운 outside-click
 └── lib/
     ├── adminPostFormTypes.ts      # AdminPostInitial, emptyAdminPostInitial
-    ├── buildBoardPostPayload.ts   # API payload 조립
+    ├── buildBoardPostPayload.ts   # API payload 조립 (scheduled 플래그)
     ├── adminPostFormDirty.ts      # dirty 판별·이탈 메시지
     ├── validateAttachmentPassword.ts
     └── boardAttachmentAccept.ts   # 업로드 확장자·10MB 검증 (백엔드와 동기)
@@ -178,10 +205,10 @@ backend/
     db_conn.sample.php
     app_config.sample.php
   lib/
-    bootstrap.php, board_auth.php, jwt.php, ...
+    bootstrap.php, board_auth.php, board_files.php, jwt.php, pbkdf2.php, ...
   api/
     board/auth/login.php, logout.php, me.php
-    board/write_post.php
+    board/write_post.php, get_scheduled_list.php, get_post.php
     inquiry/list.php, get.php, update.php
     submit_inquiry.sample.php
 ```
@@ -245,33 +272,54 @@ cd frontend && npm run start
 검증 체크:
 
 - `/contact/`에서 상담 제출 → DB 적재 및 응답 `result: "1"` 확인
-- `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 확인 (첨부 있는 글 500 없음)
-- `/admin/login` → `admin` 로그인 → `/news/` 관리자 바(글쓰기) 노출
+- `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 (첨부 있는 글 500 없음)
+- 게시물 상세 모바일 뷰: 레거시 2열 표 카드가 세로 스택되는지 확인
+- `/admin/login` → `admin` 로그인 → `/news/` 관리자 바(글쓰기·예약글·수정·삭제) 노출
 - `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
-- `/admin/news/write`에서 글 작성 → 목록/상세 반영 (ISR 최대 60초)
-- 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고(취소·링크)
+- `/admin/news/write`에서 글 작성·예약 발행 → 예약글 목록·공개 시각 이후 목록/상세 반영
+- 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고
 - `BoardRichEditor`: 기본/마크다운/HTML 탭, 색상·리스트·표·이미지 삽입
-- 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드
-- 상세 페이지에서 수정·삭제 동작 확인
+- 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드 (비밀번호 없는 첨부도 정상)
+- 상세·관리자 바에서 수정·삭제 동작 확인
+- `/contact/` 서울 주사무소 카카오맵: 모바일·PC 모두 을지로 주소 표시
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
 
-카페24 배포 시 업로드: `backend/lib/`(board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
+카페24 배포 시 업로드: `backend/lib/`(board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, get_scheduled_list.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
 
-## 최근 변경 (2026-06-05)
+## 최근 변경
 
-### 프론트엔드
+### 2026-06-08 — 모바일 반응형·게시판 본문
+
+- **게시판 본문 CSS**: `board-typography.css`에 `md`(768px) 타이포 단계 추가; `board-content.css`에 모바일 2열 카드형 `table` 세로 스택·이미지 전체 너비
+- **사이트 전반 모바일 스타일**: 메인·헤더·푸터·People·Field·Contact·News 등 페이지별 레이아웃·글자 크기 조정
+- **Contact**: 서울 주사무소 카카오맵 모바일 임베드가 부천으로 나오던 오류 수정 (`mapMobile` → PC와 동일 키)
+- **Contact**: 지도 하단 주소·전화 글자 크기 `12px` / `md:14px`
+
+### 2026-06-07 — 예약 발행·수정·삭제
+
+- **예약 발행**: `SchedulePublishModal` — 즉시·10/30/60분·직접 지정; `wr_datetime` 미래 글은 공개 API·목록에서 제외
+- **예약글 관리**: `/admin/{bo_table}/scheduled/`, `GET /api/board/get_scheduled_list.php`, BoardAdminBar·수정 화면에서 예약 취소(삭제)
+- **수정·삭제**: 상세 `BoardAdminBar` 및 `DELETE /api/board/write_post.php`; 저장 후 `POST /api/board/revalidate`로 ISR 갱신
+
+### 2026-06-06 — 첨부파일·모바일 UI
+
+- **첨부 비밀번호**: PBKDF2 salt 구·신 버전 호환 검증; 설정·해제·재업로드 반영 버그 수정
+- **다운로드**: 비밀번호 없는 첨부 404 수정
+- **모바일**: 하단 플로팅 액션·Hero·People 페이지 스타일 최적화
+
+### 2026-06-05 — 관리자 글쓰기·리팩토링
 
 - **관리자 글쓰기 강화**: Tiptap 리치 에디터(마크다운·HTML 탭, 표·배경색·구분선 등), 저장 전 미리보기, 임시저장
 - **업로드 UX**: 썸네일·본문 이미지·첨부 10MB 클라이언트 선검증 및 실패 시 UI 초기화
 - **이탈 경고**: 작성 중 취소·내부 링크·탭 닫기 시 확인 (`useAdminPostLeaveGuard`)
 - **첨부 비밀번호**: 관리자 폼에서 설정·해제, 상세 `BoardAttachmentItem`에서 다운로드 전 입력
-- **게시글 상세 500 수정**: `BoardAttachmentItem`의 `formatFileSize`를 컴포넌트 내부로 이동 (Server→Client 함수 props 제거)
-- **코드 구조**: `AdminPostForm`·`BoardRichEditor`를 lib/hooks/섹션 컴포넌트로 분리 (동작·import 경로 유지)
-- **의존성**: `@tiptap/*` 패키지 `^3.25.0`으로 버전 통일 (Vercel peer dependency 충돌 방지)
+- **게시글 상세 500 수정**: `BoardAttachmentItem`의 `formatFileSize`를 컴포넌트 내부로 이동
+- **코드 구조**: `AdminPostForm`·`BoardRichEditor`를 lib/hooks/섹션 컴포넌트로 분리
+- **백엔드 (FTP 반영)**: PHP 7.3 호환, `board_files.php`·`download_file.php`·`pbkdf2.php` 첨부 비밀번호 연동
 
-### 백엔드 (카페24 FTP 반영 필요)
+### 그 이전 주요 마일스톤
 
-- **PHP 7.3 호환**: `get_view.php`, `get_post.php` 등 화살표 함수 → 익명 함수
-- **`board_files.php`**: 첨부·이미지 업로드/저장, 10MB 제한, 첨부 비밀번호 PBKDF2 해시
-- **`download_file.php`**: 첨부 다운로드 API 신설
-- **`write_post.php` / `upload_file.php`**: 첨부 비밀번호 설정·해제 연동
+- JWT 기반 `/admin/` 대시보드·게시판·상담 문의 관리 (`/admin/inquiries/`)
+- Next.js 게시판 목록·상세 (`(story)`), ISR, 레거시 `board.php` 301 → `/review/` 등
+- 상담 API PHP 이전 (`/backend/api/submit_inquiry.php`), Contact·About·People·Field 페이지 마이그레이션
+- 게시판 정렬(날짜·조회수·제목), 검색, 그리드/리스트 뷰, LCP·Hero Swiper 최적화
