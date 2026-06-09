@@ -1,6 +1,12 @@
 const SAFE_HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const SAFE_RGB = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+))?\s*\)$/i;
 
+const SPACING_PX = /^\d{1,3}px$/;
+const MARGIN_SIDE = /^(0|auto|\d{1,3}px)$/;
+const PADDING_SIDE = /^(0|\d{1,3}px)$/;
+const MAX_LINE_HEIGHT_PX = 54;
+const MAX_HEIGHT_PX = 80;
+
 const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'color': normalizeColor,
   'background': normalizeBackground,
@@ -14,6 +20,7 @@ const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'width': normalizeLength,
   'min-width': normalizeLength,
   'max-width': normalizeLength,
+  'height': normalizeHeight,
   'display': normalizeDisplay,
   'flex': normalizeFlex,
   'flex-direction': normalizeFlexDirection,
@@ -21,16 +28,17 @@ const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'justify-content': normalizeJustifyContent,
   'gap': normalizeGap,
   'box-sizing': normalizeBoxSizing,
-  'margin': normalizeSpacing,
-  'margin-top': normalizeSpacing,
-  'margin-right': normalizeSpacing,
-  'margin-bottom': normalizeSpacing,
-  'margin-left': normalizeSpacing,
-  'padding': normalizeSpacing,
-  'padding-top': normalizeSpacing,
-  'padding-right': normalizeSpacing,
-  'padding-bottom': normalizeSpacing,
-  'padding-left': normalizeSpacing,
+  'vertical-align': normalizeVerticalAlign,
+  'margin': normalizeMargin,
+  'margin-top': normalizeMarginSide,
+  'margin-right': normalizeMarginSide,
+  'margin-bottom': normalizeMarginSide,
+  'margin-left': normalizeMarginSide,
+  'padding': normalizePadding,
+  'padding-top': normalizePaddingSide,
+  'padding-right': normalizePaddingSide,
+  'padding-bottom': normalizePaddingSide,
+  'padding-left': normalizePaddingSide,
   'border': normalizeBorder,
   'border-left': normalizeBorder,
   'border-right': normalizeBorder,
@@ -46,6 +54,9 @@ function normalizeBackground(value: string): string | null {
 
 function normalizeColor(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
+  if (trimmed === 'inherit') {
+    return 'inherit';
+  }
   if (SAFE_HEX_COLOR.test(trimmed)) {
     return trimmed.length === 4
       ? `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`
@@ -70,12 +81,44 @@ function normalizeLineHeight(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
   if (/^\d(\.\d+)?$/.test(trimmed)) return trimmed;
   if (/^\d{1,3}%$/.test(trimmed)) return trimmed;
+
+  const pxMatch = trimmed.match(/^(\d{1,2})px$/);
+  if (pxMatch !== null) {
+    const num = Number(pxMatch[1]);
+    if (num > 0 && num <= MAX_LINE_HEIGHT_PX) {
+      return `${num}px`;
+    }
+  }
+
   return normalizeFontSize(trimmed);
+}
+
+function normalizeHeight(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === '0') return '0';
+
+  const pxMatch = trimmed.match(/^(\d{1,2})px$/);
+  if (pxMatch !== null) {
+    const num = Number(pxMatch[1]);
+    if (num > 0 && num <= MAX_HEIGHT_PX) {
+      return `${num}px`;
+    }
+  }
+
+  return null;
 }
 
 function normalizeTextAlign(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
   if (trimmed === 'left' || trimmed === 'center' || trimmed === 'right') return trimmed;
+  return null;
+}
+
+function normalizeVerticalAlign(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === 'top' || trimmed === 'middle' || trimmed === 'bottom') {
+    return trimmed;
+  }
   return null;
 }
 
@@ -140,7 +183,7 @@ function normalizeJustifyContent(value: string): string | null {
 }
 
 function normalizeGap(value: string): string | null {
-  return normalizeSpacing(value);
+  return normalizePaddingSide(value);
 }
 
 function normalizeBoxSizing(value: string): string | null {
@@ -149,12 +192,40 @@ function normalizeBoxSizing(value: string): string | null {
   return null;
 }
 
-function normalizeSpacing(value: string): string | null {
+function isMarginShorthand(value: string): boolean {
+  const parts = value.trim().toLowerCase().split(/\s+/);
+  if (parts.length < 1 || parts.length > 4) return false;
+  return parts.every(part => MARGIN_SIDE.test(part));
+}
+
+function isPaddingShorthand(value: string): boolean {
+  const parts = value.trim().toLowerCase().split(/\s+/);
+  if (parts.length < 1 || parts.length > 4) return false;
+  return parts.every(part => PADDING_SIDE.test(part));
+}
+
+function normalizeMargin(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
-  if (trimmed === '0') return '0';
-  if (/^\d{1,3}px$/.test(trimmed)) return trimmed;
-  if (/^(\d{1,3}px\s+){1,3}\d{1,3}px$/.test(trimmed)) return trimmed;
-  return null;
+  if (!isMarginShorthand(trimmed)) return null;
+  return trimmed;
+}
+
+function normalizeMarginSide(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (!MARGIN_SIDE.test(trimmed)) return null;
+  return trimmed;
+}
+
+function normalizePadding(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (!isPaddingShorthand(trimmed)) return null;
+  return trimmed;
+}
+
+function normalizePaddingSide(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (!PADDING_SIDE.test(trimmed)) return null;
+  return trimmed;
 }
 
 function normalizeBorder(value: string): string | null {
