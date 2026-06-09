@@ -194,6 +194,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             contentMode={form.contentMode}
             disabled={form.loading}
             onUploadImage={form.handleEditorImageUpload}
+            onForceLegacyMode={form.handleForceLegacyMode}
           />
         </div>
 

@@ -4,8 +4,6 @@ import { useEditor } from '@tiptap/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { useClickOutside } from '../../hooks/useClickOutside';
-import type { BoardContentMode } from '../../lib/boardContentMode';
-import { sanitizeContentForEditor } from '../../lib/boardContentSanitize';
 import { boardHtmlToMarkdown, boardMarkdownToHtml } from '../../lib/boardMarkdown';
 import { DEFAULT_PARAGRAPH_STYLE, type ParagraphStyleId } from '../../lib/boardParagraphStyles';
 import { sanitizeBoardHtml } from '../../lib/sanitizeBoardHtml';
@@ -14,20 +12,15 @@ import { DEFAULT_HIGHLIGHT_COLOR, EMPTY_DEFAULT_HTML, TABLE_PICKER_DEFAULT } fro
 import { createBoardEditorExtensions } from './createBoardEditorExtensions';
 import type { BoardRichEditorProps, EditorTab, ListStyle, TablePickerSize } from './types';
 
-const LEGACY_TAB_CONFIRM =
-  '레거시 HTML 모드에서 기본·마크다운 탭으로 전환하면 인라인 스타일과 레이아웃이 손실될 수 있습니다. 계속하시겠습니까?';
-
-function initialTabForMode(mode: BoardContentMode): EditorTab {
-  return mode === 'legacy_html' ? 'html' : 'default';
-}
+type UseBoardRichEditorOptions = Omit<BoardRichEditorProps, 'contentMode'>;
 
 export function useBoardRichEditor({
   value,
   onChange,
-  contentMode = 'rich',
   disabled = false,
   onUploadImage,
-}: BoardRichEditorProps) {
+  onForceLegacyMode,
+}: UseBoardRichEditorOptions) {
   const labelId = useId();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -38,9 +31,18 @@ export function useBoardRichEditor({
   const paragraphMenuRef = useRef<HTMLDivElement>(null);
   const tableMenuRef = useRef<HTMLDivElement>(null);
 
-  const [tab, setTab] = useState<EditorTab>(() => initialTabForMode(contentMode));
+  // 렌더마다 최신 함수를 ref에 저장 (stale closure 방지)
+  const onForceLegacyModeRef = useRef(onForceLegacyMode);
+  useEffect(() => {
+    onForceLegacyModeRef.current = onForceLegacyMode;
+  });
+
+  // TipTap 본문 최초 로드 여부 (ref — 상태 변화 없이 효과만 제어)
+  const contentInitializedRef = useRef(false);
+
+  const [tab, setTab] = useState<EditorTab>('default');
   const [htmlDraft, setHtmlDraft] = useState(value);
-  const [markdownDraft, setMarkdownDraft] = useState(() => boardHtmlToMarkdown(value));
+  const [markdownDraft, setMarkdownDraft] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showTextColorPicker, setShowTextColorPicker] = useState(false);
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
@@ -53,24 +55,23 @@ export function useBoardRichEditor({
   const [customTextColor, setCustomTextColor] = useState('#000000');
   const [customBgColor, setCustomBgColor] = useState(DEFAULT_HIGHLIGHT_COLOR);
 
-  const sanitizeForMode = useCallback((html: string) => sanitizeContentForEditor(html, contentMode), [contentMode]);
-
   const emitChange = useCallback(
     (html: string) => {
-      onChange(sanitizeForMode(html));
+      onChange(sanitizeBoardHtml(html));
     },
-    [onChange, sanitizeForMode],
+    [onChange],
   );
 
-  const tipTapActive = contentMode === 'rich';
-
+  // TipTap은 항상 빈 콘텐츠로 초기화.
+  // 실제 본문 로드는 아래 useEffect에서 try/catch로 수행한다.
   const editor = useEditor({
     immediatelyRender: false,
-    editable: !disabled && tab === 'default' && tipTapActive,
+    editable: false,
     extensions: createBoardEditorExtensions(),
-    content: tipTapActive ? sanitizeBoardHtml(value) : EMPTY_DEFAULT_HTML,
+    content: EMPTY_DEFAULT_HTML,
     onUpdate: ({ editor: ed }) => {
-      if (tab === 'default' && tipTapActive) {
+      // 본문이 아직 로드되지 않았으면 빈 콘텐츠를 상위로 전파하지 않는다
+      if (tab === 'default' && contentInitializedRef.current) {
         emitChange(ed.getHTML());
       }
     },
@@ -79,15 +80,41 @@ export function useBoardRichEditor({
     },
   });
 
+  // 에디터가 준비된 뒤 실제 본문을 안전하게 로드한다.
+  // ProseMirror의 DOM insertBefore 오류는 setContent 내부에서 동기 throw되므로 try/catch로 잡는다.
+  // Error Boundary는 useEffect 내 오류를 잡지 못하기 때문에 이 방식이 유일한 방어선이다.
+  useEffect(() => {
+    if (editor === null || contentInitializedRef.current) return;
+    contentInitializedRef.current = true;
+
+    const cleaned = sanitizeBoardHtml(value);
+    try {
+      editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
+      editor.setEditable(!disabled && tab === 'default');
+    } catch (loadError) {
+      console.error('TipTap 본문 로드 실패 — 레거시 HTML 모드로 전환합니다.', loadError);
+      onForceLegacyModeRef.current?.();
+    }
+    // editor가 준비됐을 때 1회만 실행한다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
+
+  useEffect(() => {
+    if (editor === null || !contentInitializedRef.current) return;
+    editor.setEditable(!disabled && tab === 'default');
+  }, [disabled, editor, tab]);
+
   const applyHtmlToEditor = useCallback(
-    (html: string) => {
+    (html: string): string => {
       if (editor === null) return '';
       const cleaned = sanitizeBoardHtml(html);
       try {
         editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
         editor.commands.fixTables();
-      } catch (error) {
-        console.error('TipTap 본문 로드 실패:', error);
+      } catch (applyError) {
+        console.error('TipTap 본문 업데이트 실패 — 레거시 HTML 모드로 전환합니다.', applyError);
+        onForceLegacyModeRef.current?.();
+        return '';
       }
       return cleaned;
     },
@@ -95,19 +122,14 @@ export function useBoardRichEditor({
   );
 
   useEffect(() => {
-    if (editor === null) return;
-    editor.setEditable(!disabled && tab === 'default' && contentMode === 'rich');
-  }, [contentMode, disabled, editor, tab]);
-
-  useEffect(() => {
-    if (editor === null || tab !== 'default' || contentMode !== 'rich') return;
+    if (editor === null || !contentInitializedRef.current || tab !== 'default') return;
     if (editor.isFocused) return;
     const current = sanitizeBoardHtml(editor.getHTML());
     const next = sanitizeBoardHtml(value);
     if (current !== next) {
       applyHtmlToEditor(value);
     }
-  }, [applyHtmlToEditor, contentMode, editor, tab, value]);
+  }, [applyHtmlToEditor, editor, tab, value]);
 
   const closeToolbarMenus = useCallback(() => {
     setShowTextColorPicker(false);
@@ -139,17 +161,8 @@ export function useBoardRichEditor({
 
   function switchToDefault() {
     const html = resolveHtmlFromTab(tab);
-    closeToolbarMenus();
-
-    if (contentMode === 'legacy_html') {
-      const cleaned = sanitizeForMode(html);
-      setHtmlDraft(cleaned);
-      setMarkdownDraft(boardHtmlToMarkdown(cleaned));
-      setTab('default');
-      return;
-    }
-
     const cleaned = applyHtmlToEditor(sanitizeBoardHtml(html));
+    closeToolbarMenus();
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
     setTab('default');
@@ -158,7 +171,7 @@ export function useBoardRichEditor({
 
   function switchToMarkdown() {
     const html = resolveHtmlFromTab(tab);
-    const cleaned = sanitizeForMode(html);
+    const cleaned = sanitizeBoardHtml(html);
     closeToolbarMenus();
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
@@ -168,7 +181,7 @@ export function useBoardRichEditor({
 
   function switchToHtml() {
     const html = resolveHtmlFromTab(tab);
-    const cleaned = sanitizeForMode(html);
+    const cleaned = sanitizeBoardHtml(html);
     closeToolbarMenus();
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
@@ -178,10 +191,6 @@ export function useBoardRichEditor({
 
   function handleTabSelect(nextTab: EditorTab) {
     if (tab === nextTab) return;
-
-    if (contentMode === 'legacy_html' && nextTab !== 'html') {
-      if (!window.confirm(LEGACY_TAB_CONFIRM)) return;
-    }
 
     if (nextTab === 'default') switchToDefault();
     else if (nextTab === 'markdown') switchToMarkdown();
@@ -357,7 +366,7 @@ export function useBoardRichEditor({
     : null;
   const isListActive = (editor?.isActive('bulletList') ?? false) || (editor?.isActive('orderedList') ?? false);
   const isTableActive = editor?.isActive('table') ?? false;
-  const toolbarDisabled = disabled || tab !== 'default' || editor === null || contentMode === 'legacy_html';
+  const toolbarDisabled = disabled || tab !== 'default' || editor === null;
 
   function toggleParagraphMenu() {
     setShowParagraphMenu(prev => !prev);
@@ -399,17 +408,17 @@ export function useBoardRichEditor({
     setShowTablePicker(false);
   }
 
-  function handleCustomTextColorChange(value: string) {
-    setCustomTextColor(value);
-    if (/^#[0-9a-fA-F]{6}$/.test(value) && colorInputRef.current) {
-      colorInputRef.current.value = value;
+  function handleCustomTextColorChange(inputValue: string) {
+    setCustomTextColor(inputValue);
+    if (/^#[0-9a-fA-F]{6}$/.test(inputValue) && colorInputRef.current) {
+      colorInputRef.current.value = inputValue;
     }
   }
 
-  function handleCustomBgColorChange(value: string) {
-    setCustomBgColor(value);
-    if (/^#[0-9a-fA-F]{6}$/.test(value) && bgColorInputRef.current) {
-      bgColorInputRef.current.value = value;
+  function handleCustomBgColorChange(inputValue: string) {
+    setCustomBgColor(inputValue);
+    if (/^#[0-9a-fA-F]{6}$/.test(inputValue) && bgColorInputRef.current) {
+      bgColorInputRef.current.value = inputValue;
     }
   }
 
@@ -417,7 +426,6 @@ export function useBoardRichEditor({
     editor,
     labelId,
     tab,
-    contentMode,
     htmlDraft,
     markdownDraft,
     setHtmlDraft,

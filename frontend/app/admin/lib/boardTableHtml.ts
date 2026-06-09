@@ -8,12 +8,16 @@ export function normalizeTablesForEditor(html: string): string {
   root.innerHTML = html;
 
   root.querySelectorAll('table').forEach(table => {
-    table.querySelectorAll('thead, tbody, tfoot').forEach(section => {
-      while (section.firstChild) {
-        table.insertBefore(section.firstChild, section);
-      }
-      section.remove();
-    });
+    // querySelectorAll은 중첩 테이블의 thead/tbody/tfoot도 반환하므로
+    // 직계 자식만 필터링해야 insertBefore 오류가 발생하지 않는다.
+    Array.from(table.children)
+      .filter(child => /^(THEAD|TBODY|TFOOT)$/i.test(child.tagName))
+      .forEach(section => {
+        while (section.firstChild) {
+          table.insertBefore(section.firstChild, section);
+        }
+        section.remove();
+      });
 
     table.querySelectorAll('th, td').forEach(cell => {
       if (cell.querySelector('p, h2, h3, h4, ul, ol, blockquote')) {

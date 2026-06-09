@@ -348,6 +348,12 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setLegacySuggestDismissed(true);
   }
 
+  function handleForceLegacyMode() {
+    setContentMode('legacy_html');
+    setContent(current => sanitizeContentForEditor(current, 'legacy_html'));
+    setLegacySuggestDismissed(true);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -472,6 +478,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     showLegacySuggest,
     handleLegacyCleanup,
     handleAcceptLegacySuggest,
+    handleForceLegacyMode,
     dismissLegacySuggest: () => setLegacySuggestDismissed(true),
     notice,
     setNotice,

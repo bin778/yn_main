@@ -25,21 +25,30 @@ const TIPTAP_UNSAFE_PATTERNS = [
   /<iframe\b/i,
   /<form\b/i,
   /<h1\b/i,
+  /<div\b/i,
+  /<center\b/i,
+  /<font\b/i,
   /<!--[\s\S]*?-->/,
-  /<div[^>]*\sstyle\s*=/i,
-  /<div[^>]*\salign\s*=/i,
+  /\salign\s*=/i,
   /<p[^>]*\sstyle\s*=/i,
   /<span[^>]*\sstyle\s*=/i,
+  /<img[^>]*\sstyle\s*=/i,
 ];
+
+function looksLikeNonEditorHtml(html: string): boolean {
+  if (/\bdata-body\s*=/.test(html)) return false;
+  return /<div\b/i.test(html) || /\sstyle\s*=/i.test(html) || /<table\b/i.test(html);
+}
 
 export function isTipTapUnsafeHtml(html: string): boolean {
   const trimmed = html.trim();
   if (trimmed === '') return false;
   if (detectLegacyHtmlContent(trimmed)) return true;
   if (TIPTAP_UNSAFE_PATTERNS.some(pattern => pattern.test(trimmed))) return true;
+  if (looksLikeNonEditorHtml(trimmed)) return true;
 
   const styleCount = trimmed.match(/\sstyle\s*=/gi);
-  return styleCount !== null && styleCount.length > 2;
+  return styleCount !== null && styleCount.length > 1;
 }
 
 /** 수정 폼 로드 시 저장된 모드와 본문을 보고 편집 모드를 결정한다. */
