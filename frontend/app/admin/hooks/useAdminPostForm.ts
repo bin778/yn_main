@@ -28,7 +28,7 @@ import {
 import {
   detectLegacyHtmlContent,
   extractSchemaFromContent,
-  normalizeContentMode,
+  resolveContentModeForEdit,
   type BoardContentMode,
 } from '../lib/boardContentMode';
 import { contentIsEmpty, sanitizeContentForEditor, sanitizeContentForSave } from '../lib/boardContentSanitize';
@@ -47,7 +47,7 @@ type UseAdminPostFormOptions = {
 };
 
 export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDelete }: UseAdminPostFormOptions) {
-  const initialContentMode = normalizeContentMode(initial.contentMode);
+  const initialContentMode = resolveContentModeForEdit(initial.contentMode, initial.content);
   const [subject, setSubject] = useState(initial.subject);
   const [contentMode, setContentMode] = useState<BoardContentMode>(initialContentMode);
   const [content, setContent] = useState(() => sanitizeContentForEditor(initial.content, initialContentMode));
@@ -311,7 +311,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function loadDraft(draft: BoardPostPayload & { preview: string }) {
-    const draftMode = normalizeContentMode(draft.content_mode);
+    const draftMode = resolveContentModeForEdit(draft.content_mode, draft.wr_content);
     setSubject(draft.wr_subject);
     setContentMode(draftMode);
     setContent(sanitizeContentForSave(draft.wr_content, draftMode));

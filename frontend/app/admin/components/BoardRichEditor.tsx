@@ -42,7 +42,13 @@ export default function BoardRichEditor({
 
       {tab === 'default' ? (
         <div className="border border-[#ddd] bg-white text-sm text-[#333]" aria-labelledby={labelId}>
-          <EditorContent editor={editor} />
+          {contentMode === 'rich' && editor !== null ? (
+            <EditorContent editor={editor} />
+          ) : (
+            <p className="px-3 py-4 text-sm text-[#666]">
+              이 본문은 HTML 탭에서 편집하세요. 레거시 HTML 모드에서는 기본 편집기를 사용하지 않습니다.
+            </p>
+          )}
         </div>
       ) : tab === 'markdown' ? (
         <textarea

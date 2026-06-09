@@ -18,6 +18,41 @@ export function detectLegacyHtmlContent(html: string): boolean {
   return LEGACY_HTML_PATTERNS.some(pattern => pattern.test(trimmed));
 }
 
+/** TipTap(ProseMirror)이 파싱 중 DOM 오류를 일으킬 수 있는 마크업 */
+const TIPTAP_UNSAFE_PATTERNS = [
+  /<table\b/i,
+  /<script\b/i,
+  /<iframe\b/i,
+  /<form\b/i,
+  /<h1\b/i,
+  /<!--[\s\S]*?-->/,
+  /<div[^>]*\sstyle\s*=/i,
+  /<div[^>]*\salign\s*=/i,
+  /<p[^>]*\sstyle\s*=/i,
+  /<span[^>]*\sstyle\s*=/i,
+];
+
+export function isTipTapUnsafeHtml(html: string): boolean {
+  const trimmed = html.trim();
+  if (trimmed === '') return false;
+  if (detectLegacyHtmlContent(trimmed)) return true;
+  if (TIPTAP_UNSAFE_PATTERNS.some(pattern => pattern.test(trimmed))) return true;
+
+  const styleCount = trimmed.match(/\sstyle\s*=/gi);
+  return styleCount !== null && styleCount.length > 2;
+}
+
+/** 수정 폼 로드 시 저장된 모드와 본문을 보고 편집 모드를 결정한다. */
+export function resolveContentModeForEdit(storedMode: string | undefined | null, html: string): BoardContentMode {
+  if (normalizeContentMode(storedMode) === 'legacy_html') {
+    return 'legacy_html';
+  }
+  if (isTipTapUnsafeHtml(html)) {
+    return 'legacy_html';
+  }
+  return 'rich';
+}
+
 export function extractSchemaFromContent(html: string): { content: string; schema: string } {
   const match = html.match(/<script[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i);
   if (!match) {

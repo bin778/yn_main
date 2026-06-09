@@ -8,6 +8,7 @@ import type { BoTable } from '@/app/(story)/types/board';
 
 import AdminPostForm, { type AdminPostInitial } from '../../../components/AdminPostForm';
 import { getAdminListPath, getRedirectPathAfterSave, resolveAdminBoTable } from '../../../lib/adminBoard';
+import { resolveContentModeForEdit } from '../../../lib/boardContentMode';
 
 type AdminEditFormProps = {
   boTable: BoTable;
@@ -36,7 +37,7 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
           seoSlug: item.wr_seo_slug,
           seoDescription: item.wr_seo_description ?? '',
           schema: item.wr_schema ?? '',
-          contentMode: item.content_mode ?? 'rich',
+          contentMode: resolveContentModeForEdit(item.content_mode, item.wr_content),
           attachment,
         });
       })

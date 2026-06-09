@@ -62,13 +62,15 @@ export function useBoardRichEditor({
     [onChange, sanitizeForMode],
   );
 
+  const tipTapActive = contentMode === 'rich';
+
   const editor = useEditor({
     immediatelyRender: false,
-    editable: !disabled && tab === 'default' && contentMode === 'rich',
+    editable: !disabled && tab === 'default' && tipTapActive,
     extensions: createBoardEditorExtensions(),
-    content: value,
+    content: tipTapActive ? sanitizeBoardHtml(value) : EMPTY_DEFAULT_HTML,
     onUpdate: ({ editor: ed }) => {
-      if (tab === 'default' && contentMode === 'rich') {
+      if (tab === 'default' && tipTapActive) {
         emitChange(ed.getHTML());
       }
     },
@@ -81,8 +83,12 @@ export function useBoardRichEditor({
     (html: string) => {
       if (editor === null) return '';
       const cleaned = sanitizeBoardHtml(html);
-      editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
-      editor.commands.fixTables();
+      try {
+        editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
+        editor.commands.fixTables();
+      } catch (error) {
+        console.error('TipTap 본문 로드 실패:', error);
+      }
       return cleaned;
     },
     [editor],
@@ -133,8 +139,17 @@ export function useBoardRichEditor({
 
   function switchToDefault() {
     const html = resolveHtmlFromTab(tab);
-    const cleaned = applyHtmlToEditor(sanitizeBoardHtml(html));
     closeToolbarMenus();
+
+    if (contentMode === 'legacy_html') {
+      const cleaned = sanitizeForMode(html);
+      setHtmlDraft(cleaned);
+      setMarkdownDraft(boardHtmlToMarkdown(cleaned));
+      setTab('default');
+      return;
+    }
+
+    const cleaned = applyHtmlToEditor(sanitizeBoardHtml(html));
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
     setTab('default');
