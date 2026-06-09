@@ -48,10 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 require_once __DIR__ . '/../../config/db_conn.php';
 require_once __DIR__ . '/../../lib/board_schema.php';
 require_once __DIR__ . '/../../lib/board_files.php';
+require_once __DIR__ . '/../../lib/board_editor_images.php';
 
 const ALLOWED_TABLES  = ['review', 'success', 'column', 'news'];
 const BOARD_FILE_BASE = 'https://yeoon.co.kr/board/data/file';
-const SITE_BASE_URL   = 'https://yeoon.co.kr';
 
 /**
  * @param array<string, mixed> $payload
@@ -61,57 +61,6 @@ function json_response(array $payload, int $status = 200): void
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
-}
-
-function normalize_image_url(string $src): string
-{
-    if (preg_match('/^https?:\/\//i', $src)) {
-        return $src;
-    }
-
-    if (strpos($src, '//') === 0) {
-        return 'https:' . $src;
-    }
-
-    if (strpos($src, '/') === 0) {
-        return SITE_BASE_URL . $src;
-    }
-
-    return SITE_BASE_URL . '/' . ltrim($src, '/');
-}
-
-function normalize_legacy_thumb_url(string $src): string
-{
-    if (
-        preg_match(
-            '~^(https?://[^/]+)?(/.+/)thumb-([^/]+)_\d+x\d+\.(jpe?g|png|gif|webp)(\?.*)?$~i',
-            $src,
-            $matches
-        ) !== 1
-    ) {
-        return $src;
-    }
-
-    $host = $matches[1] ?? '';
-    $dir = $matches[2];
-    $filename = $matches[3];
-    $ext = $matches[4];
-
-    return $host . $dir . $filename . '.' . $ext;
-}
-
-function normalize_content_image_sources(string $html): string
-{
-    return preg_replace_callback(
-        '/(<img[^>]*\ssrc=["\'])([^"\']+)(["\'][^>]*>)/i',
-        static function (array $matches): string {
-            $src = html_entity_decode(trim($matches[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $absolute = normalize_image_url($src);
-            $normalized = normalize_legacy_thumb_url($absolute);
-            return $matches[1] . $normalized . $matches[3];
-        },
-        $html
-    ) ?? $html;
 }
 
 // ── 입력 검증 ─────────────────────────────────────────────────────────────
@@ -226,7 +175,7 @@ try {
     json_response([
         'wr_id'                => (int) $post['wr_id'],
         'wr_subject'           => $post['wr_subject'],
-        'wr_content'           => normalize_content_image_sources((string) $post['wr_content']),
+        'wr_content'           => board_normalize_content_image_sources((string) $post['wr_content']),
         'wr_name'              => $post['wr_name'],
         'wr_datetime'          => $post['wr_datetime'],
         'wr_hit'               => (int) $post['wr_hit'] + 1,

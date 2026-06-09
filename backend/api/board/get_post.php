@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../lib/bootstrap.php';
 require_once __DIR__ . '/../../lib/board_auth.php';
 require_once __DIR__ . '/../../lib/board_write.php';
 require_once __DIR__ . '/../../lib/board_files.php';
+require_once __DIR__ . '/../../lib/board_editor_images.php';
 
 board_handle_options('GET, OPTIONS');
 
@@ -66,6 +67,7 @@ try {
     }, $file_rows);
 
     $item = board_format_admin_post($row, $bo_table);
+    $item['wr_content'] = board_normalize_content_image_sources((string) $item['wr_content']);
     $item['files'] = $files;
 
     board_json_response(['ok' => true, 'item' => $item]);

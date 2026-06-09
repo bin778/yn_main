@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../lib/bootstrap.php';
 require_once __DIR__ . '/../../lib/board_auth.php';
 require_once __DIR__ . '/../../lib/board_write.php';
 require_once __DIR__ . '/../../lib/board_files.php';
+require_once __DIR__ . '/../../lib/board_editor_images.php';
 
 board_handle_options('GET, POST, PUT, PATCH, DELETE, OPTIONS');
 
@@ -63,6 +64,8 @@ if ($method === 'POST') {
     if ($schema_error !== null) {
         board_json_response(['error' => $schema_error], 400);
     }
+
+    $parsed['wr_content'] = board_normalize_content_image_sources($parsed['wr_content']);
 
     try {
         $pdo->beginTransaction();
@@ -178,6 +181,8 @@ if ($method === 'PUT' || $method === 'PATCH') {
     if ($schema_error !== null) {
         board_json_response(['error' => $schema_error], 400);
     }
+
+    $parsed['wr_content'] = board_normalize_content_image_sources($parsed['wr_content']);
 
     $check = $pdo->prepare(
         "SELECT wr_id FROM `{$write_table}` WHERE wr_id = :wr_id AND wr_is_comment = 0 LIMIT 1"

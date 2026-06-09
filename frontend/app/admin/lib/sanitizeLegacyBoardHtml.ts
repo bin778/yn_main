@@ -1,5 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
 
+import { normalizeEditorImageSourcesInHtml } from './boardEditorImages';
 import { buildLegacySafeInlineStyle, isSafeYnClass } from './boardSanitizeLegacyStyle';
 import { normalizeTablesForEditor } from './boardTableHtml';
 
@@ -93,7 +94,7 @@ function purifyLegacyHtml(html: string): string {
     }
   });
 
-  return normalizeTablesForEditor(root.innerHTML);
+  return normalizeEditorImageSourcesInHtml(normalizeTablesForEditor(root.innerHTML));
 }
 
 export function sanitizeLegacyBoardHtml(html: string): string {
