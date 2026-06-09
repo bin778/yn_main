@@ -61,21 +61,3 @@ export function resolveContentModeForEdit(storedMode: string | undefined | null,
   }
   return 'rich';
 }
-
-export function extractSchemaFromContent(html: string): { content: string; schema: string } {
-  const match = html.match(/<script[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i);
-  if (!match) {
-    return { content: html, schema: '' };
-  }
-
-  const schema = normalizeLegacySchemaJson(match[1].trim());
-  const content = html
-    .replace(/<script[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '')
-    .trim();
-
-  return { content, schema };
-}
-
-export function normalizeLegacySchemaJson(raw: string): string {
-  return raw.replace(/<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>.*?<\/a>/gi, '$1');
-}

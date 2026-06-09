@@ -13,7 +13,6 @@ import { useAdminPostForm, type PublishMode } from '../hooks/useAdminPostForm';
 import AdminPostAttachmentSection from './admin-post-form/AdminPostAttachmentSection';
 import AdminPostFormActions from './admin-post-form/AdminPostFormActions';
 import AdminPostPreviewModal from './admin-post-form/AdminPostPreviewModal';
-import AdminPostSchemaSection from './admin-post-form/AdminPostSchemaSection';
 import AdminPostSeoSection from './admin-post-form/AdminPostSeoSection';
 import AdminPostThumbnailSection from './admin-post-form/AdminPostThumbnailSection';
 import SchedulePublishModal from './admin-post-form/SchedulePublishModal';
@@ -135,34 +134,14 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           onRemove={() => form.setThumbnailUrl('')}
         />
 
-        <AdminPostSchemaSection
-          boTable={boTable}
-          wrId={wrId}
-          subject={form.subject}
-          content={form.content}
-          schema={form.schema}
-          onSchemaChange={form.setSchema}
-          disabled={form.loading}
-        />
-
         <div>
-          <div className="mb-1 flex flex-wrap items-center gap-2">
+          <div className="mb-1">
             <span className="flex items-center gap-1 text-sm font-medium">
               내용{' '}
               <span className="text-[#b42318]" aria-hidden>
                 *
               </span>
             </span>
-            <div className="ml-auto flex flex-wrap gap-2">
-              <button
-                type="button"
-                disabled={form.loading}
-                onClick={form.handleLegacyCleanup}
-                className="cursor-pointer rounded border border-[#ddd] bg-white px-2 py-1 text-xs text-[#555] hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                레거시 정리
-              </button>
-            </div>
           </div>
 
           {form.showLegacySuggest && (

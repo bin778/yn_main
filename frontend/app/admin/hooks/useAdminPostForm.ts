@@ -25,14 +25,8 @@ import {
   type BoardPostFile,
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
-import {
-  detectLegacyHtmlContent,
-  extractSchemaFromContent,
-  resolveContentModeForEdit,
-  type BoardContentMode,
-} from '../lib/boardContentMode';
+import { detectLegacyHtmlContent, resolveContentModeForEdit, type BoardContentMode } from '../lib/boardContentMode';
 import { contentIsEmpty, sanitizeContentForEditor, sanitizeContentForSave } from '../lib/boardContentSanitize';
-import { applySchemaPlaceholders, parseBoardSchema } from '../lib/boardSchema';
 import { validateAttachmentPassword } from '../lib/validateAttachmentPassword';
 
 export type PublishMode = 'now' | 'scheduled';
@@ -147,11 +141,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       return '내용을 입력해 주세요.';
     }
 
-    const schemaValidation = parseBoardSchema(schema);
-    if (!schemaValidation.ok) {
-      return schemaValidation.error;
-    }
-
     if (downloadMode === 'password') {
       const passwordError = validateAttachmentPassword(attachmentPassword);
       if (passwordError !== null) return passwordError;
@@ -179,10 +168,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     }
 
     const cleanedContent = sanitizeContentForSave(content, contentMode);
-    const schemaValidation = parseBoardSchema(schema);
-    const cleanedSchema = schemaValidation.ok
-      ? applySchemaPlaceholders(schemaValidation.json, { boTable, wrId, subject })
-      : '';
+    const cleanedSchema = schema.trim();
     const wrDatetimeLocal =
       publishMode === 'scheduled'
         ? (scheduledLocal ?? '')
@@ -326,22 +312,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setRemoveAttachment(false);
   }
 
-  function handleLegacyCleanup() {
-    if (!window.confirm('본문에서 JSON-LD를 추출하고 레거시 HTML 모드로 전환합니다. 계속하시겠습니까?')) {
-      return;
-    }
-
-    const extracted = extractSchemaFromContent(content);
-    setContent(sanitizeContentForEditor(extracted.content, 'legacy_html'));
-    if (extracted.schema !== '') {
-      setSchema(extracted.schema);
-    } else if (schema.trim() === '') {
-      setSchema('');
-    }
-    setContentMode('legacy_html');
-    setLegacySuggestDismissed(true);
-  }
-
   function handleAcceptLegacySuggest() {
     setContentMode('legacy_html');
     setContent(sanitizeContentForEditor(content, 'legacy_html'));
@@ -471,12 +441,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setSubject,
     content,
     setContent,
-    schema,
-    setSchema,
     contentMode,
     setContentMode,
     showLegacySuggest,
-    handleLegacyCleanup,
     handleAcceptLegacySuggest,
     handleForceLegacyMode,
     dismissLegacySuggest: () => setLegacySuggestDismissed(true),
