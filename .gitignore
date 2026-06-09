@@ -38,7 +38,6 @@ yarn-error.log*
 backend/config/db_conn.php
 backend/config/app_config.php
 backend/api/submit_inquiry.php
-backend/scripts
 
 # vercel
 .vercel

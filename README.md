@@ -152,16 +152,23 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 
 ##### 글쓰기/수정 UI (`AdminPostForm` + `BoardRichEditor`)
 
-| 기능          | 설명                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------ |
-| 리치 에디터   | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지 |
-| 미리보기      | 저장 전 본문·SEO 미리보기 모달                                                                   |
-| 임시저장      | 브라우저 `localStorage`에 초안 저장·불러오기                                                     |
-| 예약 발행     | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                         |
-| 썸네일·첨부   | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                      |
-| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드            |
-| SEO           | 제목·슬러그·설명 메타 + 미리보기                                                                 |
-| 이탈 경고     | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                     |
+| 기능          | 설명                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 리치 에디터   | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지                 |
+| 본문 모드     | `rich`(기본) / `legacy_html`(레거시 HTML). `wr_6`에 저장. 복잡한 구 그누보드 HTML은 자동으로 레거시 모드·HTML 탭 |
+| 레거시 HTML   | TipTap 없이 HTML·마크다운 textarea만 사용. 인라인 스타일·레이아웃 보존 (`sanitizeLegacyBoardHtml`)               |
+| 탭 전환 경고  | **HTML 탭**에서 기본·마크다운으로 바꿀 때 확인 대화상자 (일부 서식 초기화 안내)                                  |
+| 미리보기      | 저장 전 본문·SEO 미리보기 모달                                                                                   |
+| 임시저장      | 브라우저 `localStorage`에 초안 저장·불러오기                                                                     |
+| 예약 발행     | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                         |
+| 썸네일·첨부   | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                      |
+| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                            |
+| SEO           | 제목·슬러그·설명 메타 + 미리보기                                                                                 |
+| 이탈 경고     | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                     |
+
+**레거시 게시글 편집**: `wr_content`에 중첩 표·`div`·인라인 `style` 등이 있으면 수정 폼 진입 시 `legacy_html`로 열립니다. 신규 글은 TipTap 기본 모드로 작성하면 됩니다. DB에 이미 있는 JSON-LD(`wr_5`)는 상세 페이지에 그대로 출력되며, 관리자 UI에서는 편집하지 않습니다.
+
+**일괄 마이그레이션 (선택)**: `php backend/scripts/migrate_board_legacy.php --bo_table=column --dry-run` — 본문 내 JSON-LD 추출·`wr_6` 설정 등 (CLI).
 
 상세·목록의 **BoardAdminBar**: 관리자 로그인 시 글쓰기·수정·삭제·예약글 목록·관리자 허브 링크 노출.
 
@@ -173,9 +180,9 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 frontend/app/admin/
 ├── components/
 │   ├── AdminPostForm.tsx          # 훅 + 섹션 조립
-│   ├── BoardRichEditor.tsx        # 에디터 셸
+│   ├── BoardRichEditor.tsx        # rich / legacy_html 분기
 │   ├── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 예약 모달, 액션 버튼
-│   └── board-rich-editor/         # 툴바, ColorPickerDropdown, useBoardRichEditor
+│   └── board-rich-editor/         # TipTap·레거시 HTML 에디터, 툴바, useBoardRichEditor
 ├── hooks/
 │   ├── useAdminPostForm.ts        # 폼 state·즉시/예약 저장·삭제
 │   ├── useAdminPostLeaveGuard.ts  # 이탈 가드
@@ -185,7 +192,10 @@ frontend/app/admin/
     ├── buildBoardPostPayload.ts   # API payload 조립 (scheduled 플래그)
     ├── adminPostFormDirty.ts      # dirty 판별·이탈 메시지
     ├── validateAttachmentPassword.ts
-    └── boardAttachmentAccept.ts   # 업로드 확장자·10MB 검증 (백엔드와 동기)
+    ├── boardAttachmentAccept.ts   # 업로드 확장자·10MB 검증 (백엔드와 동기)
+    ├── boardContentMode.ts        # rich / legacy_html 판별
+    ├── boardTableHtml.ts          # TipTap용 표 HTML 정규화 (중첩 table 안전 처리)
+    └── sanitizeLegacyBoardHtml.ts # 레거시 HTML sanitizer
 ```
 
 #### 상담 문의 관리 (JWT, 최고관리자만)
@@ -278,7 +288,8 @@ cd frontend && npm run start
 - `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
 - `/admin/news/write`에서 글 작성·예약 발행 → 예약글 목록·공개 시각 이후 목록/상세 반영
 - 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고
-- `BoardRichEditor`: 기본/마크다운/HTML 탭, 색상·리스트·표·이미지 삽입
+- `BoardRichEditor`: 기본/마크다운/HTML 탭, HTML→기본·마크다운 전환 시 확인 대화상자, 색상·리스트·표·이미지 삽입
+- 레거시 HTML 글 수정: HTML 탭·레거시 모드 자동 전환, TipTap 크래시 없음
 - 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드 (비밀번호 없는 첨부도 정상)
 - 상세·관리자 바에서 수정·삭제 동작 확인
 - `/contact/` 서울 주사무소 카카오맵: 모바일·PC 모두 을지로 주소 표시
@@ -287,6 +298,15 @@ cd frontend && npm run start
 카페24 배포 시 업로드: `backend/lib/`(board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, get_scheduled_list.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
 
 ## 최근 변경
+
+### 2026-06-09 — 레거시 HTML 호환·에디터 정리
+
+- **레거시 HTML 모드** (`wr_6=legacy_html`): 구 그누보드 본문은 TipTap 없이 HTML textarea로 편집, 스타일 보존
+- **자동 모드 감지**: 수정 폼 로드 시 복잡한 HTML이면 `legacy_html` + HTML 탭으로 진입
+- **표 정규화 버그 수정**: `boardTableHtml.ts` — 중첩 `<table>` 처리 시 `insertBefore` DOM 오류 수정
+- **HTML 탭 전환 경고**: HTML 모드에서 기본·마크다운 탭으로 바꿀 때 서식 초기화 확인 대화상자
+- **관리자 UI 축소**: 구조화 데이터(JSON-LD) 편집 섹션·「레거시 정리」버튼 제거 (기존 `wr_5` 데이터는 상세 출력 유지)
+- **TipTap 초기화**: 빈 문서로 마운트 후 `setContent` try/catch, 실패 시 레거시 모드로 전환
 
 ### 2026-06-08 — 모바일 반응형·게시판 본문
 

@@ -8,7 +8,7 @@ import { boardHtmlToMarkdown, boardMarkdownToHtml } from '../../lib/boardMarkdow
 import { DEFAULT_PARAGRAPH_STYLE, type ParagraphStyleId } from '../../lib/boardParagraphStyles';
 import { sanitizeBoardHtml } from '../../lib/sanitizeBoardHtml';
 
-import { DEFAULT_HIGHLIGHT_COLOR, EMPTY_DEFAULT_HTML, TABLE_PICKER_DEFAULT } from './constants';
+import { DEFAULT_HIGHLIGHT_COLOR, EMPTY_DEFAULT_HTML, HTML_TAB_LEAVE_CONFIRM, TABLE_PICKER_DEFAULT } from './constants';
 import { createBoardEditorExtensions } from './createBoardEditorExtensions';
 import type { BoardRichEditorProps, EditorTab, ListStyle, TablePickerSize } from './types';
 
@@ -191,6 +191,10 @@ export function useBoardRichEditor({
 
   function handleTabSelect(nextTab: EditorTab) {
     if (tab === nextTab) return;
+
+    if (tab === 'html' && (nextTab === 'default' || nextTab === 'markdown')) {
+      if (!window.confirm(HTML_TAB_LEAVE_CONFIRM)) return;
+    }
 
     if (nextTab === 'default') switchToDefault();
     else if (nextTab === 'markdown') switchToMarkdown();
