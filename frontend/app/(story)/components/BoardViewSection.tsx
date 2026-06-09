@@ -3,6 +3,8 @@ import Link from 'next/link';
 import type { BoTable, BoardView } from '../types/board';
 import { BOARD_META, getBoardPathSlug } from '../constants/boardContent';
 
+import BoardContentBody from '@/app/components/BoardContentBody';
+
 import BoardAttachmentItem from './BoardAttachmentItem';
 
 type BoardViewSectionProps = {
@@ -48,10 +50,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
         </div>
 
         {/* 본문 — 그누보드 에디터 HTML (관리자 작성 신뢰 콘텐츠) */}
-        <div
-          className="board-content mt-8 min-h-[200px] leading-[1.75] text-[#333]"
-          dangerouslySetInnerHTML={{ __html: post.wr_content }}
-        />
+        <BoardContentBody html={post.wr_content} className="mt-8" />
 
         {/* 첨부파일 */}
         {post.files.length > 0 && (

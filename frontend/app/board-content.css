@@ -33,6 +33,16 @@
     text-underline-offset: 2px;
   }
 
+  /* 레거시 CTA 버튼형 링크 — 인라인 배경·둥근 모서리·yn- 클래스는 밑줄 링크 스타일 제외 */
+  .board-content a[style*='background'],
+  .board-content a[style*='border-radius'],
+  .board-content a.yn-cta,
+  .board-content a.yn-btn,
+  .board-content a[class*='yn-cta'],
+  .board-content a[class*='yn-btn'] {
+    text-decoration: none;
+  }
+
   .board-content blockquote {
     border-left: 3px solid #1a3151;
     padding-left: 1em;

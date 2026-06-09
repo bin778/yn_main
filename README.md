@@ -307,6 +307,8 @@ cd frontend && npm run start
 - **HTML 탭 전환 경고**: HTML 모드에서 기본·마크다운 탭으로 바꿀 때 서식 초기화 확인 대화상자
 - **관리자 UI 축소**: 구조화 데이터(JSON-LD) 편집 섹션·「레거시 정리」버튼 제거 (기존 `wr_5` 데이터는 상세 출력 유지)
 - **TipTap 초기화**: 빈 문서로 마운트 후 `setContent` try/catch, 실패 시 레거시 모드로 전환
+- **미리보기·상세 동기화**: `BoardContentBody` 공통 컴포넌트, 미리보기 `max-w-[900px]`·제목 타이포 상세와 동일
+- **레거시 CTA 스타일**: `.board-content` 버튼형 링크 밑줄 제거, sanitizer에 flex·width·gap 등 허용
 
 ### 2026-06-08 — 모바일 반응형·게시판 본문
 

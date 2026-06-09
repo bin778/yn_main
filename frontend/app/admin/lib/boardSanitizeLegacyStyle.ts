@@ -10,8 +10,16 @@ const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'font-weight': normalizeFontWeight,
   'font-style': normalizeFontStyle,
   'letter-spacing': normalizeLetterSpacing,
+  'width': normalizeLength,
+  'min-width': normalizeLength,
   'max-width': normalizeLength,
   'display': normalizeDisplay,
+  'flex': normalizeFlex,
+  'flex-direction': normalizeFlexDirection,
+  'align-items': normalizeAlignItems,
+  'justify-content': normalizeJustifyContent,
+  'gap': normalizeGap,
+  'box-sizing': normalizeBoxSizing,
   'margin': normalizeSpacing,
   'margin-top': normalizeSpacing,
   'margin-right': normalizeSpacing,
@@ -93,7 +101,46 @@ function normalizeLength(value: string): string | null {
 
 function normalizeDisplay(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
-  if (trimmed === 'block' || trimmed === 'inline' || trimmed === 'inline-block') return trimmed;
+  if (trimmed === 'block' || trimmed === 'inline' || trimmed === 'inline-block' || trimmed === 'flex') {
+    return trimmed;
+  }
+  return null;
+}
+
+function normalizeFlex(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === '1' || trimmed === 'none' || trimmed === '0' || trimmed === 'auto') return trimmed;
+  if (/^\d+$/.test(trimmed)) return trimmed;
+  return null;
+}
+
+function normalizeFlexDirection(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (['row', 'column', 'row-reverse', 'column-reverse'].includes(trimmed)) return trimmed;
+  return null;
+}
+
+function normalizeAlignItems(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (['flex-start', 'flex-end', 'center', 'stretch', 'baseline'].includes(trimmed)) return trimmed;
+  return null;
+}
+
+function normalizeJustifyContent(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (['flex-start', 'flex-end', 'center', 'space-between', 'space-around'].includes(trimmed)) {
+    return trimmed;
+  }
+  return null;
+}
+
+function normalizeGap(value: string): string | null {
+  return normalizeSpacing(value);
+}
+
+function normalizeBoxSizing(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === 'border-box' || trimmed === 'content-box') return trimmed;
   return null;
 }
 
