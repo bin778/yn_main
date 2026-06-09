@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/react';
 
+import type { BoardContentMode } from '../../lib/boardContentMode';
 import type { ParagraphStyleId } from '../../lib/boardParagraphStyles';
 
 export type EditorTab = 'default' | 'markdown' | 'html';
@@ -7,6 +8,7 @@ export type EditorTab = 'default' | 'markdown' | 'html';
 export type BoardRichEditorProps = {
   value: string;
   onChange: (html: string) => void;
+  contentMode?: BoardContentMode;
   disabled?: boolean;
   onUploadImage?: (file: File) => Promise<string>;
 };

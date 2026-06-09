@@ -35,6 +35,8 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
           seoTitle: item.wr_seo_title,
           seoSlug: item.wr_seo_slug,
           seoDescription: item.wr_seo_description ?? '',
+          schema: item.wr_schema ?? '',
+          contentMode: item.content_mode ?? 'rich',
           attachment,
         });
       })

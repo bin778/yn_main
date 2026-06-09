@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardAdminBar from '../../components/BoardAdminBar';
+import BoardJsonLd from '../../components/BoardJsonLd';
 import BoardViewSection from '../../components/BoardViewSection';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import { fetchBoardView } from '../../lib/boardApi';
@@ -63,6 +64,7 @@ export default async function BoardViewPage({ params }: PageProps) {
 
   return (
     <>
+      {post.wr_schema && post.wr_schema.trim() !== '' && <BoardJsonLd wrId={wrIdNum} schema={post.wr_schema} />}
       <section className="relative w-full overflow-hidden" aria-labelledby="story-detail-hero-heading">
         {heroBg ? (
           <>

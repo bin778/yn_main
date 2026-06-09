@@ -59,6 +59,11 @@ if ($method === 'POST') {
         }
     }
 
+    $schema_error = board_validate_schema_json($parsed['wr_5']);
+    if ($schema_error !== null) {
+        board_json_response(['error' => $schema_error], 400);
+    }
+
     try {
         $pdo->beginTransaction();
 
@@ -88,7 +93,9 @@ if ($method === 'POST') {
             wr_1 = :wr_1,
             wr_2 = :wr_2,
             wr_3 = :wr_3,
-            wr_4 = :wr_4";
+            wr_4 = :wr_4,
+            wr_5 = :wr_5,
+            wr_6 = :wr_6";
 
         $stmt = $pdo->prepare($insert_sql);
         $stmt->execute([
@@ -107,6 +114,8 @@ if ($method === 'POST') {
             'wr_2'        => $parsed['wr_2'],
             'wr_3'        => $parsed['wr_3'],
             'wr_4'        => $parsed['wr_4'],
+            'wr_5'        => $parsed['wr_5'],
+            'wr_6'        => $parsed['wr_6'],
         ]);
 
         $new_wr_id = (int) $pdo->lastInsertId();
@@ -165,6 +174,11 @@ if ($method === 'PUT' || $method === 'PATCH') {
         }
     }
 
+    $schema_error = board_validate_schema_json($parsed['wr_5']);
+    if ($schema_error !== null) {
+        board_json_response(['error' => $schema_error], 400);
+    }
+
     $check = $pdo->prepare(
         "SELECT wr_id FROM `{$write_table}` WHERE wr_id = :wr_id AND wr_is_comment = 0 LIMIT 1"
     );
@@ -198,7 +212,9 @@ if ($method === 'PUT' || $method === 'PATCH') {
             wr_1 = :wr_1,
             wr_2 = :wr_2,
             wr_3 = :wr_3,
-            wr_4 = :wr_4
+            wr_4 = :wr_4,
+            wr_5 = :wr_5,
+            wr_6 = :wr_6
          WHERE wr_id = :wr_id AND wr_is_comment = 0"
     );
     $update->execute([
@@ -211,6 +227,8 @@ if ($method === 'PUT' || $method === 'PATCH') {
         'wr_2'        => $parsed['wr_2'],
         'wr_3'        => $parsed['wr_3'],
         'wr_4'        => $parsed['wr_4'],
+        'wr_5'        => $parsed['wr_5'],
+        'wr_6'        => $parsed['wr_6'],
         'wr_id'       => $wr_id,
     ]);
 

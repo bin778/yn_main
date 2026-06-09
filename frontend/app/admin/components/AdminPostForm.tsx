@@ -13,6 +13,7 @@ import { useAdminPostForm, type PublishMode } from '../hooks/useAdminPostForm';
 import AdminPostAttachmentSection from './admin-post-form/AdminPostAttachmentSection';
 import AdminPostFormActions from './admin-post-form/AdminPostFormActions';
 import AdminPostPreviewModal from './admin-post-form/AdminPostPreviewModal';
+import AdminPostSchemaSection from './admin-post-form/AdminPostSchemaSection';
 import AdminPostSeoSection from './admin-post-form/AdminPostSeoSection';
 import AdminPostThumbnailSection from './admin-post-form/AdminPostThumbnailSection';
 import SchedulePublishModal from './admin-post-form/SchedulePublishModal';
@@ -134,17 +135,63 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           onRemove={() => form.setThumbnailUrl('')}
         />
 
+        <AdminPostSchemaSection
+          boTable={boTable}
+          wrId={wrId}
+          subject={form.subject}
+          content={form.content}
+          schema={form.schema}
+          onSchemaChange={form.setSchema}
+          disabled={form.loading}
+        />
+
         <div>
-          <span className="mb-1 flex items-center gap-1 text-sm font-medium">
-            내용{' '}
-            <span className="text-[#b42318]" aria-hidden>
-              *
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1 text-sm font-medium">
+              내용{' '}
+              <span className="text-[#b42318]" aria-hidden>
+                *
+              </span>
             </span>
-          </span>
+            <div className="ml-auto flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={form.loading}
+                onClick={form.handleLegacyCleanup}
+                className="cursor-pointer rounded border border-[#ddd] bg-white px-2 py-1 text-xs text-[#555] hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                레거시 정리
+              </button>
+            </div>
+          </div>
+
+          {form.showLegacySuggest && (
+            <div className="mb-2 flex flex-wrap items-center gap-2 rounded border border-[#fecdca] bg-[#fff6f5] px-3 py-2 text-xs text-[#7a271a]">
+              <span>인라인 스타일이 포함된 레거시 HTML로 보입니다.</span>
+              <button
+                type="button"
+                disabled={form.loading}
+                onClick={form.handleAcceptLegacySuggest}
+                className="cursor-pointer rounded bg-[#1a3151] px-2 py-1 text-white hover:bg-[#152846]"
+              >
+                레거시 HTML 모드로 전환
+              </button>
+              <button
+                type="button"
+                disabled={form.loading}
+                onClick={form.dismissLegacySuggest}
+                className="cursor-pointer text-[#667085] underline"
+              >
+                닫기
+              </button>
+            </div>
+          )}
+
           <BoardRichEditor
             key={form.editorKey}
             value={form.content}
             onChange={form.setContent}
+            contentMode={form.contentMode}
             disabled={form.loading}
             onUploadImage={form.handleEditorImageUpload}
           />
@@ -190,7 +237,12 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       )}
 
       {form.showPreview && (
-        <AdminPostPreviewModal subject={form.subject} content={form.content} onClose={form.handleClosePreview} />
+        <AdminPostPreviewModal
+          subject={form.subject}
+          content={form.content}
+          contentMode={form.contentMode}
+          onClose={form.handleClosePreview}
+        />
       )}
     </main>
   );

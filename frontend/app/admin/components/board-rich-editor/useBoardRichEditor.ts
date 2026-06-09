@@ -4,6 +4,8 @@ import { useEditor } from '@tiptap/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { useClickOutside } from '../../hooks/useClickOutside';
+import type { BoardContentMode } from '../../lib/boardContentMode';
+import { sanitizeContentForEditor } from '../../lib/boardContentSanitize';
 import { boardHtmlToMarkdown, boardMarkdownToHtml } from '../../lib/boardMarkdown';
 import { DEFAULT_PARAGRAPH_STYLE, type ParagraphStyleId } from '../../lib/boardParagraphStyles';
 import { sanitizeBoardHtml } from '../../lib/sanitizeBoardHtml';
@@ -12,7 +14,20 @@ import { DEFAULT_HIGHLIGHT_COLOR, EMPTY_DEFAULT_HTML, TABLE_PICKER_DEFAULT } fro
 import { createBoardEditorExtensions } from './createBoardEditorExtensions';
 import type { BoardRichEditorProps, EditorTab, ListStyle, TablePickerSize } from './types';
 
-export function useBoardRichEditor({ value, onChange, disabled = false, onUploadImage }: BoardRichEditorProps) {
+const LEGACY_TAB_CONFIRM =
+  '레거시 HTML 모드에서 기본·마크다운 탭으로 전환하면 인라인 스타일과 레이아웃이 손실될 수 있습니다. 계속하시겠습니까?';
+
+function initialTabForMode(mode: BoardContentMode): EditorTab {
+  return mode === 'legacy_html' ? 'html' : 'default';
+}
+
+export function useBoardRichEditor({
+  value,
+  onChange,
+  contentMode = 'rich',
+  disabled = false,
+  onUploadImage,
+}: BoardRichEditorProps) {
   const labelId = useId();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -23,7 +38,7 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
   const paragraphMenuRef = useRef<HTMLDivElement>(null);
   const tableMenuRef = useRef<HTMLDivElement>(null);
 
-  const [tab, setTab] = useState<EditorTab>('default');
+  const [tab, setTab] = useState<EditorTab>(() => initialTabForMode(contentMode));
   const [htmlDraft, setHtmlDraft] = useState(value);
   const [markdownDraft, setMarkdownDraft] = useState(() => boardHtmlToMarkdown(value));
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -38,20 +53,22 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
   const [customTextColor, setCustomTextColor] = useState('#000000');
   const [customBgColor, setCustomBgColor] = useState(DEFAULT_HIGHLIGHT_COLOR);
 
+  const sanitizeForMode = useCallback((html: string) => sanitizeContentForEditor(html, contentMode), [contentMode]);
+
   const emitChange = useCallback(
     (html: string) => {
-      onChange(sanitizeBoardHtml(html));
+      onChange(sanitizeForMode(html));
     },
-    [onChange],
+    [onChange, sanitizeForMode],
   );
 
   const editor = useEditor({
     immediatelyRender: false,
-    editable: !disabled && tab === 'default',
+    editable: !disabled && tab === 'default' && contentMode === 'rich',
     extensions: createBoardEditorExtensions(),
     content: value,
     onUpdate: ({ editor: ed }) => {
-      if (tab === 'default') {
+      if (tab === 'default' && contentMode === 'rich') {
         emitChange(ed.getHTML());
       }
     },
@@ -73,18 +90,18 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
 
   useEffect(() => {
     if (editor === null) return;
-    editor.setEditable(!disabled && tab === 'default');
-  }, [disabled, editor, tab]);
+    editor.setEditable(!disabled && tab === 'default' && contentMode === 'rich');
+  }, [contentMode, disabled, editor, tab]);
 
   useEffect(() => {
-    if (editor === null || tab !== 'default') return;
+    if (editor === null || tab !== 'default' || contentMode !== 'rich') return;
     if (editor.isFocused) return;
     const current = sanitizeBoardHtml(editor.getHTML());
     const next = sanitizeBoardHtml(value);
     if (current !== next) {
       applyHtmlToEditor(value);
     }
-  }, [applyHtmlToEditor, editor, tab, value]);
+  }, [applyHtmlToEditor, contentMode, editor, tab, value]);
 
   const closeToolbarMenus = useCallback(() => {
     setShowTextColorPicker(false);
@@ -106,7 +123,7 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
       return editor.getHTML();
     }
     if (sourceTab === 'html') {
-      return sanitizeBoardHtml(htmlDraft);
+      return htmlDraft;
     }
     if (sourceTab === 'markdown') {
       return boardMarkdownToHtml(markdownDraft);
@@ -126,7 +143,7 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
 
   function switchToMarkdown() {
     const html = resolveHtmlFromTab(tab);
-    const cleaned = sanitizeBoardHtml(html);
+    const cleaned = sanitizeForMode(html);
     closeToolbarMenus();
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
@@ -136,7 +153,7 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
 
   function switchToHtml() {
     const html = resolveHtmlFromTab(tab);
-    const cleaned = sanitizeBoardHtml(html);
+    const cleaned = sanitizeForMode(html);
     closeToolbarMenus();
     setHtmlDraft(cleaned);
     setMarkdownDraft(boardHtmlToMarkdown(cleaned));
@@ -146,6 +163,11 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
 
   function handleTabSelect(nextTab: EditorTab) {
     if (tab === nextTab) return;
+
+    if (contentMode === 'legacy_html' && nextTab !== 'html') {
+      if (!window.confirm(LEGACY_TAB_CONFIRM)) return;
+    }
+
     if (nextTab === 'default') switchToDefault();
     else if (nextTab === 'markdown') switchToMarkdown();
     else switchToHtml();
@@ -320,7 +342,7 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
     : null;
   const isListActive = (editor?.isActive('bulletList') ?? false) || (editor?.isActive('orderedList') ?? false);
   const isTableActive = editor?.isActive('table') ?? false;
-  const toolbarDisabled = disabled || tab !== 'default' || editor === null;
+  const toolbarDisabled = disabled || tab !== 'default' || editor === null || contentMode === 'legacy_html';
 
   function toggleParagraphMenu() {
     setShowParagraphMenu(prev => !prev);
@@ -380,6 +402,7 @@ export function useBoardRichEditor({ value, onChange, disabled = false, onUpload
     editor,
     labelId,
     tab,
+    contentMode,
     htmlDraft,
     markdownDraft,
     setHtmlDraft,

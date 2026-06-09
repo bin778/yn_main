@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import '../board-content.css';
+
 import AdminLayoutClient from './components/AdminLayoutClient';
 
 export const metadata: Metadata = {

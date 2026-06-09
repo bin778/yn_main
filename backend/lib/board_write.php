@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/board_schema.php';
+
 const BOARD_FILE_URL_BASE_DEFAULT = 'https://yeoon.co.kr/board/data/file';
 
 function board_file_url_base(): string
@@ -119,6 +121,8 @@ function board_slugify(string $text): string
  *   wr_2: string,
  *   wr_3: string,
  *   wr_4: string,
+ *   wr_5: string,
+ *   wr_6: string,
  *   notice: bool
  * }
  */
@@ -145,6 +149,9 @@ function board_parse_post_body(array $body, string $default_datetime): array
         $wr_4 = mb_substr($wr_4, 0, 500, 'UTF-8');
     }
 
+    $wr_5 = trim((string) ($body['wr_schema'] ?? $body['wr_5'] ?? ''));
+    $wr_6 = board_normalize_content_mode($body['content_mode'] ?? $body['wr_6'] ?? 'rich');
+
     return [
         'wr_subject'  => $wr_subject,
         'wr_content'  => $wr_content,
@@ -154,6 +161,8 @@ function board_parse_post_body(array $body, string $default_datetime): array
         'wr_2'        => $wr_2,
         'wr_3'        => $wr_3,
         'wr_4'        => $wr_4,
+        'wr_5'        => $wr_5,
+        'wr_6'        => $wr_6,
         'notice'      => $notice,
     ];
 }
@@ -178,6 +187,8 @@ function board_format_admin_post(array $row, string $bo_table): array
         'wr_seo_slug'         => (string) ($row['wr_2'] ?? ''),
         'wr_seo_title'        => (string) ($row['wr_3'] ?? ''),
         'wr_seo_description'  => (string) ($row['wr_4'] ?? ''),
+        'wr_schema'           => (string) ($row['wr_5'] ?? ''),
+        'content_mode'        => board_normalize_content_mode($row['wr_6'] ?? 'rich'),
         'bo_table'            => $bo_table,
     ];
 }

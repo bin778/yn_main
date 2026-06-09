@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 require_once __DIR__ . '/../../config/db_conn.php';
+require_once __DIR__ . '/../../lib/board_schema.php';
 require_once __DIR__ . '/../../lib/board_files.php';
 
 const ALLOWED_TABLES  = ['review', 'success', 'column', 'news'];
@@ -136,7 +137,7 @@ if ($wr_id <= 0) {
 
 try {
     $view_sql = "
-        SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_4
+        SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_4, wr_5, wr_6
         FROM   `{$table}`
         WHERE  wr_id = :wr_id
         AND    wr_is_comment = 0
@@ -230,6 +231,8 @@ try {
         'wr_datetime'          => $post['wr_datetime'],
         'wr_hit'               => (int) $post['wr_hit'] + 1,
         'wr_seo_description'   => (string) ($post['wr_4'] ?? ''),
+        'wr_schema'            => (string) ($post['wr_5'] ?? ''),
+        'content_mode'         => board_normalize_content_mode($post['wr_6'] ?? 'rich'),
         'prev'                 => $format_nav($prev_row),
         'next'                 => $format_nav($next_row),
         'files'                => $files,

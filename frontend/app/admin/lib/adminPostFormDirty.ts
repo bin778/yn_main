@@ -1,4 +1,4 @@
-import { sanitizeBoardHtmlForSave } from './sanitizeBoardHtml';
+import { sanitizeContentForSave } from './boardContentSanitize';
 
 import type { AdminPostInitial, PostFormSnapshot } from './adminPostFormTypes';
 
@@ -11,12 +11,19 @@ export function confirmLeave(): boolean {
 
 export function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnapshot): boolean {
   if (current.subject !== initial.subject) return true;
-  if (sanitizeBoardHtmlForSave(current.content) !== sanitizeBoardHtmlForSave(initial.content)) return true;
+  if (
+    sanitizeContentForSave(current.content, current.contentMode) !==
+    sanitizeContentForSave(initial.content, initial.contentMode)
+  ) {
+    return true;
+  }
   if (current.notice !== initial.notice) return true;
   if (current.thumbnailUrl !== initial.thumbnailUrl) return true;
   if (current.seoTitle !== initial.seoTitle) return true;
   if (current.seoSlug !== initial.seoSlug) return true;
   if (current.seoDescription !== initial.seoDescription) return true;
+  if (current.schema !== initial.schema) return true;
+  if (current.contentMode !== initial.contentMode) return true;
   if (current.pendingAttachment !== null) return true;
   if (current.removeAttachment) return true;
   if (current.attachmentPassword.trim() !== '') return true;

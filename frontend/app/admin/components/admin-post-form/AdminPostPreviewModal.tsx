@@ -1,10 +1,20 @@
+import type { BoardContentMode } from '../../lib/boardContentMode';
+import { sanitizeContentForSave } from '../../lib/boardContentSanitize';
+
 type AdminPostPreviewModalProps = {
   subject: string;
   content: string;
+  contentMode?: BoardContentMode;
   onClose: () => void;
 };
 
-export default function AdminPostPreviewModal({ subject, content, onClose }: AdminPostPreviewModalProps) {
+export default function AdminPostPreviewModal({
+  subject,
+  content,
+  contentMode = 'rich',
+  onClose,
+}: AdminPostPreviewModalProps) {
+  const previewHtml = sanitizeContentForSave(content, contentMode);
   return (
     <div
       className="fixed inset-0 z-[110] flex items-start justify-center bg-black/50 px-4 pb-6 pt-[120px]"
@@ -27,7 +37,10 @@ export default function AdminPostPreviewModal({ subject, content, onClose }: Adm
             닫기 (ESC)
           </button>
         </div>
-        <div className="board-preview px-6 py-6 text-sm text-[#333]" dangerouslySetInnerHTML={{ __html: content }} />
+        <div
+          className="board-content px-6 py-6 text-sm text-[#333]"
+          dangerouslySetInnerHTML={{ __html: previewHtml }}
+        />
       </div>
     </div>
   );

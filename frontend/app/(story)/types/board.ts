@@ -41,6 +41,8 @@ export type BoardNavItem = {
   wr_subject: string;
 } | null;
 
+export type BoardContentMode = 'rich' | 'legacy_html';
+
 export type BoardView = {
   wr_id: number;
   wr_subject: string;
@@ -49,6 +51,8 @@ export type BoardView = {
   wr_datetime: string;
   wr_hit: number;
   wr_seo_description?: string;
+  wr_schema?: string;
+  content_mode?: BoardContentMode;
   prev: BoardNavItem;
   next: BoardNavItem;
   files: BoardFile[];

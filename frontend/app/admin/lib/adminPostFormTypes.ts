@@ -1,3 +1,4 @@
+import type { BoardContentMode } from './boardContentMode';
 import type { AttachmentDownloadMode } from './buildBoardPostPayload';
 import type { BoardPostFile } from './boardPostTypes';
 
@@ -10,6 +11,8 @@ export type AdminPostInitial = {
   seoTitle: string;
   seoSlug: string;
   seoDescription: string;
+  schema: string;
+  contentMode: BoardContentMode;
   attachment: BoardPostFile | null;
 };
 
@@ -21,6 +24,8 @@ export type PostFormSnapshot = {
   seoTitle: string;
   seoSlug: string;
   seoDescription: string;
+  schema: string;
+  contentMode: BoardContentMode;
   attachment: BoardPostFile | null;
   pendingAttachment: File | null;
   removeAttachment: boolean;
@@ -38,6 +43,8 @@ export function emptyAdminPostInitial(): AdminPostInitial {
     seoTitle: '',
     seoSlug: '',
     seoDescription: '',
+    schema: '',
+    contentMode: 'rich',
     attachment: null,
   };
 }

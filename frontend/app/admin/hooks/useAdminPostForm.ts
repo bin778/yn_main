@@ -25,7 +25,14 @@ import {
   type BoardPostFile,
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
-import { boardHtmlIsEmpty, sanitizeBoardHtml, sanitizeBoardHtmlForSave } from '../lib/sanitizeBoardHtml';
+import {
+  detectLegacyHtmlContent,
+  extractSchemaFromContent,
+  normalizeContentMode,
+  type BoardContentMode,
+} from '../lib/boardContentMode';
+import { contentIsEmpty, sanitizeContentForEditor, sanitizeContentForSave } from '../lib/boardContentSanitize';
+import { applySchemaPlaceholders, parseBoardSchema } from '../lib/boardSchema';
 import { validateAttachmentPassword } from '../lib/validateAttachmentPassword';
 
 export type PublishMode = 'now' | 'scheduled';
@@ -40,14 +47,18 @@ type UseAdminPostFormOptions = {
 };
 
 export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDelete }: UseAdminPostFormOptions) {
+  const initialContentMode = normalizeContentMode(initial.contentMode);
   const [subject, setSubject] = useState(initial.subject);
-  const [content, setContent] = useState(() => sanitizeBoardHtml(initial.content));
+  const [contentMode, setContentMode] = useState<BoardContentMode>(initialContentMode);
+  const [content, setContent] = useState(() => sanitizeContentForEditor(initial.content, initialContentMode));
+  const [schema, setSchema] = useState(initial.schema);
   const [notice, setNotice] = useState(initial.notice);
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
   const [seoTitle, setSeoTitle] = useState(initial.seoTitle);
   const [seoSlug, setSeoSlug] = useState(initial.seoSlug);
   const [seoDescription, setSeoDescription] = useState(initial.seoDescription);
   const [showSlugInput, setShowSlugInput] = useState(initial.seoSlug !== '');
+  const [legacySuggestDismissed, setLegacySuggestDismissed] = useState(false);
   const [attachment, setAttachment] = useState<BoardPostFile | null>(initial.attachment);
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
@@ -63,8 +74,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const [showPreview, setShowPreview] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
-  const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}`;
+  const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}-${contentMode}`;
   const isScheduled = isScheduledPost(initial.wrDatetime);
+  const showLegacySuggest = !legacySuggestDismissed && contentMode === 'rich' && detectLegacyHtmlContent(content);
 
   const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
   const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
@@ -79,6 +91,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         seoTitle,
         seoSlug,
         seoDescription,
+        schema,
+        contentMode,
         attachment,
         pendingAttachment,
         removeAttachment,
@@ -94,6 +108,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       seoTitle,
       seoSlug,
       seoDescription,
+      schema,
+      contentMode,
       attachment,
       pendingAttachment,
       removeAttachment,
@@ -127,9 +143,13 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   })();
 
   function validateBeforeSubmit(): string | null {
-    const cleanedContent = sanitizeBoardHtmlForSave(content);
-    if (boardHtmlIsEmpty(cleanedContent)) {
+    if (contentIsEmpty(content, contentMode)) {
       return '내용을 입력해 주세요.';
+    }
+
+    const schemaValidation = parseBoardSchema(schema);
+    if (!schemaValidation.ok) {
+      return schemaValidation.error;
     }
 
     if (downloadMode === 'password') {
@@ -158,7 +178,11 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       }
     }
 
-    const cleanedContent = sanitizeBoardHtmlForSave(content);
+    const cleanedContent = sanitizeContentForSave(content, contentMode);
+    const schemaValidation = parseBoardSchema(schema);
+    const cleanedSchema = schemaValidation.ok
+      ? applySchemaPlaceholders(schemaValidation.json, { boTable, wrId, subject })
+      : '';
     const wrDatetimeLocal =
       publishMode === 'scheduled'
         ? (scheduledLocal ?? '')
@@ -175,6 +199,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       seoTitle,
       seoSlug,
       seoDescription,
+      cleanedSchema,
+      contentMode,
       removeAttachment,
       attachmentPassword,
       downloadMode,
@@ -260,7 +286,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function handleSaveDraft() {
-    const cleaned = sanitizeBoardHtmlForSave(content);
+    const cleaned = sanitizeContentForSave(content, contentMode);
     saveBoardDraft(
       boTable,
       buildBoardPostPayload(
@@ -272,6 +298,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         seoTitle,
         seoSlug,
         seoDescription,
+        schema,
+        contentMode,
         removeAttachment,
         attachmentPassword,
         downloadMode,
@@ -283,8 +311,11 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function loadDraft(draft: BoardPostPayload & { preview: string }) {
+    const draftMode = normalizeContentMode(draft.content_mode);
     setSubject(draft.wr_subject);
-    setContent(sanitizeBoardHtmlForSave(draft.wr_content));
+    setContentMode(draftMode);
+    setContent(sanitizeContentForSave(draft.wr_content, draftMode));
+    setSchema(draft.wr_schema ?? '');
     setNotice(draft.notice);
     setThumbnailUrl(draft.wr_1);
     setSeoTitle(draft.wr_seo_title);
@@ -293,6 +324,28 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     if (draft.wr_seo_slug !== '') setShowSlugInput(true);
     setPendingAttachment(null);
     setRemoveAttachment(false);
+  }
+
+  function handleLegacyCleanup() {
+    if (!window.confirm('본문에서 JSON-LD를 추출하고 레거시 HTML 모드로 전환합니다. 계속하시겠습니까?')) {
+      return;
+    }
+
+    const extracted = extractSchemaFromContent(content);
+    setContent(sanitizeContentForEditor(extracted.content, 'legacy_html'));
+    if (extracted.schema !== '') {
+      setSchema(extracted.schema);
+    } else if (schema.trim() === '') {
+      setSchema('');
+    }
+    setContentMode('legacy_html');
+    setLegacySuggestDismissed(true);
+  }
+
+  function handleAcceptLegacySuggest() {
+    setContentMode('legacy_html');
+    setContent(sanitizeContentForEditor(content, 'legacy_html'));
+    setLegacySuggestDismissed(true);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -412,6 +465,14 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setSubject,
     content,
     setContent,
+    schema,
+    setSchema,
+    contentMode,
+    setContentMode,
+    showLegacySuggest,
+    handleLegacyCleanup,
+    handleAcceptLegacySuggest,
+    dismissLegacySuggest: () => setLegacySuggestDismissed(true),
     notice,
     setNotice,
     thumbnailUrl,
