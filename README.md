@@ -309,6 +309,7 @@ cd frontend && npm run start
 - **TipTap 초기화**: 빈 문서로 마운트 후 `setContent` try/catch, 실패 시 레거시 모드로 전환
 - **미리보기·상세 동기화**: `BoardContentBody` 공통 컴포넌트, 미리보기 `max-w-[900px]`·제목 타이포 상세와 동일
 - **레거시 CTA 스타일**: `.board-content` 버튼형 링크 밑줄 제거, sanitizer에 flex·width·gap 등 허용
+- **복사·붙여넣기**: rich 모드 HTML 탭에 레거시 HTML 입력 시 `legacy_html` 자동 전환 (rich sanitizer 선적용 방지)
 
 ### 2026-06-08 — 모바일 반응형·게시판 본문
 

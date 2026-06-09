@@ -25,7 +25,12 @@ import {
   type BoardPostFile,
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
-import { detectLegacyHtmlContent, resolveContentModeForEdit, type BoardContentMode } from '../lib/boardContentMode';
+import {
+  detectLegacyHtmlContent,
+  isTipTapUnsafeHtml,
+  resolveContentModeForEdit,
+  type BoardContentMode,
+} from '../lib/boardContentMode';
 import { contentIsEmpty, sanitizeContentForEditor, sanitizeContentForSave } from '../lib/boardContentSanitize';
 import { validateAttachmentPassword } from '../lib/validateAttachmentPassword';
 
@@ -312,13 +317,33 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setRemoveAttachment(false);
   }
 
-  function handleAcceptLegacySuggest() {
+  const switchToLegacyHtmlContent = useCallback((html: string) => {
     setContentMode('legacy_html');
-    setContent(sanitizeContentForEditor(content, 'legacy_html'));
+    setContent(sanitizeContentForEditor(html, 'legacy_html'));
     setLegacySuggestDismissed(true);
+  }, []);
+
+  /** 에디터 입력 — rich sanitizer 적용 전에 HTML이면 자동으로 legacy_html 모드로 전환 */
+  const handleContentChange = useCallback(
+    (html: string) => {
+      if (contentMode === 'rich' && isTipTapUnsafeHtml(html)) {
+        switchToLegacyHtmlContent(html);
+        return;
+      }
+      setContent(sanitizeContentForEditor(html, contentMode));
+    },
+    [contentMode, switchToLegacyHtmlContent],
+  );
+
+  function handleAcceptLegacySuggest() {
+    switchToLegacyHtmlContent(content);
   }
 
-  function handleForceLegacyMode() {
+  function handleForceLegacyMode(rawHtml?: string) {
+    if (rawHtml !== undefined) {
+      switchToLegacyHtmlContent(rawHtml);
+      return;
+    }
     setContentMode('legacy_html');
     setContent(current => sanitizeContentForEditor(current, 'legacy_html'));
     setLegacySuggestDismissed(true);
@@ -440,7 +465,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     subject,
     setSubject,
     content,
-    setContent,
+    handleContentChange,
     contentMode,
     setContentMode,
     showLegacySuggest,

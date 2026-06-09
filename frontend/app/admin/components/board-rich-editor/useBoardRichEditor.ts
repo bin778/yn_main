@@ -57,7 +57,7 @@ export function useBoardRichEditor({
 
   const emitChange = useCallback(
     (html: string) => {
-      onChange(sanitizeBoardHtml(html));
+      onChange(html);
     },
     [onChange],
   );
@@ -92,8 +92,8 @@ export function useBoardRichEditor({
       editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
       editor.setEditable(!disabled && tab === 'default');
     } catch (loadError) {
-      console.error('TipTap 본문 로드 실패 — 레거시 HTML 모드로 전환합니다.', loadError);
-      onForceLegacyModeRef.current?.();
+      console.error('TipTap 본문 로드 실패 — HTML 모드로 전환합니다.', loadError);
+      onForceLegacyModeRef.current?.(value);
     }
     // editor가 준비됐을 때 1회만 실행한다
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,8 +112,8 @@ export function useBoardRichEditor({
         editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
         editor.commands.fixTables();
       } catch (applyError) {
-        console.error('TipTap 본문 업데이트 실패 — 레거시 HTML 모드로 전환합니다.', applyError);
-        onForceLegacyModeRef.current?.();
+        console.error('TipTap 본문 업데이트 실패 — HTML 모드로 전환합니다.', applyError);
+        onForceLegacyModeRef.current?.(html);
         return '';
       }
       return cleaned;

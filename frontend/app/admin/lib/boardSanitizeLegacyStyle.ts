@@ -3,6 +3,7 @@ const SAFE_RGB = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0(?
 
 const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'color': normalizeColor,
+  'background': normalizeBackground,
   'background-color': normalizeColor,
   'font-size': normalizeFontSize,
   'line-height': normalizeLineHeight,
@@ -38,6 +39,10 @@ const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'border-radius': normalizeBorderRadius,
   'text-decoration': normalizeTextDecoration,
 };
+
+function normalizeBackground(value: string): string | null {
+  return normalizeColor(value);
+}
 
 function normalizeColor(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
@@ -194,7 +199,8 @@ export function buildLegacySafeInlineStyle(style: string): string | null {
 
     const safeValue = normalizer(rawValue);
     if (safeValue) {
-      parts.push(`${property}:${safeValue}`);
+      const outputProperty = property === 'background' ? 'background-color' : property;
+      parts.push(`${outputProperty}:${safeValue}`);
     }
   }
 

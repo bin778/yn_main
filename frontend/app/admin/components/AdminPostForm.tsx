@@ -146,14 +146,14 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
 
           {form.showLegacySuggest && (
             <div className="mb-2 flex flex-wrap items-center gap-2 rounded border border-[#fecdca] bg-[#fff6f5] px-3 py-2 text-xs text-[#7a271a]">
-              <span>인라인 스타일이 포함된 레거시 HTML로 보입니다.</span>
+              <span>인라인 스타일·레이아웃이 포함된 HTML입니다. HTML 모드로 전환하는 것을 권장합니다.</span>
               <button
                 type="button"
                 disabled={form.loading}
                 onClick={form.handleAcceptLegacySuggest}
                 className="cursor-pointer rounded bg-[#1a3151] px-2 py-1 text-white hover:bg-[#152846]"
               >
-                레거시 HTML 모드로 전환
+                HTML 모드로 전환
               </button>
               <button
                 type="button"
@@ -169,7 +169,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           <BoardRichEditor
             key={form.editorKey}
             value={form.content}
-            onChange={form.setContent}
+            onChange={form.handleContentChange}
             contentMode={form.contentMode}
             disabled={form.loading}
             onUploadImage={form.handleEditorImageUpload}

@@ -11,7 +11,7 @@ export type BoardRichEditorProps = {
   contentMode?: BoardContentMode;
   disabled?: boolean;
   onUploadImage?: (file: File) => Promise<string>;
-  onForceLegacyMode?: () => void;
+  onForceLegacyMode?: (rawHtml?: string) => void;
 };
 
 export type ToolbarButtonProps = {
