@@ -7,6 +7,8 @@ export const TAB_LABELS = {
 export const HTML_TAB_LEAVE_CONFIRM =
   'HTML 모드에서 기본·마크다운 탭으로 전환하면 글자색, 배경색, 문단 스타일 등 일부 서식이 초기화될 수 있습니다. 계속하시겠습니까?';
 
+export const LEGACY_EDITOR_TAB_ORDER = ['default', 'html', 'markdown'] as const;
+
 export const EMPTY_DEFAULT_HTML = '<p data-body="2"></p>';
 
 export const PRESET_TEXT_COLORS = [

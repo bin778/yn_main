@@ -135,25 +135,39 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         />
 
         <div>
-          <div className="mb-1">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
             <span className="flex items-center gap-1 text-sm font-medium">
               내용{' '}
               <span className="text-[#b42318]" aria-hidden>
                 *
               </span>
             </span>
+            {form.contentMode === 'rich' ? (
+              <button
+                type="button"
+                disabled={form.loading}
+                onClick={form.handleSwitchToLegacyMode}
+                className="cursor-pointer rounded border border-[#c7d7fe] bg-[#f0f5ff] px-2.5 py-1 text-xs font-medium text-[#1a3151] hover:bg-[#e0ebff] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                고급 HTML 모드
+              </button>
+            ) : (
+              <span className="rounded bg-[#f0f5ff] px-2.5 py-1 text-xs font-medium text-[#1a3151]">
+                고급 HTML 모드 사용 중
+              </span>
+            )}
           </div>
 
           {form.showLegacySuggest && (
             <div className="mb-2 flex flex-wrap items-center gap-2 rounded border border-[#fecdca] bg-[#fff6f5] px-3 py-2 text-xs text-[#7a271a]">
-              <span>인라인 스타일·레이아웃이 포함된 HTML입니다. HTML 모드로 전환하는 것을 권장합니다.</span>
+              <span>{form.legacySuggestMessage}</span>
               <button
                 type="button"
                 disabled={form.loading}
                 onClick={form.handleAcceptLegacySuggest}
                 className="cursor-pointer rounded bg-[#1a3151] px-2 py-1 text-white hover:bg-[#152846]"
               >
-                HTML 모드로 전환
+                고급 HTML 모드로 전환
               </button>
               <button
                 type="button"
@@ -161,8 +175,14 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
                 onClick={form.dismissLegacySuggest}
                 className="cursor-pointer text-[#667085] underline"
               >
-                닫기
+                기본 모드 유지
               </button>
+            </div>
+          )}
+
+          {form.showRichModeLegacyWarning && (
+            <div className="mb-2 rounded border border-[#fedf89] bg-[#fffaeb] px-3 py-2 text-xs text-[#7a2e0e]">
+              기본 모드에서 편집 중입니다. 인라인 스타일·레이아웃 등 일부 서식은 저장 시 제거되거나 변경될 수 있습니다.
             </div>
           )}
 
@@ -174,6 +194,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             disabled={form.loading}
             onUploadImage={form.handleEditorImageUpload}
             onForceLegacyMode={form.handleForceLegacyMode}
+            onSwitchToRichMode={form.handleSwitchToRichMode}
           />
         </div>
 

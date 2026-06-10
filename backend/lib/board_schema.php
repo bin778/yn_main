@@ -102,5 +102,21 @@ function board_detect_legacy_html_content(string $html): bool
         return true;
     }
 
+    if (preg_match('/style\s*=\s*["\'][^"\']*(?:background-color|background)/i', $html)) {
+        return true;
+    }
+
+    if (preg_match('/style\s*=\s*["\'][^"\']*display\s*:\s*flex/i', $html)) {
+        return true;
+    }
+
+    if (preg_match('/<a\b[^>]*\sstyle\s*=\s*["\'][^"\']*(?:background|border-radius)/i', $html)) {
+        return true;
+    }
+
+    if (preg_match('/\bclass\s*=\s*["\'][^"\']*\byn-(?:cta|btn)\b/i', $html)) {
+        return true;
+    }
+
     return false;
 }

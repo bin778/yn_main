@@ -92,7 +92,7 @@ export function useBoardRichEditor({
       editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
       editor.setEditable(!disabled && tab === 'default');
     } catch (loadError) {
-      console.error('TipTap 본문 로드 실패 — HTML 모드로 전환합니다.', loadError);
+      console.error('TipTap 본문 로드 실패 — 고급 HTML 모드로 전환합니다.', loadError);
       onForceLegacyModeRef.current?.(value);
     }
     // editor가 준비됐을 때 1회만 실행한다
@@ -112,7 +112,7 @@ export function useBoardRichEditor({
         editor.commands.setContent(cleaned || EMPTY_DEFAULT_HTML, { emitUpdate: false });
         editor.commands.fixTables();
       } catch (applyError) {
-        console.error('TipTap 본문 업데이트 실패 — HTML 모드로 전환합니다.', applyError);
+        console.error('TipTap 본문 업데이트 실패 — 고급 HTML 모드로 전환합니다.', applyError);
         onForceLegacyModeRef.current?.(html);
         return '';
       }

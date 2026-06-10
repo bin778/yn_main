@@ -1,7 +1,5 @@
 const SAFE_HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const SAFE_RGB = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+))?\s*\)$/i;
-
-const SPACING_PX = /^\d{1,3}px$/;
 const MARGIN_SIDE = /^(0|auto|\d{1,3}px)$/;
 const PADDING_SIDE = /^(0|\d{1,3}px)$/;
 const MAX_LINE_HEIGHT_PX = 54;

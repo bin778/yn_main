@@ -26,9 +26,12 @@ import {
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
 import {
-  detectLegacyHtmlContent,
-  isTipTapUnsafeHtml,
+  getLegacySuggestMessage,
+  normalizeHtmlForRichEditor,
   resolveContentModeForEdit,
+  shouldSuggestLegacyHtml,
+  SWITCH_TO_LEGACY_CONFIRM,
+  SWITCH_TO_RICH_CONFIRM,
   type BoardContentMode,
 } from '../lib/boardContentMode';
 import { contentIsEmpty, sanitizeContentForEditor, sanitizeContentForSave } from '../lib/boardContentSanitize';
@@ -75,7 +78,10 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
 
   const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}-${contentMode}`;
   const isScheduled = isScheduledPost(initial.wrDatetime);
-  const showLegacySuggest = !legacySuggestDismissed && contentMode === 'rich' && detectLegacyHtmlContent(content);
+  const legacySuggestMessage = getLegacySuggestMessage(content);
+  const showLegacySuggest = !legacySuggestDismissed && contentMode === 'rich' && shouldSuggestLegacyHtml(content);
+  const showRichModeLegacyWarning =
+    legacySuggestDismissed && contentMode === 'rich' && shouldSuggestLegacyHtml(content);
 
   const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
   const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
@@ -323,21 +329,29 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setLegacySuggestDismissed(true);
   }, []);
 
-  /** 에디터 입력 — rich sanitizer 적용 전에 HTML이면 자동으로 legacy_html 모드로 전환 */
   const handleContentChange = useCallback(
     (html: string) => {
-      if (contentMode === 'rich' && isTipTapUnsafeHtml(html)) {
-        switchToLegacyHtmlContent(html);
-        return;
-      }
-      setContent(sanitizeContentForEditor(html, contentMode));
+      const nextHtml = contentMode === 'rich' ? normalizeHtmlForRichEditor(html) : html;
+      setContent(sanitizeContentForEditor(nextHtml, contentMode));
     },
-    [contentMode, switchToLegacyHtmlContent],
+    [contentMode],
   );
 
   function handleAcceptLegacySuggest() {
     switchToLegacyHtmlContent(content);
   }
+
+  const handleSwitchToLegacyMode = useCallback(() => {
+    if (!window.confirm(SWITCH_TO_LEGACY_CONFIRM)) return;
+    switchToLegacyHtmlContent(content);
+  }, [content, switchToLegacyHtmlContent]);
+
+  const handleSwitchToRichMode = useCallback(() => {
+    if (!window.confirm(SWITCH_TO_RICH_CONFIRM)) return;
+    setContentMode('rich');
+    setContent(current => sanitizeContentForEditor(normalizeHtmlForRichEditor(current), 'rich'));
+    setLegacySuggestDismissed(false);
+  }, []);
 
   function handleForceLegacyMode(rawHtml?: string) {
     if (rawHtml !== undefined) {
@@ -469,8 +483,12 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     contentMode,
     setContentMode,
     showLegacySuggest,
+    legacySuggestMessage,
+    showRichModeLegacyWarning,
     handleAcceptLegacySuggest,
+    handleSwitchToLegacyMode,
     handleForceLegacyMode,
+    handleSwitchToRichMode,
     dismissLegacySuggest: () => setLegacySuggestDismissed(true),
     notice,
     setNotice,

@@ -6,9 +6,14 @@ import BoardTipTapErrorBoundary from './board-rich-editor/BoardTipTapErrorBounda
 
 import type { BoardRichEditorProps } from './board-rich-editor/types';
 
-export default function BoardRichEditor({ contentMode = 'rich', onForceLegacyMode, ...props }: BoardRichEditorProps) {
+export default function BoardRichEditor({
+  contentMode = 'rich',
+  onForceLegacyMode,
+  onSwitchToRichMode,
+  ...props
+}: BoardRichEditorProps) {
   if (contentMode === 'legacy_html') {
-    return <BoardLegacyHtmlEditor {...props} />;
+    return <BoardLegacyHtmlEditor {...props} onSwitchToRichMode={onSwitchToRichMode} />;
   }
 
   return (
