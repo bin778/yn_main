@@ -1,9 +1,10 @@
 import Link from 'next/link';
 
+import BoardContentBody from '@/app/components/BoardContentBody';
+import { shouldUseLegacyLayoutRendering } from '@/app/admin/lib/boardContentMode';
+
 import type { BoTable, BoardView } from '../types/board';
 import { BOARD_META, getBoardPathSlug } from '../constants/boardContent';
-
-import BoardContentBody from '@/app/components/BoardContentBody';
 
 import BoardAttachmentItem from './BoardAttachmentItem';
 
@@ -20,6 +21,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
   const pathSlug = getBoardPathSlug(boTable);
   const listHref = `/${pathSlug}`;
   const { label } = BOARD_META[boTable];
+  const legacyLayout = shouldUseLegacyLayoutRendering(post.content_mode, post.wr_content);
 
   return (
     <article className="bg-white px-4 py-12 md:px-6 md:py-16">
@@ -50,7 +52,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
         </div>
 
         {/* 본문 — 그누보드 에디터 HTML (관리자 작성 신뢰 콘텐츠) */}
-        <BoardContentBody html={post.wr_content} className="mt-8" />
+        <BoardContentBody html={post.wr_content} legacyLayout={legacyLayout} className="mt-8" />
 
         {/* 첨부파일 */}
         {post.files.length > 0 && (

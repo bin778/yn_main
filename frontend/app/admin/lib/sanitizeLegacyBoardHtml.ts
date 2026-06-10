@@ -1,8 +1,8 @@
 import DOMPurify from 'isomorphic-dompurify';
 
+import { normalizeLegacyTableAttributes } from './boardSanitizeLegacyAttrs';
 import { normalizeEditorImageSourcesInHtml } from './boardEditorImages';
 import { buildLegacySafeInlineStyle, isSafeYnClass } from './boardSanitizeLegacyStyle';
-import { normalizeTablesForEditor } from './boardTableHtml';
 
 const ALLOWED_TAGS = [
   'p',
@@ -32,6 +32,7 @@ const ALLOWED_TAGS = [
   'table',
   'thead',
   'tbody',
+  'tfoot',
   'tr',
   'th',
   'td',
@@ -53,6 +54,14 @@ const ALLOWED_ATTR = [
   'start',
   'colspan',
   'rowspan',
+  'bgcolor',
+  'bordercolor',
+  'valign',
+  'cellpadding',
+  'cellspacing',
+  'border',
+  'width',
+  'height',
 ];
 
 function purifyLegacyHtml(html: string): string {
@@ -61,7 +70,7 @@ function purifyLegacyHtml(html: string): string {
   const purified = DOMPurify.sanitize(withoutScripts, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
-    FORBID_ATTR: ['id', 'face', 'size', 'color', 'width', 'height'],
+    FORBID_ATTR: ['id', 'face', 'size', 'color'],
   });
 
   if (typeof document === 'undefined') {
@@ -80,6 +89,8 @@ function purifyLegacyHtml(html: string): string {
     }
   });
 
+  normalizeLegacyTableAttributes(root);
+
   root.querySelectorAll('[class]').forEach(el => {
     const className = el.getAttribute('class') ?? '';
     if (!isSafeYnClass(className)) {
@@ -94,7 +105,7 @@ function purifyLegacyHtml(html: string): string {
     }
   });
 
-  return normalizeEditorImageSourcesInHtml(normalizeTablesForEditor(root.innerHTML));
+  return normalizeEditorImageSourcesInHtml(root.innerHTML);
 }
 
 export function sanitizeLegacyBoardHtml(html: string): string {

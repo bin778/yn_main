@@ -3,13 +3,33 @@ const SAFE_RGB = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0(?
 const MARGIN_SIDE = /^(0|auto|\d{1,3}px)$/;
 const PADDING_SIDE = /^(0|\d{1,3}px)$/;
 const MAX_LINE_HEIGHT_PX = 54;
-const MAX_HEIGHT_PX = 80;
+const MAX_HEIGHT_PX = 200;
+const MAX_STYLE_WIDTH_PX = 900;
+
+const FONT_SIZE_KEYWORDS: Record<string, string> = {
+  'xx-small': 'xx-small',
+  'x-small': 'x-small',
+  'small': 'small',
+  'medium': 'medium',
+  'large': 'large',
+  'x-large': 'x-large',
+  'xx-large': 'xx-large',
+};
+
+const ALLOWED_FONT_FAMILIES: Record<string, string> = {
+  'inherit': 'inherit',
+  'georgia': 'Georgia',
+  'arial': 'Arial',
+  'serif': 'serif',
+  'sans-serif': 'sans-serif',
+};
 
 const ALLOWED_PROPERTIES: Record<string, (value: string) => string | null> = {
   'color': normalizeColor,
   'background': normalizeBackground,
   'background-color': normalizeColor,
   'font-size': normalizeFontSize,
+  'font-family': normalizeFontFamily,
   'line-height': normalizeLineHeight,
   'text-align': normalizeTextAlign,
   'font-weight': normalizeFontWeight,
@@ -66,13 +86,32 @@ function normalizeColor(value: string): string | null {
   return null;
 }
 
+export function normalizeLegacyColorValue(value: string): string | null {
+  return normalizeColor(value);
+}
+
+function normalizeFontFamily(value: string): string | null {
+  const firstFamily = value
+    .trim()
+    .toLowerCase()
+    .split(',')[0]
+    ?.trim()
+    .replace(/^['"]|['"]$/g, '');
+
+  if (!firstFamily) return null;
+  return ALLOWED_FONT_FAMILIES[firstFamily] ?? null;
+}
+
 function normalizeFontSize(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
-  const match = trimmed.match(/^(\d{1,2})(px|pt|em)$/);
+  const keyword = FONT_SIZE_KEYWORDS[trimmed];
+  if (keyword) return keyword;
+
+  const match = trimmed.match(/^(\d{1,2}(?:\.\d+)?)(px|pt|em)$/);
   if (!match) return null;
   const num = Number(match[1]);
   if (num <= 0 || num > 48) return null;
-  return `${num}${match[2]}`;
+  return `${match[1]}${match[2]}`;
 }
 
 function normalizeLineHeight(value: string): string | null {
@@ -95,7 +134,7 @@ function normalizeHeight(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
   if (trimmed === '0') return '0';
 
-  const pxMatch = trimmed.match(/^(\d{1,2})px$/);
+  const pxMatch = trimmed.match(/^(\d{1,3})px$/);
   if (pxMatch !== null) {
     const num = Number(pxMatch[1]);
     if (num > 0 && num <= MAX_HEIGHT_PX) {
@@ -140,7 +179,14 @@ function normalizeLetterSpacing(value: string): string | null {
 
 function normalizeLength(value: string): string | null {
   const trimmed = value.trim().toLowerCase();
-  if (/^\d{1,4}px$/.test(trimmed)) return trimmed;
+  const pxMatch = trimmed.match(/^(\d{1,4})px$/);
+  if (pxMatch !== null) {
+    const num = Number(pxMatch[1]);
+    if (num > 0 && num <= MAX_STYLE_WIDTH_PX) {
+      return `${num}px`;
+    }
+    return null;
+  }
   if (/^\d{1,3}%$/.test(trimmed)) return trimmed;
   return null;
 }

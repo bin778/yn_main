@@ -87,44 +87,82 @@
     padding: 0 0.1em;
   }
 
+  /* 고급 HTML · 이메일형 nested table — 레이아웃 테이블 기본 border/width 강제 해제 */
+  .board-content.board-content--legacy-layout table {
+    width: auto;
+    max-width: 100%;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0;
+    font-size: inherit;
+  }
+
+  .board-content.board-content--legacy-layout th,
+  .board-content.board-content--legacy-layout td {
+    border: none;
+    padding: 0;
+    text-align: inherit;
+    vertical-align: inherit;
+  }
+
+  .board-content.board-content--legacy-layout th {
+    background-color: unset;
+    font-weight: inherit;
+  }
+
+  .board-content.board-content--legacy-layout img {
+    max-width: 100%;
+    height: auto;
+    display: inline;
+    margin: 0;
+  }
+
   @media (min-width: 768px) {
     .board-content h1 {
       font-size: 32px;
     }
   }
 
-  /* 모바일: 레거시 2열 카드형 테이블 → 세로 스택, 그 외 테이블은 가로 스크롤 */
+  /* 모바일: 레거시 2열 카드형 테이블 → 세로 스택 (legacy layout 제외) */
   @media (max-width: 767px) {
-    .board-content table {
+    .board-content:not(.board-content--legacy-layout) table {
       display: block;
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
 
-    .board-content tbody {
+    .board-content:not(.board-content--legacy-layout) tbody {
       display: block;
     }
 
-    .board-content tr:has(> td:nth-child(2):last-child),
-    .board-content tr:has(> th:nth-child(2):last-child) {
+    .board-content:not(.board-content--legacy-layout) tr:has(> td:nth-child(2):last-child),
+    .board-content:not(.board-content--legacy-layout) tr:has(> th:nth-child(2):last-child) {
       display: flex;
       gap: 12px;
       margin-bottom: 24px;
     }
 
-    .board-content tr:has(> td:nth-child(2):last-child) > td,
-    .board-content tr:has(> th:nth-child(2):last-child) > th,
-    .board-content tr:has(> td:nth-child(2):last-child) > th {
+    .board-content:not(.board-content--legacy-layout) tr:has(> td:nth-child(2):last-child) > td,
+    .board-content:not(.board-content--legacy-layout) tr:has(> th:nth-child(2):last-child) > th,
+    .board-content:not(.board-content--legacy-layout) tr:has(> td:nth-child(2):last-child) > th {
       display: block;
       width: 100%;
       padding: 0;
       background-color: transparent;
     }
 
-    .board-content tr:has(> td:nth-child(2):last-child) td img {
+    .board-content:not(.board-content--legacy-layout) tr:has(> td:nth-child(2):last-child) td img {
       width: 100%;
       margin: 0 0 8px;
+    }
+
+    .board-content.board-content--legacy-layout table {
+      display: table;
+      width: 100%;
+      max-width: 680px;
+      overflow-x: visible;
     }
   }
 }

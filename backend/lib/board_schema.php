@@ -90,6 +90,14 @@ function board_extract_schema_from_content(string $html): array
 
 function board_detect_legacy_html_content(string $html): bool
 {
+    if (preg_match('/\bbgcolor\s*=\s*["\']?#/i', $html)) {
+        return true;
+    }
+
+    if (preg_match('/<table\b[^>]*\swidth\s*=\s*["\']?\d/i', $html)) {
+        return true;
+    }
+
     if (preg_match('/border-radius\s*:/i', $html)) {
         return true;
     }

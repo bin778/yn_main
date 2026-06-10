@@ -9,9 +9,12 @@ export function normalizeContentMode(value: string | undefined | null): BoardCon
 const LEGACY_HTML_PATTERNS = [
   /border-radius\s*:/i,
   /\salign\s*=\s*["']?center/i,
+  /\bbgcolor\s*=\s*["']?#/i,
+  /<table\b[^>]*\swidth\s*=\s*["']?\d/i,
   /style\s*=\s*["'][^"']*(?:margin|padding|font-size|line-height|border-left)/i,
   /style\s*=\s*["'][^"']*(?:background-color|background)/i,
   /style\s*=\s*["'][^"']*display\s*:\s*flex/i,
+  /style\s*=\s*["'][^"']*font-family\s*:/i,
   /<a\b[^>]*\sstyle\s*=\s*["'][^"']*(?:background|border-radius)/i,
   /\bclass\s*=\s*["'][^"']*\byn-(?:cta|btn)\b/i,
 ];
@@ -20,6 +23,20 @@ export function detectLegacyHtmlContent(html: string): boolean {
   const trimmed = html.trim();
   if (trimmed === '') return false;
   return LEGACY_HTML_PATTERNS.some(pattern => pattern.test(trimmed));
+}
+
+/** 이메일형 nested table 레이아웃 (bgcolor·고정 width table) */
+export function detectLegacyEmailLayout(html: string): boolean {
+  const trimmed = html.trim();
+  if (trimmed === '') return false;
+  if (/\bbgcolor\s*=/i.test(trimmed)) return true;
+  if (/<table\b[^>]*\swidth\s*=\s*["']?\d/i.test(trimmed)) return true;
+  return (trimmed.match(/<table\b/gi)?.length ?? 0) >= 3;
+}
+
+export function shouldUseLegacyLayoutRendering(contentMode: BoardContentMode | undefined, html: string): boolean {
+  if (contentMode === 'legacy_html') return true;
+  return detectLegacyEmailLayout(html);
 }
 
 /** TipTap(ProseMirror)이 파싱 중 DOM 오류를 일으킬 수 있는 마크업 */
@@ -84,6 +101,9 @@ export function resolveContentModeForEdit(storedMode: string | undefined | null,
     return 'legacy_html';
   }
   if (detectLegacyHtmlContent(html)) {
+    return 'legacy_html';
+  }
+  if (detectLegacyEmailLayout(html)) {
     return 'legacy_html';
   }
   return 'rich';

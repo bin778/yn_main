@@ -71,10 +71,10 @@ npm run dev
 
 그누보드·Summernote 레거시 HTML을 `(story)` 상세에서 렌더링할 때 사용합니다.
 
-| 파일                   | 역할                                                                   |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `board-typography.css` | h2~h4, `data-body` 문단 크기 — 모바일 기본, `md`(768px) 이상 확대      |
-| `board-content.css`    | 목록·이미지·인용·표; 모바일 2열 카드형 `table` 행은 세로 스택 (`:has`) |
+| 파일                   | 역할                                                                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `board-typography.css` | h2~h4, `data-body` 문단 크기 — 모바일 기본, `md`(768px) 이상 확대                                                                                      |
+| `board-content.css`    | 목록·이미지·인용·표; 모바일 2열 카드형 `table` 행은 세로 스택 (`:has`). 이메일형 레이아웃은 `.board-content--legacy-layout`으로 border/width 강제 해제 |
 
 에디터·미리보기(`board-rich-editor.css`)는 `board-typography.css`를 공유합니다.
 
@@ -152,25 +152,63 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 
 ##### 글쓰기/수정 UI (`AdminPostForm` + `BoardRichEditor`)
 
-| 기능           | 설명                                                                                                                                      |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| 리치 에디터    | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지                                          |
-| 본문 모드      | `rich`(기본) / `legacy_html`(레거시 HTML). `wr_6` 저장. `legacy_html` 또는 본문 레거시 마크업(CTA·인라인 스타일) 감지 시 HTML 모드로 연다 |
-| HTML 모드 권장 | 레거시 인라인·복잡 HTML 감지 시 배너로 **HTML 모드 전환** 권장. **기본 모드 유지** 선택 가능 (지속 경고 표시)                             |
-| 레거시 HTML    | TipTap 없이 **기본·HTML·마크다운** 탭. HTML·마크다운 textarea, 인라인 스타일·레이아웃 보존 (`sanitizeLegacyBoardHtml`)                    |
-| 모드 전환      | legacy → rich: HTML 모드 **「기본」** 탭 + 확인 대화상자. rich → legacy: 배너 **고급 HTML 모드로 전환** 또는 TipTap 로드 실패 시          |
-| 탭 전환 경고   | rich HTML 탭→기본·마크다운, legacy HTML→마크다운, legacy **기본**→rich 전환 시 확인 (서식·스타일 손실 안내)                               |
-| 미리보기       | 저장 전 본문·SEO 미리보기 모달                                                                                                            |
-| 임시저장       | 브라우저 `localStorage`에 초안 저장·불러오기                                                                                              |
-| 예약 발행      | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                                                  |
-| 썸네일·첨부    | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                                               |
-| 첨부 비밀번호  | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                                                     |
-| SEO            | 제목·슬러그·설명 메타 + 미리보기                                                                                                          |
-| 이탈 경고      | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                                              |
+| 기능           | 설명                                                                                                                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 리치 에디터    | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지                                                            |
+| 본문 모드      | `rich`(기본) / `legacy_html`(레거시 HTML). `wr_6` 저장. `legacy_html` 또는 본문 레거시 마크업(CTA·인라인 스타일) 감지 시 HTML 모드로 연다                   |
+| HTML 모드 권장 | 레거시 인라인·복잡 HTML 감지 시 배너로 **고급 HTML 모드 전환** 권장. **기본 모드 유지** + 지속 경고. 「내용」 옆 **고급 HTML 모드** 버튼으로 수동 전환 가능 |
+| 레거시 HTML    | TipTap 없이 **기본·HTML·마크다운** 탭. `sanitizeLegacyBoardHtml` + `boardSanitizeLegacyAttrs`로 레이아웃 테이블 속성·인라인 스타일 보존                     |
+| 모드 전환      | legacy → rich: **「기본」** 탭 + confirm. rich → legacy: 배너·**고급 HTML 모드** 버튼 또는 TipTap 로드 실패 시                                              |
+| 탭 전환 경고   | rich HTML 탭→기본·마크다운, legacy HTML→마크다운, legacy **기본**→rich 전환 시 확인 (서식·스타일 손실 안내)                                                 |
+| 미리보기       | 저장 전 본문·SEO 미리보기 모달                                                                                                                              |
+| 임시저장       | 브라우저 `localStorage`에 초안 저장·불러오기                                                                                                                |
+| 예약 발행      | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                                                                    |
+| 썸네일·첨부    | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                                                                 |
+| 첨부 비밀번호  | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                                                                       |
+| SEO            | 제목·슬러그·설명 메타 + 미리보기                                                                                                                            |
+| 이탈 경고      | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                                                                |
 
-**레거시 게시글 편집**: `wr_6=legacy_html`이거나 본문에 CTA 버튼·인라인 레이아웃(`background`, `border-radius`, `flex`, `yn-cta` 등)이 있으면 HTML 모드로 열립니다. TipTap 기본 모드로 열면 rich sanitizer가 스타일을 먼저 제거하므로, **수정 폼은 DB 원본 HTML로 레거시 여부를 판별**합니다. rich 모드 입력 시 `<h1>`은 `<h2>`로 정규화됩니다.
+**레거시 게시글 편집**
 
-**일괄 마이그레이션 (선택)**: `php backend/scripts/migrate_board_legacy.php --bo_table=column --dry-run` — 본문 내 JSON-LD 추출·`wr_6` 설정 등 (CLI).
+- `wr_6=legacy_html`이거나 본문에 **CTA·인라인 스타일**(`background`, `border-radius`, `yn-cta` 등) 또는 **이메일형 레이아웃**(`bgcolor`, `<table width=`, nested table)이 있으면 **고급 HTML 모드**로 엽니다.
+- 수정 폼·미리보기는 legacy sanitizer를 거치지만, **상세 페이지는 DB HTML 그대로** 렌더합니다. 이메일형 글은 `board-content--legacy-layout` CSS로 레이아웃 테이블 border/width 강제를 해제합니다.
+- **이미 rich sanitizer로 저장된 본문**(스타일 strip됨)은 코드만으로 복구되지 않습니다. 그누보드 원본 `wr_content` 복원 또는 HTML 탭에서 수동 재입력이 필요합니다.
+- rich 모드 입력 시 `<h1>`은 `<h2>`로 정규화됩니다.
+
+**고급 HTML sanitizer가 보존하는 것 (타협 범위)**
+
+| 구분   | 보존 항목                                                                                                                                             |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 살림   | `bgcolor`, `color`/`text-align`/`font-weight`, `font-family`(Georgia·Arial), `font-size`(소수 pt·large 등), nested `<table>` 구조(셀 `<p>` 래핑 없음) |
+| 조건부 | `width`/`height`(상한 900/200px), `bordercolor`, `cellpadding`/`cellspacing`/`border`(≤20), `border`/`border-radius` style                            |
+
+**포기 (의도적 제한)**: rich 모드 1:1 보존, arbitrary CSS(`position`, `url()` 등), `<script>`/`<iframe>`, TipTap용 셀 `<p>` 래핑
+
+##### 레거시 일괄 마이그레이션 CLI
+
+서버(또는 DB 접속 가능한 로컬)에서 실행합니다. `backend/config/db_conn.php`가 필요합니다.
+
+```bash
+# dry-run — 변경 예정만 출력 (DB 수정 없음)
+php backend/scripts/migrate_board_legacy.php --bo_table=success --wr_id=93 --dry-run
+php backend/scripts/migrate_board_legacy.php --bo_table=column --dry-run
+php backend/scripts/migrate_board_legacy.php --bo_table=column --all --dry-run
+
+# 실제 적용 — wr_5(JSON-LD 추출), wr_6(legacy_html) 설정
+php backend/scripts/migrate_board_legacy.php --bo_table=success --wr_id=93
+php backend/scripts/migrate_board_legacy.php --bo_table=column --all
+```
+
+| 옵션          | 설명                                               |
+| ------------- | -------------------------------------------------- |
+| `--bo_table=` | `review` \| `success` \| `column` \| `news` (필수) |
+| `--wr_id=N`   | 단일 글만 처리                                     |
+| `--all`       | 해당 게시판 전체 글 처리 (`--wr_id`와 택일)        |
+| `--dry-run`   | SQL UPDATE 없이 변경 대상·내용만 stdout 출력       |
+
+스크립트 동작: `wr_content`에서 JSON-LD `<script>` → `wr_5` 추출, `board_detect_legacy_html_content()`(bgcolor·CTA·flex 등)에 해당하면 `wr_6=legacy_html` 설정.
+
+**주의**: 마이그레이션은 **`wr_6`·`wr_5`·script 제거**만 수행합니다. **본문 HTML을 그누보드 원본으로 되돌리지 않습니다.** 스타일이 이미 strip된 글은 DB 백업/그누보드에서 `wr_content`를 복원한 뒤 `--dry-run`으로 `legacy_html` 전환 여부를 확인하세요.
 
 상세·목록의 **BoardAdminBar**: 관리자 로그인 시 글쓰기·수정·삭제·예약글 목록·관리자 허브 링크 노출.
 
@@ -195,8 +233,9 @@ frontend/app/admin/
     ├── adminPostFormDirty.ts      # dirty 판별·이탈 메시지
     ├── validateAttachmentPassword.ts
     ├── boardAttachmentAccept.ts   # 업로드 확장자·10MB 검증 (백엔드와 동기)
-    ├── boardContentMode.ts        # rich / legacy_html 판별·모드 권장·h1 정규화
-    ├── boardTableHtml.ts          # TipTap용 표 HTML 정규화 (중첩 table 안전 처리)
+    ├── boardContentMode.ts        # rich / legacy_html·이메일형 레이아웃 감지
+    ├── boardSanitizeLegacyAttrs.ts # legacy table bgcolor·width 등 속성 정제
+    ├── boardTableHtml.ts          # TipTap용 표 HTML 정규화 (legacy에는 미적용)
     └── sanitizeLegacyBoardHtml.ts # 레거시 HTML sanitizer
 ```
 
@@ -285,12 +324,13 @@ cd frontend && npm run start
 
 - `/contact/`에서 상담 제출 → DB 적재 및 응답 `result: "1"` 확인
 - `/review/`, `/success-story/`, `/column/`, `/news/` 목록/상세 노출 (첨부 있는 글 500 없음)
-- 게시물 상세 모바일 뷰: 레거시 2열 표 카드가 세로 스택되는지 확인
+- 게시물 상세 모바일 뷰: 레거시 2열 표 카드가 세로 스택되는지 확인 (이메일형 `legacy-layout` 글은 제외)
+- 성공사례·칼럼 등 **이메일형 레이아웃** 글: 상세 히어로 `bgcolor`·관리자 미리보기·고급 HTML 수정 화면 표시 일치
 - `/admin/login` → `admin` 로그인 → `/news/` 관리자 바(글쓰기·예약글·수정·삭제) 노출
 - `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
 - `/admin/news/write`에서 글 작성·예약 발행 → 예약글 목록·공개 시각 이후 목록/상세 반영
 - 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고
-- `BoardRichEditor`: rich — 기본/마크다운/HTML 탭, HTML→기본·마크다운 전환 시 확인. legacy — **기본**(rich 복귀)/HTML/마크다운 탭
+- `BoardRichEditor`: rich — 기본/마크다운/HTML 탭. legacy — **기본**/HTML/마크다운 탭. 「고급 HTML 모드」수동 전환
 - 레거시·복잡 HTML: 배너 권장·기본 모드 유지(지속 경고), HTML 모드에서 「기본」 탭으로 rich 복귀, TipTap 파싱 실패 시에만 legacy 강제
 - 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드 (비밀번호 없는 첨부도 정상)
 - 상세·관리자 바에서 수정·삭제 동작 확인
@@ -301,7 +341,17 @@ cd frontend && npm run start
 
 ## 최근 변경
 
-### 2026-06-10 — 본문 모드 전환 UX
+### 2026-06-10 — 고급 HTML 레이아웃 보존·마이그레이션
+
+- **legacy sanitizer 확장**: `bgcolor`·`bordercolor`·`width`/`height`(상한)·`cellpadding`/`cellspacing`/`border` 허용 (`boardSanitizeLegacyAttrs.ts`)
+- **인라인 스타일**: `font-family`(Georgia/Arial), `font-size`(13.5pt·large 등), style height 최대 200px
+- **legacy 표 처리**: TipTap용 셀 `<p>` 래핑(`normalizeTablesForEditor`) **legacy 경로에서 제거** — nested table 구조 유지
+- **이메일형 레이아웃 감지**: `bgcolor`, `<table width=`, nested table → `legacy_html` 진입 + `board-content--legacy-layout` CSS
+- **렌더링**: 상세·미리보기에 legacy layout 클래스 — 레이아웃 table border/width 100% 강제 해제
+- **본문 모드 UX**: 고급 HTML 수동 전환 버튼, 양방향 모드 전환, 자동 legacy 전환 완화 (배너 권장)
+- **마이그레이션 CLI**: `--dry-run`으로 `wr_6`/`wr_5` 변경 예정 확인 (README 절차 추가)
+
+### 2026-06-10 — 본문 모드 전환 UX (동일 배포)
 
 - **자동 legacy 전환 완화**: 입력 중 `isTipTapUnsafeHtml` 감지 시 즉시 HTML 모드로 바꾸지 않음 → 배너로 **HTML 모드 전환** 권장, **기본 모드 유지** + 지속 경고
 - **양방향 모드 전환**: HTML 모드 하단 **「기본」** 탭으로 rich 복귀 (확인 대화상자, `sanitizeBoardHtml` 적용)

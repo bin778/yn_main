@@ -1,6 +1,7 @@
 import BoardContentBody from '@/app/components/BoardContentBody';
 
 import type { BoardContentMode } from '../../lib/boardContentMode';
+import { shouldUseLegacyLayoutRendering } from '../../lib/boardContentMode';
 import { sanitizeContentForSave } from '../../lib/boardContentSanitize';
 
 type AdminPostPreviewModalProps = {
@@ -17,6 +18,7 @@ export default function AdminPostPreviewModal({
   onClose,
 }: AdminPostPreviewModalProps) {
   const previewHtml = sanitizeContentForSave(content, contentMode);
+  const legacyLayout = shouldUseLegacyLayoutRendering(contentMode, previewHtml);
 
   return (
     <div
@@ -43,7 +45,7 @@ export default function AdminPostPreviewModal({
             {subject || '(제목 없음)'}
           </h1>
           <div className="mt-4 border-b border-[#e8e8e8] pb-6" aria-hidden />
-          <BoardContentBody html={previewHtml} className="mt-8" />
+          <BoardContentBody html={previewHtml} legacyLayout={legacyLayout} className="mt-8" />
         </article>
       </div>
     </div>
