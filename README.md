@@ -8,11 +8,11 @@ Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`) 및 레거시 그
 
 ## 기술 스택
 
-| 영역     | 스택                                                                   |
-| -------- | ---------------------------------------------------------------------- |
+| 영역     | 스택                                                                                   |
+| -------- | -------------------------------------------------------------------------------------- |
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Swiper, TinyMCE 8 (self-hosted GPL) |
-| Backend  | PHP 7.3+, MariaDB 10.x                                                 |
-| Hosting  | 카페24 (Apache + `.htaccess`)                                          |
+| Backend  | PHP 7.3+, MariaDB 10.x                                                                 |
+| Hosting  | 카페24 (Apache + `.htaccess`)                                                          |
 
 ## 프로젝트 구조
 
@@ -23,8 +23,9 @@ yn_main/
 │   │   ├── (story)/   # 게시판 목록·상세 (review, success-story, column, news)
 │   │   ├── board-content.css    # 게시판 본문 HTML 렌더링 (표·이미지·모바일 레이아웃)
 │   │   ├── board-typography.css # 본문·에디터·미리보기 공통 타이포 (md 반응형)
-│   │   ├── components/       # Header, Footer, PreFooterCta, FamilySiteDropdown 등
-│   │   ├── constants/        # footerContent.ts (FAMILY_SITES 등)
+│   │   ├── components/       # Header, Footer, PreFooterCta, Analytics 등
+│   │   ├── constants/        # footerContent.ts, analyticsEvents.ts 등
+│   │   ├── lib/              # trackGaEvent.ts (GA4 커스텀 이벤트)
 │   │   └── admin/            # 관리자 대시보드·글쓰기/수정·예약글
 │   │       ├── components/   # AdminPostForm, BoardEditor 등
 │   │       ├── hooks/        # useAdminPostForm, useClickOutside 등
@@ -84,24 +85,69 @@ npm run dev
 
 모든 페이지 푸터 직전(`/contact/` 제외)에 상담·브로슈어 CTA가 노출됩니다.
 
-| 요소 | 설명 |
-| ---- | ---- |
-| FAMILY SITE | `FamilySiteDropdown` — **바로 문의하기** 위 드롭다운. 외부 링크는 새 탭 |
-| 패밀리 사이트 목록 | `frontend/app/constants/footerContent.ts`의 `FAMILY_SITES` 배열로 관리 (현재: [보통의 하루](https://www.commonday.co.kr/)) |
-| 접근성 | `aria-expanded`·`aria-controls` + 시맨틱 `<ul>` (링크 목록에 `listbox`/`option` 미사용, `.cursor/rules/typescript-eslint.mdc` 참고) |
+| 요소               | 설명                                                                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| FAMILY SITE        | `FamilySiteDropdown` — **바로 문의하기** 위 드롭다운. 외부 링크는 새 탭                                                             |
+| 패밀리 사이트 목록 | `frontend/app/constants/footerContent.ts`의 `FAMILY_SITES` 배열로 관리 (현재: [보통의 하루](https://www.commonday.co.kr/))          |
+| 접근성             | `aria-expanded`·`aria-controls` + 시맨틱 `<ul>` (링크 목록에 `listbox`/`option` 미사용, `.cursor/rules/typescript-eslint.mdc` 참고) |
 
 ### 환경 변수
 
 `frontend/.env.example`를 참고해 `frontend/.env.local`을 만듭니다.
 
-| 변수                          | 설명                                                                           |
-| ----------------------------- | ------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_INQUIRY_API_URL` | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시                 |
-| `BOARD_API_URL`               | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`) |
+| 변수                            | 설명                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시                 |
+| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4 스크립트·이벤트 비활성화  |
 
 ```bash
 cp frontend/.env.example frontend/.env.local
 ```
+
+### Google Analytics 4
+
+루트 레이아웃(`app/layout.tsx`)에 GA4를 전역 적용합니다. `/admin` 경로는 스크립트 로드·이벤트 수집 모두 제외합니다.
+
+| 파일                                       | 역할                                       |
+| ------------------------------------------ | ------------------------------------------ |
+| `app/components/Analytics.tsx`             | `@next/third-parties`로 gtag 스크립트 로드 |
+| `app/components/AnalyticsClickTracker.tsx` | `tel:`·카카오·브로슈어 링크 클릭 전역 위임 |
+| `app/lib/trackGaEvent.ts`                  | `gtag('event', …)` 헬퍼·링크 분류          |
+| `app/constants/analyticsEvents.ts`         | 이벤트명·`data-ga-source` 상수             |
+
+#### 수집 이벤트
+
+| 이벤트          | 트리거                                          | 주요 파라미터                                |
+| --------------- | ----------------------------------------------- | -------------------------------------------- |
+| `page_view`     | 공개 페이지 방문 (gtag 기본)                    | —                                            |
+| `generate_lead` | `/contact/` 상담 폼 API 성공 (`result === '1'`) | `form_name`, `link_source`                   |
+| `phone_click`   | `tel:` 링크 클릭                                | `link_url`, `link_text`, `link_source`       |
+| `kakao_click`   | `pf.kakao.com` 링크 클릭                        | `link_url`, `link_text`, `link_source`       |
+| `file_download` | `yeoon_brochure.pdf` 링크 클릭                  | `file_name`, `file_extension`, `link_source` |
+
+`link_source`는 클릭 위치 구분용입니다.
+
+| 값                       | 위치                                |
+| ------------------------ | ----------------------------------- |
+| `floating_quick_actions` | 우측 하단 플로팅 버튼 (전화·카카오) |
+| `pre_footer_cta`         | 푸터 직전 CTA 브로슈어 버튼         |
+| `board_content`          | 게시글 본문 HTML 내 링크            |
+| `inline`                 | 그 외 페이지 내 링크                |
+| `contact_form`           | 상담 폼 제출 (generate_lead)        |
+
+게시글 본문·플로팅·CTA 등 `tel:` / 카카오 / 브로슈어 링크는 `AnalyticsClickTracker`가 document 클릭 위임으로 한 번에 처리합니다. 컴포넌트별 출처는 `data-ga-source` 속성으로 지정합니다.
+
+#### GA4 콘솔 설정 (권장)
+
+배포 후 [Google Analytics](https://analytics.google.com/)에서 아래 이벤트를 **키 이벤트(전환)** 으로 등록하면 리포트에서 전환으로 집계됩니다.
+
+- `generate_lead`
+- `phone_click`
+- `kakao_click`
+- `file_download`
+
+동작 확인: GA4 **관리 → DebugView** 또는 **보고서 → 실시간**에서 각 버튼·폼 제출 후 이벤트가 들어오는지 확인합니다.
 
 ### 빌드/실행
 
@@ -164,20 +210,20 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 
 ##### 글쓰기/수정 UI (`AdminPostForm` + `BoardEditor`)
 
-| 기능          | 설명                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 폼·미리보기 너비 | `max-w-[1200px]` (`AdminPostForm`, 수정 로딩 화면, `AdminPostPreviewModal`)                                              |
+| 기능             | 설명                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 폼·미리보기 너비 | `max-w-[1200px]` (`AdminPostForm`, 수정 로딩 화면, `AdminPostPreviewModal`)                                                          |
 | 본문 에디터 높이 | TinyMCE 기본 **520px** (`BOARD_EDITOR_MIN_HEIGHT`), 하단 드래그로 확대 가능 (`resize: true`). HTML 탭 textarea 최소 520px·최대 720px |
-| 본문 에디터   | TinyMCE self-hosted(GPL). **기본(Visual)** + **HTML** 탭. CTA·인라인 스타일을 Visual에서 유지하며 글자만 편집            |
-| 본문 정제     | 편집·저장·미리보기 모두 `sanitizeLegacyBoardHtml` 단일 경로 (`boardContentSanitize.ts`)                                  |
-| TinyMCE 배포  | `npm install` 시 `postinstall`로 `public/tinymce` 생성. Git에는 미포함 (`.gitignore`) — Vercel/CI는 install 시 자동 복사 |
-| 미리보기      | 저장 전 본문·SEO 미리보기 모달                                                                                           |
-| 임시저장      | 브라우저 `localStorage`에 초안 저장·불러오기                                                                             |
-| 예약 발행     | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                                 |
-| 썸네일·첨부   | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                              |
-| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                                    |
-| SEO           | 제목·슬러그·설명 메타 + 미리보기                                                                                         |
-| 이탈 경고     | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                             |
+| 본문 에디터      | TinyMCE self-hosted(GPL). **기본(Visual)** + **HTML** 탭. CTA·인라인 스타일을 Visual에서 유지하며 글자만 편집                        |
+| 본문 정제        | 편집·저장·미리보기 모두 `sanitizeLegacyBoardHtml` 단일 경로 (`boardContentSanitize.ts`)                                              |
+| TinyMCE 배포     | `npm install` 시 `postinstall`로 `public/tinymce` 생성. Git에는 미포함 (`.gitignore`) — Vercel/CI는 install 시 자동 복사             |
+| 미리보기         | 저장 전 본문·SEO 미리보기 모달                                                                                                       |
+| 임시저장         | 브라우저 `localStorage`에 초안 저장·불러오기                                                                                         |
+| 예약 발행        | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                                             |
+| 썸네일·첨부      | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                                          |
+| 첨부 비밀번호    | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                                                |
+| SEO              | 제목·슬러그·설명 메타 + 미리보기                                                                                                     |
+| 이탈 경고        | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                                         |
 
 **레거시·CTA HTML 편집**
 
