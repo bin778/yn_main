@@ -36,8 +36,8 @@ function assertNotContains(html: string, needle: string, label: string): void {
 }
 
 const cta = sanitizeLegacyBoardHtml(CTA_SNIPPET);
-const ctaViaContentSave = sanitizeContentForSave(CTA_SNIPPET, 'rich');
-assertStylePresent(ctaViaContentSave, 'border-radius', '50px', 'sanitizeContentForSave(rich) keeps border-radius');
+const ctaViaContentSave = sanitizeContentForSave(CTA_SNIPPET);
+assertStylePresent(ctaViaContentSave, 'border-radius', '50px', 'sanitizeContentForSave keeps border-radius');
 assertStylePresent(cta, 'margin', '60px 0', 'CTA outer margin shorthand');
 assertStylePresent(cta, 'margin', '0 auto', 'CTA button centering');
 assertStylePresent(cta, 'line-height', '54px', 'CTA button line-height');

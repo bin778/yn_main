@@ -17,7 +17,7 @@ import AdminPostSeoSection from './admin-post-form/AdminPostSeoSection';
 import AdminPostThumbnailSection from './admin-post-form/AdminPostThumbnailSection';
 import SchedulePublishModal from './admin-post-form/SchedulePublishModal';
 import ScheduledPostBanner from './admin-post-form/ScheduledPostBanner';
-import BoardRichEditor from './BoardRichEditor';
+import BoardEditor from './board-editor/BoardEditor';
 import PostDraftPanel from './PostDraftPanel';
 
 export type { AdminPostInitial, PublishMode };
@@ -135,66 +135,19 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
         />
 
         <div>
-          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-            <span className="flex items-center gap-1 text-sm font-medium">
-              내용{' '}
-              <span className="text-[#b42318]" aria-hidden>
-                *
-              </span>
+          <label className="mb-1 flex items-center gap-1 text-sm font-medium">
+            내용{' '}
+            <span className="text-[#b42318]" aria-hidden>
+              *
             </span>
-            {form.contentMode === 'rich' ? (
-              <button
-                type="button"
-                disabled={form.loading}
-                onClick={form.handleSwitchToLegacyMode}
-                className="cursor-pointer rounded border border-[#c7d7fe] bg-[#f0f5ff] px-2.5 py-1 text-xs font-medium text-[#1a3151] hover:bg-[#e0ebff] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                고급 HTML 모드
-              </button>
-            ) : (
-              <span className="rounded bg-[#f0f5ff] px-2.5 py-1 text-xs font-medium text-[#1a3151]">
-                고급 HTML 모드 사용 중
-              </span>
-            )}
-          </div>
+          </label>
 
-          {form.showLegacySuggest && (
-            <div className="mb-2 flex flex-wrap items-center gap-2 rounded border border-[#fecdca] bg-[#fff6f5] px-3 py-2 text-xs text-[#7a271a]">
-              <span>{form.legacySuggestMessage}</span>
-              <button
-                type="button"
-                disabled={form.loading}
-                onClick={form.handleAcceptLegacySuggest}
-                className="cursor-pointer rounded bg-[#1a3151] px-2 py-1 text-white hover:bg-[#152846]"
-              >
-                고급 HTML 모드로 전환
-              </button>
-              <button
-                type="button"
-                disabled={form.loading}
-                onClick={form.dismissLegacySuggest}
-                className="cursor-pointer text-[#667085] underline"
-              >
-                기본 모드 유지
-              </button>
-            </div>
-          )}
-
-          {form.showRichModeLegacyWarning && (
-            <div className="mb-2 rounded border border-[#fedf89] bg-[#fffaeb] px-3 py-2 text-xs text-[#7a2e0e]">
-              기본 모드에서 편집 중입니다. 인라인 스타일·레이아웃 등 일부 서식은 저장 시 제거되거나 변경될 수 있습니다.
-            </div>
-          )}
-
-          <BoardRichEditor
+          <BoardEditor
             key={form.editorKey}
             value={form.content}
             onChange={form.handleContentChange}
-            contentMode={form.contentMode}
             disabled={form.loading}
             onUploadImage={form.handleEditorImageUpload}
-            onForceLegacyMode={form.handleForceLegacyMode}
-            onSwitchToRichMode={form.handleSwitchToRichMode}
           />
         </div>
 
@@ -238,12 +191,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
       )}
 
       {form.showPreview && (
-        <AdminPostPreviewModal
-          subject={form.subject}
-          content={form.content}
-          contentMode={form.contentMode}
-          onClose={form.handleClosePreview}
-        />
+        <AdminPostPreviewModal subject={form.subject} content={form.content} onClose={form.handleClosePreview} />
       )}
     </main>
   );

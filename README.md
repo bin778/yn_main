@@ -341,6 +341,13 @@ cd frontend && npm run start
 
 ## 최근 변경
 
+### 2026-06-11 — Phase 2 TinyMCE 에디터 통합 (2/3)
+
+- **TinyMCE 단일 에디터**: `BoardEditor` — 기본(Visual) + HTML 탭. CTA·인라인 스타일을 Visual에서 유지하며 글자만 편집 가능
+- **제거**: TipTap, 마크다운 탭, `rich`/`legacy_html` 프론트 분기·고급 HTML 모드 UI, `sanitizeBoardHtml`
+- **저장**: `content_mode: legacy_html` 고정 (`BOARD_SAVED_CONTENT_MODE`). `npm install` 시 `public/tinymce` 자동 복사 (`postinstall`)
+- **Phase 3 예고**: `wr_6` API·타입 완전 제거
+
 ### 2026-06-11 — Phase 1 sanitizer 통일 (TinyMCE 도입 1/3)
 
 - **관리자 본문 정제 통일**: `sanitizeContentForEditor`·`sanitizeContentForSave`가 항상 legacy sanitizer 사용 — HTML 탭 입력·미리보기·저장 시 CTA·인라인 스타일 유지

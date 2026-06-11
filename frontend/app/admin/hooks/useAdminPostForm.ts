@@ -26,15 +26,6 @@ import {
   type BoardPostFile,
   type BoardPostPayload,
 } from '../lib/boardPostTypes';
-import {
-  getLegacySuggestMessage,
-  normalizeHtmlForRichEditor,
-  resolveContentModeForEdit,
-  shouldSuggestLegacyHtml,
-  SWITCH_TO_LEGACY_CONFIRM,
-  SWITCH_TO_RICH_CONFIRM,
-  type BoardContentMode,
-} from '../lib/boardContentMode';
 import { contentIsEmpty, sanitizeContentForEditor, sanitizeContentForSave } from '../lib/boardContentSanitize';
 import { validateAttachmentPassword } from '../lib/validateAttachmentPassword';
 
@@ -50,10 +41,8 @@ type UseAdminPostFormOptions = {
 };
 
 export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDelete }: UseAdminPostFormOptions) {
-  const initialContentMode = resolveContentModeForEdit(initial.contentMode, initial.content);
   const [subject, setSubject] = useState(initial.subject);
-  const [contentMode, setContentMode] = useState<BoardContentMode>(initialContentMode);
-  const [content, setContent] = useState(() => sanitizeContentForEditor(initial.content, initialContentMode));
+  const [content, setContent] = useState(() => sanitizeContentForEditor(initial.content));
   const [schema, setSchema] = useState(initial.schema);
   const [notice, setNotice] = useState(initial.notice);
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
@@ -61,7 +50,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const [seoSlug, setSeoSlug] = useState(initial.seoSlug);
   const [seoDescription, setSeoDescription] = useState(initial.seoDescription);
   const [showSlugInput, setShowSlugInput] = useState(initial.seoSlug !== '');
-  const [legacySuggestDismissed, setLegacySuggestDismissed] = useState(false);
   const [attachment, setAttachment] = useState<BoardPostFile | null>(initial.attachment);
   const [pendingAttachment, setPendingAttachment] = useState<File | null>(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
@@ -77,12 +65,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const [showPreview, setShowPreview] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
-  const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}-${contentMode}`;
+  const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}`;
   const isScheduled = isScheduledPost(initial.wrDatetime);
-  const legacySuggestMessage = getLegacySuggestMessage(content);
-  const showLegacySuggest = !legacySuggestDismissed && contentMode === 'rich' && shouldSuggestLegacyHtml(content);
-  const showRichModeLegacyWarning =
-    legacySuggestDismissed && contentMode === 'rich' && shouldSuggestLegacyHtml(content);
 
   const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
   const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
@@ -98,7 +82,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         seoSlug,
         seoDescription,
         schema,
-        contentMode,
         attachment,
         pendingAttachment,
         removeAttachment,
@@ -115,7 +98,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       seoSlug,
       seoDescription,
       schema,
-      contentMode,
       attachment,
       pendingAttachment,
       removeAttachment,
@@ -149,7 +131,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   })();
 
   function validateBeforeSubmit(): string | null {
-    if (contentIsEmpty(content, contentMode)) {
+    if (contentIsEmpty(content)) {
       return '내용을 입력해 주세요.';
     }
 
@@ -179,7 +161,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       }
     }
 
-    const cleanedContent = sanitizeContentForSave(content, contentMode);
+    const cleanedContent = sanitizeContentForSave(content);
     const cleanedSchema = schema.trim();
     const wrDatetimeLocal =
       publishMode === 'scheduled'
@@ -198,7 +180,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       seoSlug,
       seoDescription,
       cleanedSchema,
-      contentMode,
       removeAttachment,
       attachmentPassword,
       downloadMode,
@@ -284,7 +265,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function handleSaveDraft() {
-    const cleaned = sanitizeContentForSave(content, contentMode);
+    const cleaned = sanitizeContentForSave(content);
     saveBoardDraft(
       boTable,
       buildBoardPostPayload(
@@ -297,7 +278,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         seoSlug,
         seoDescription,
         schema,
-        contentMode,
         removeAttachment,
         attachmentPassword,
         downloadMode,
@@ -309,10 +289,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function loadDraft(draft: BoardPostPayload & { preview: string }) {
-    const draftMode = resolveContentModeForEdit(draft.content_mode, draft.wr_content);
     setSubject(draft.wr_subject);
-    setContentMode(draftMode);
-    setContent(sanitizeContentForSave(draft.wr_content, draftMode));
+    setContent(sanitizeContentForSave(draft.wr_content));
     setSchema(draft.wr_schema ?? '');
     setNotice(draft.notice);
     setThumbnailUrl(draft.wr_1);
@@ -324,45 +302,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setRemoveAttachment(false);
   }
 
-  const switchToLegacyHtmlContent = useCallback((html: string) => {
-    setContentMode('legacy_html');
-    setContent(sanitizeContentForEditor(html, 'legacy_html'));
-    setLegacySuggestDismissed(true);
+  const handleContentChange = useCallback((html: string) => {
+    setContent(sanitizeContentForEditor(html));
   }, []);
-
-  const handleContentChange = useCallback(
-    (html: string) => {
-      const nextHtml = contentMode === 'rich' ? normalizeHtmlForRichEditor(html) : html;
-      setContent(sanitizeContentForEditor(nextHtml, contentMode));
-    },
-    [contentMode],
-  );
-
-  function handleAcceptLegacySuggest() {
-    switchToLegacyHtmlContent(content);
-  }
-
-  const handleSwitchToLegacyMode = useCallback(() => {
-    if (!window.confirm(SWITCH_TO_LEGACY_CONFIRM)) return;
-    switchToLegacyHtmlContent(content);
-  }, [content, switchToLegacyHtmlContent]);
-
-  const handleSwitchToRichMode = useCallback(() => {
-    if (!window.confirm(SWITCH_TO_RICH_CONFIRM)) return;
-    setContentMode('rich');
-    setContent(current => sanitizeContentForEditor(normalizeHtmlForRichEditor(current), 'rich'));
-    setLegacySuggestDismissed(false);
-  }, []);
-
-  function handleForceLegacyMode(rawHtml?: string) {
-    if (rawHtml !== undefined) {
-      switchToLegacyHtmlContent(rawHtml);
-      return;
-    }
-    setContentMode('legacy_html');
-    setContent(current => sanitizeContentForEditor(current, 'legacy_html'));
-    setLegacySuggestDismissed(true);
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -481,16 +423,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setSubject,
     content,
     handleContentChange,
-    contentMode,
-    setContentMode,
-    showLegacySuggest,
-    legacySuggestMessage,
-    showRichModeLegacyWarning,
-    handleAcceptLegacySuggest,
-    handleSwitchToLegacyMode,
-    handleForceLegacyMode,
-    handleSwitchToRichMode,
-    dismissLegacySuggest: () => setLegacySuggestDismissed(true),
     notice,
     setNotice,
     thumbnailUrl,

@@ -11,10 +11,7 @@ export function confirmLeave(): boolean {
 
 export function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnapshot): boolean {
   if (current.subject !== initial.subject) return true;
-  if (
-    sanitizeContentForSave(current.content, current.contentMode) !==
-    sanitizeContentForSave(initial.content, initial.contentMode)
-  ) {
+  if (sanitizeContentForSave(current.content) !== sanitizeContentForSave(initial.content)) {
     return true;
   }
   if (current.notice !== initial.notice) return true;
@@ -23,7 +20,6 @@ export function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnap
   if (current.seoSlug !== initial.seoSlug) return true;
   if (current.seoDescription !== initial.seoDescription) return true;
   if (current.schema !== initial.schema) return true;
-  if (current.contentMode !== initial.contentMode) return true;
   if (current.pendingAttachment !== null) return true;
   if (current.removeAttachment) return true;
   if (current.attachmentPassword.trim() !== '') return true;

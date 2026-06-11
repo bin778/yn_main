@@ -1,13 +1,11 @@
 import BoardContentBody from '@/app/components/BoardContentBody';
 
-import type { BoardContentMode } from '../../lib/boardContentMode';
 import { shouldUseLegacyLayoutRendering } from '../../lib/boardContentMode';
 import { sanitizeContentForSave } from '../../lib/boardContentSanitize';
 
 type AdminPostPreviewModalProps = {
   subject: string;
   content: string;
-  contentMode?: BoardContentMode;
   onClose: () => void;
 };
 

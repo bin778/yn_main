@@ -1,4 +1,4 @@
-import type { BoardContentMode } from './boardContentMode';
+import { BOARD_SAVED_CONTENT_MODE } from './boardContentMode';
 import { toMysqlDatetime, type BoardPostPayload } from './boardPostTypes';
 
 export type AttachmentDownloadMode = 'public' | 'password';
@@ -13,7 +13,6 @@ export function buildBoardPostPayload(
   seoSlug: string,
   seoDescription: string,
   schema: string,
-  contentMode: BoardContentMode,
   removeAttachment: boolean,
   attachmentPassword: string,
   downloadMode: AttachmentDownloadMode,
@@ -30,7 +29,7 @@ export function buildBoardPostPayload(
     wr_seo_slug: seoSlug.trim(),
     wr_seo_description: seoDescription.trim(),
     wr_schema: schema.trim(),
-    content_mode: contentMode,
+    content_mode: BOARD_SAVED_CONTENT_MODE,
     remove_attachment: removeAttachment,
   };
 
