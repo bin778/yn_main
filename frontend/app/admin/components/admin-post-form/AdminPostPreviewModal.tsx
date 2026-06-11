@@ -1,6 +1,6 @@
 import BoardContentBody from '@/app/components/BoardContentBody';
 
-import { shouldUseLegacyLayoutRendering } from '../../lib/boardContentMode';
+import { shouldUseLegacyLayoutRendering } from '@/app/lib/boardLegacyLayout';
 import { sanitizeContentForSave } from '../../lib/boardContentSanitize';
 
 type AdminPostPreviewModalProps = {
@@ -11,7 +11,7 @@ type AdminPostPreviewModalProps = {
 
 export default function AdminPostPreviewModal({ subject, content, onClose }: AdminPostPreviewModalProps) {
   const previewHtml = sanitizeContentForSave(content);
-  const legacyLayout = shouldUseLegacyLayoutRendering(undefined, previewHtml);
+  const legacyLayout = shouldUseLegacyLayoutRendering(previewHtml);
 
   return (
     <div

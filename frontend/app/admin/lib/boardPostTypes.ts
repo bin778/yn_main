@@ -1,7 +1,5 @@
 import type { BoTable } from '@/app/(story)/types/board';
 
-import type { BoardContentMode } from './boardContentMode';
-
 export type BoardPostPayload = {
   wr_subject: string;
   wr_content: string;
@@ -12,7 +10,6 @@ export type BoardPostPayload = {
   wr_seo_slug: string;
   wr_seo_description: string;
   wr_schema: string;
-  content_mode: BoardContentMode;
   remove_attachment?: boolean;
   attachment_password?: string;
   clear_attachment_password?: boolean;
@@ -44,7 +41,6 @@ export type BoardPostAdmin = {
   wr_seo_title: string;
   wr_seo_description: string;
   wr_schema: string;
-  content_mode: BoardContentMode;
   files: BoardPostFile[];
 };
 

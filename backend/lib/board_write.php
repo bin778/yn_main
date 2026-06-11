@@ -150,7 +150,7 @@ function board_parse_post_body(array $body, string $default_datetime): array
     }
 
     $wr_5 = trim((string) ($body['wr_schema'] ?? $body['wr_5'] ?? ''));
-    $wr_6 = board_normalize_content_mode($body['content_mode'] ?? $body['wr_6'] ?? 'rich');
+    $wr_6 = 'legacy_html';
 
     return [
         'wr_subject'  => $wr_subject,
@@ -188,7 +188,6 @@ function board_format_admin_post(array $row, string $bo_table): array
         'wr_seo_title'        => (string) ($row['wr_3'] ?? ''),
         'wr_seo_description'  => (string) ($row['wr_4'] ?? ''),
         'wr_schema'           => (string) ($row['wr_5'] ?? ''),
-        'content_mode'        => board_normalize_content_mode($row['wr_6'] ?? 'rich'),
         'bo_table'            => $bo_table,
     ];
 }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import BoardContentBody from '@/app/components/BoardContentBody';
-import { shouldUseLegacyLayoutRendering } from '@/app/admin/lib/boardContentMode';
+import { shouldUseLegacyLayoutRendering } from '@/app/lib/boardLegacyLayout';
 
 import type { BoTable, BoardView } from '../types/board';
 import { BOARD_META, getBoardPathSlug } from '../constants/boardContent';
@@ -21,7 +21,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
   const pathSlug = getBoardPathSlug(boTable);
   const listHref = `/${pathSlug}`;
   const { label } = BOARD_META[boTable];
-  const legacyLayout = shouldUseLegacyLayoutRendering(post.content_mode, post.wr_content);
+  const legacyLayout = shouldUseLegacyLayoutRendering(post.wr_content);
 
   return (
     <article className="bg-white px-4 py-12 md:px-6 md:py-16">

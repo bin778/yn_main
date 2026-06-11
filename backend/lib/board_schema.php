@@ -2,8 +2,6 @@
 
 const BOARD_SCHEMA_MAX_BYTES = 65536;
 
-const BOARD_CONTENT_MODES = ['rich', 'legacy_html'];
-
 /**
  * @return string|null 오류 메시지 또는 null
  */
@@ -24,16 +22,6 @@ function board_validate_schema_json(string $raw): ?string
     }
 
     return null;
-}
-
-function board_normalize_content_mode(?string $value): string
-{
-    $mode = trim((string) $value);
-    if ($mode === 'legacy_html') {
-        return 'legacy_html';
-    }
-
-    return 'rich';
 }
 
 /**

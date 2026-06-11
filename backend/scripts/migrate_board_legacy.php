@@ -3,7 +3,7 @@
 /**
  * 레거시 게시글 마이그레이션 CLI
  *
- * wr_content 내 JSON-LD script → wr_5, 레거시 HTML 감지 시 wr_6 = legacy_html
+ * wr_content 내 JSON-LD script → wr_5 추출, 본문에서 script 제거
  *
  * 사용법:
  *   php backend/scripts/migrate_board_legacy.php --bo_table=column --dry-run
@@ -41,19 +41,19 @@ if ($wrId <= 0 && !$runAll) {
 $writeTable = 'g5_write_' . $boTable;
 
 if ($wrId > 0) {
-    $sql = "SELECT wr_id, wr_subject, wr_content, wr_5, wr_6 FROM `{$writeTable}`
+    $sql = "SELECT wr_id, wr_subject, wr_content, wr_5 FROM `{$writeTable}`
             WHERE wr_id = :wr_id AND wr_is_comment = 0 LIMIT 1";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['wr_id' => $wrId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
-    $sql = "SELECT wr_id, wr_subject, wr_content, wr_5, wr_6 FROM `{$writeTable}`
+    $sql = "SELECT wr_id, wr_subject, wr_content, wr_5 FROM `{$writeTable}`
             WHERE wr_is_comment = 0 ORDER BY wr_id ASC";
     $rows = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $updateStmt = $pdo->prepare(
-    "UPDATE `{$writeTable}` SET wr_content = :wr_content, wr_5 = :wr_5, wr_6 = :wr_6
+    "UPDATE `{$writeTable}` SET wr_content = :wr_content, wr_5 = :wr_5
      WHERE wr_id = :wr_id AND wr_is_comment = 0"
 );
 
@@ -64,7 +64,6 @@ foreach ($rows as $row) {
     $id = (int) $row['wr_id'];
     $content = (string) $row['wr_content'];
     $currentSchema = trim((string) ($row['wr_5'] ?? ''));
-    $currentMode = board_normalize_content_mode($row['wr_6'] ?? 'rich');
 
     $extracted = board_extract_schema_from_content($content);
     $newContent = $extracted['content'];
@@ -81,16 +80,10 @@ foreach ($rows as $row) {
         }
     }
 
-    $newMode = $currentMode;
-    if (board_detect_legacy_html_content($newContent !== '' ? $newContent : $content)) {
-        $newMode = 'legacy_html';
-    }
-
     $contentChanged = $newContent !== $content;
     $schemaChanged = $newSchema !== $currentSchema;
-    $modeChanged = $newMode !== $currentMode;
 
-    if (!$contentChanged && !$schemaChanged && !$modeChanged) {
+    if (!$contentChanged && !$schemaChanged) {
         $skipped++;
         continue;
     }
@@ -102,15 +95,11 @@ foreach ($rows as $row) {
     if ($schemaChanged) {
         echo '  - wr_5: 스키마 ' . ($newSchema === '' ? '비움' : '저장 (' . strlen($newSchema) . ' bytes)') . "\n";
     }
-    if ($modeChanged) {
-        echo "  - wr_6: {$currentMode} → {$newMode}\n";
-    }
 
     if (!$dryRun) {
         $updateStmt->execute([
             'wr_content' => $contentChanged ? $newContent : $content,
             'wr_5'       => $newSchema,
-            'wr_6'       => $newMode,
             'wr_id'      => $id,
         ]);
     }

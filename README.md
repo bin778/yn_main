@@ -150,39 +150,35 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 - `app_config.php`에 `JWT_SECRET`(32자 이상 랜덤) 필수
 - 저장·삭제 후 Next ISR 갱신: `POST /api/board/revalidate` (프론트 Route Handler)
 
-##### 글쓰기/수정 UI (`AdminPostForm` + `BoardRichEditor`)
+##### 글쓰기/수정 UI (`AdminPostForm` + `BoardEditor`)
 
-| 기능           | 설명                                                                                                                                                        |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 리치 에디터    | Tiptap 기반. 기본·마크다운·HTML 탭, 굵게/색상/문단 스타일/정렬/리스트/인용/구분선/표/링크/이미지                                                            |
-| 본문 모드      | `rich`(기본) / `legacy_html`(레거시 HTML). `wr_6` 저장. `legacy_html` 또는 본문 레거시 마크업(CTA·인라인 스타일) 감지 시 HTML 모드로 연다                   |
-| HTML 모드 권장 | 레거시 인라인·복잡 HTML 감지 시 배너로 **고급 HTML 모드 전환** 권장. **기본 모드 유지** + 지속 경고. 「내용」 옆 **고급 HTML 모드** 버튼으로 수동 전환 가능 |
-| 레거시 HTML    | TipTap 없이 **기본·HTML·마크다운** 탭. `sanitizeLegacyBoardHtml` + `boardSanitizeLegacyAttrs`로 레이아웃 테이블 속성·인라인 스타일 보존                     |
-| 모드 전환      | legacy → rich: **「기본」** 탭 + confirm. rich → legacy: 배너·**고급 HTML 모드** 버튼 또는 TipTap 로드 실패 시                                              |
-| 탭 전환 경고   | rich HTML 탭→기본·마크다운, legacy HTML→마크다운, legacy **기본**→rich 전환 시 확인 (서식·스타일 손실 안내)                                                 |
-| 미리보기       | 저장 전 본문·SEO 미리보기 모달                                                                                                                              |
-| 임시저장       | 브라우저 `localStorage`에 초안 저장·불러오기                                                                                                                |
-| 예약 발행      | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                                                                    |
-| 썸네일·첨부    | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                                                                 |
-| 첨부 비밀번호  | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                                                                       |
-| SEO            | 제목·슬러그·설명 메타 + 미리보기                                                                                                                            |
-| 이탈 경고      | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                                                                |
+| 기능          | 설명                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 본문 에디터   | TinyMCE self-hosted(GPL). **기본(Visual)** + **HTML** 탭. CTA·인라인 스타일을 Visual에서 유지하며 글자만 편집            |
+| 본문 정제     | 편집·저장·미리보기 모두 `sanitizeLegacyBoardHtml` 단일 경로 (`boardContentSanitize.ts`)                                  |
+| TinyMCE 배포  | `npm install` 시 `postinstall`로 `public/tinymce` 생성. Git에는 미포함 (`.gitignore`) — Vercel/CI는 install 시 자동 복사 |
+| 미리보기      | 저장 전 본문·SEO 미리보기 모달                                                                                           |
+| 임시저장      | 브라우저 `localStorage`에 초안 저장·불러오기                                                                             |
+| 예약 발행     | 즉시·10/30/60분 후·직접 지정 (`wr_datetime` 미래 시각, 목록·상세 비노출)                                                 |
+| 썸네일·첨부   | 클라이언트 10MB 선검증 (`boardAttachmentAccept.ts`), 실패 시 선택 UI 초기화                                              |
+| 첨부 비밀번호 | 업로드 시 비밀번호 설정·해제, PBKDF2 해시(구·신 salt 호환), 상세에서 입력 후 다운로드                                    |
+| SEO           | 제목·슬러그·설명 메타 + 미리보기                                                                                         |
+| 이탈 경고     | 제목·본문·첨부 등 변경 시 취소·헤더 링크·`beforeunload` 확인                                                             |
 
-**레거시 게시글 편집**
+**레거시·CTA HTML 편집**
 
-- `wr_6=legacy_html`이거나 본문에 **CTA·인라인 스타일**(`background`, `border-radius`, `yn-cta` 등) 또는 **이메일형 레이아웃**(`bgcolor`, `<table width=`, nested table)이 있으면 **고급 HTML 모드**로 엽니다.
-- 수정 폼·미리보기는 legacy sanitizer를 거치지만, **상세 페이지는 DB HTML 그대로** 렌더합니다. 이메일형 글은 `board-content--legacy-layout` CSS로 레이아웃 테이블 border/width 강제를 해제합니다.
-- **이미 rich sanitizer로 저장된 본문**(스타일 strip됨)은 코드만으로 복구되지 않습니다. 그누보드 원본 `wr_content` 복원 또는 HTML 탭에서 수동 재입력이 필요합니다.
-- rich 모드 입력 시 `<h1>`은 `<h2>`로 정규화됩니다.
+- 복잡한 HTML(CTA·이메일형 레이아웃)은 **HTML 탭**에서 붙여넣은 뒤 **기본 탭**으로 전환해 글자만 수정합니다.
+- 수정 폼·미리보기는 legacy sanitizer를 거치지만, **상세 페이지는 DB HTML 그대로** 렌더합니다.
+- 이메일형 글(`bgcolor`, `<table width=`, nested table)은 본문 HTML 기준으로 `board-content--legacy-layout` CSS가 적용됩니다 (`boardLegacyLayout.ts`).
 
-**고급 HTML sanitizer가 보존하는 것 (타협 범위)**
+**legacy sanitizer가 보존하는 것 (타협 범위)**
 
 | 구분   | 보존 항목                                                                                                                                             |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 살림   | `bgcolor`, `color`/`text-align`/`font-weight`, `font-family`(Georgia·Arial), `font-size`(소수 pt·large 등), nested `<table>` 구조(셀 `<p>` 래핑 없음) |
 | 조건부 | `width`/`height`(상한 900/200px), `bordercolor`, `cellpadding`/`cellspacing`/`border`(≤20), `border`/`border-radius` style                            |
 
-**포기 (의도적 제한)**: rich 모드 1:1 보존, arbitrary CSS(`position`, `url()` 등), `<script>`/`<iframe>`, TipTap용 셀 `<p>` 래핑
+**포기 (의도적 제한)**: arbitrary CSS(`position`, `url()` 등), `<script>`/`<iframe>`
 
 ##### 레거시 일괄 마이그레이션 CLI
 
@@ -194,7 +190,7 @@ php backend/scripts/migrate_board_legacy.php --bo_table=success --wr_id=93 --dry
 php backend/scripts/migrate_board_legacy.php --bo_table=column --dry-run
 php backend/scripts/migrate_board_legacy.php --bo_table=column --all --dry-run
 
-# 실제 적용 — wr_5(JSON-LD 추출), wr_6(legacy_html) 설정
+# 실제 적용 — wr_5(JSON-LD 추출), 본문 script 제거
 php backend/scripts/migrate_board_legacy.php --bo_table=success --wr_id=93
 php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 ```
@@ -206,37 +202,34 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 | `--all`       | 해당 게시판 전체 글 처리 (`--wr_id`와 택일)        |
 | `--dry-run`   | SQL UPDATE 없이 변경 대상·내용만 stdout 출력       |
 
-스크립트 동작: `wr_content`에서 JSON-LD `<script>` → `wr_5` 추출, `board_detect_legacy_html_content()`(bgcolor·CTA·flex 등)에 해당하면 `wr_6=legacy_html` 설정.
+스크립트 동작: `wr_content`에서 JSON-LD `<script>` → `wr_5` 추출, 본문에서 script 태그 제거.
 
-**주의**: 마이그레이션은 **`wr_6`·`wr_5`·script 제거**만 수행합니다. **본문 HTML을 그누보드 원본으로 되돌리지 않습니다.** 스타일이 이미 strip된 글은 DB 백업/그누보드에서 `wr_content`를 복원한 뒤 `--dry-run`으로 `legacy_html` 전환 여부를 확인하세요.
+**주의**: 마이그레이션은 **`wr_5`·script 제거**만 수행합니다. **본문 HTML을 그누보드 원본으로 되돌리지 않습니다.** 스타일이 이미 strip된 글은 DB 백업/그누보드에서 `wr_content`를 복원한 뒤 `--dry-run`으로 변경 예정을 확인하세요.
 
 상세·목록의 **BoardAdminBar**: 관리자 로그인 시 글쓰기·수정·삭제·예약글 목록·관리자 허브 링크 노출.
 
 ##### 관리자 프론트엔드 구조
 
-대형 컴포넌트를 역할별로 분리했습니다. 기존 import 경로(`AdminPostForm`, `BoardRichEditor`)는 그대로 유지합니다.
-
 ```
 frontend/app/admin/
 ├── components/
 │   ├── AdminPostForm.tsx          # 훅 + 섹션 조립
-│   ├── BoardRichEditor.tsx        # rich / legacy_html 분기
-│   ├── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 예약 모달, 액션 버튼
-│   └── board-rich-editor/         # TipTap·레거시 HTML 에디터, 툴바, useBoardRichEditor
+│   ├── board-editor.css           # TinyMCE·textarea 스타일
+│   ├── board-editor/              # BoardEditor, BoardTinyMceEditor, useBoardEditor
+│   └── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 예약 모달, 액션 버튼
 ├── hooks/
 │   ├── useAdminPostForm.ts        # 폼 state·즉시/예약 저장·삭제
 │   ├── useAdminPostLeaveGuard.ts  # 이탈 가드
-│   └── useClickOutside.ts         # 툴바 드롭다운 outside-click
+│   └── useClickOutside.ts
 └── lib/
-    ├── adminPostFormTypes.ts      # AdminPostInitial, emptyAdminPostInitial
+    ├── adminPostFormTypes.ts
     ├── buildBoardPostPayload.ts   # API payload 조립 (scheduled 플래그)
-    ├── adminPostFormDirty.ts      # dirty 판별·이탈 메시지
-    ├── validateAttachmentPassword.ts
-    ├── boardAttachmentAccept.ts   # 업로드 확장자·10MB 검증 (백엔드와 동기)
-    ├── boardContentMode.ts        # rich / legacy_html·이메일형 레이아웃 감지
-    ├── boardSanitizeLegacyAttrs.ts # legacy table bgcolor·width 등 속성 정제
-    ├── boardTableHtml.ts          # TipTap용 표 HTML 정규화 (legacy에는 미적용)
-    └── sanitizeLegacyBoardHtml.ts # 레거시 HTML sanitizer
+    ├── boardContentSanitize.ts    # 편집·저장 sanitizer 진입점
+    ├── boardSanitizeLegacyAttrs.ts
+    └── sanitizeLegacyBoardHtml.ts
+
+frontend/app/lib/
+└── boardLegacyLayout.ts           # 상세·미리보기 이메일형 레이아웃 감지 (본문 HTML만)
 ```
 
 #### 상담 문의 관리 (JWT, 최고관리자만)
@@ -330,87 +323,14 @@ cd frontend && npm run start
 - `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
 - `/admin/news/write`에서 글 작성·예약 발행 → 예약글 목록·공개 시각 이후 목록/상세 반영
 - 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고
-- `BoardRichEditor`: rich — 기본/마크다운/HTML 탭. legacy — **기본**/HTML/마크다운 탭. 「고급 HTML 모드」수동 전환
-- 레거시·복잡 HTML: 배너 권장·기본 모드 유지(지속 경고), HTML 모드에서 「기본」 탭으로 rich 복귀, TipTap 파싱 실패 시에만 legacy 강제
+- `BoardEditor`: 기본(Visual)·HTML 탭. CTA HTML 붙여넣기 → 기본 탭 전환 시 스타일 유지, 글자만 수정 가능
+- 저장 payload·API 응답에 `content_mode` 없음 (Phase 3)
 - 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드 (비밀번호 없는 첨부도 정상)
 - 상세·관리자 바에서 수정·삭제 동작 확인
 - `/contact/` 서울 주사무소 카카오맵: 모바일·PC 모두 을지로 주소 표시
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
 
-카페24 배포 시 업로드: `backend/lib/`(board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, get_scheduled_list.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
-
-## 최근 변경
-
-### 2026-06-11 — Phase 2 TinyMCE 에디터 통합 (2/3)
-
-- **TinyMCE 단일 에디터**: `BoardEditor` — 기본(Visual) + HTML 탭. CTA·인라인 스타일을 Visual에서 유지하며 글자만 편집 가능
-- **제거**: TipTap, 마크다운 탭, `rich`/`legacy_html` 프론트 분기·고급 HTML 모드 UI, `sanitizeBoardHtml`
-- **저장**: `content_mode: legacy_html` 고정 (`BOARD_SAVED_CONTENT_MODE`). `npm install` 시 `public/tinymce` 자동 복사 (`postinstall`)
-- **Phase 3 예고**: `wr_6` API·타입 완전 제거
-
-### 2026-06-11 — Phase 1 sanitizer 통일 (TinyMCE 도입 1/3)
-
-- **관리자 본문 정제 통일**: `sanitizeContentForEditor`·`sanitizeContentForSave`가 항상 legacy sanitizer 사용 — HTML 탭 입력·미리보기·저장 시 CTA·인라인 스타일 유지
-- **미리보기**: `legacy-layout` CSS는 정제된 본문 HTML 기준으로만 판별 (`contentMode` 무관)
-- **Phase 2까지 유지**: TipTap 기본 탭·HTML→기본 탭 전환·마크다운 탭은 기존 `sanitizeBoardHtml` 경로 — WYSIWYG 편집 한계 동일
-
-### 2026-06-10 — 고급 HTML 레이아웃 보존·마이그레이션
-
-- **legacy sanitizer 확장**: `bgcolor`·`bordercolor`·`width`/`height`(상한)·`cellpadding`/`cellspacing`/`border` 허용 (`boardSanitizeLegacyAttrs.ts`)
-- **인라인 스타일**: `font-family`(Georgia/Arial), `font-size`(13.5pt·large 등), style height 최대 200px
-- **legacy 표 처리**: TipTap용 셀 `<p>` 래핑(`normalizeTablesForEditor`) **legacy 경로에서 제거** — nested table 구조 유지
-- **이메일형 레이아웃 감지**: `bgcolor`, `<table width=`, nested table → `legacy_html` 진입 + `board-content--legacy-layout` CSS
-- **렌더링**: 상세·미리보기에 legacy layout 클래스 — 레이아웃 table border/width 100% 강제 해제
-- **본문 모드 UX**: 고급 HTML 수동 전환 버튼, 양방향 모드 전환, 자동 legacy 전환 완화 (배너 권장)
-- **마이그레이션 CLI**: `--dry-run`으로 `wr_6`/`wr_5` 변경 예정 확인 (README 절차 추가)
-
-### 2026-06-10 — 본문 모드 전환 UX (동일 배포)
-
-- **자동 legacy 전환 완화**: 입력 중 `isTipTapUnsafeHtml` 감지 시 즉시 HTML 모드로 바꾸지 않음 → 배너로 **HTML 모드 전환** 권장, **기본 모드 유지** + 지속 경고
-- **양방향 모드 전환**: HTML 모드 하단 **「기본」** 탭으로 rich 복귀 (확인 대화상자, `sanitizeBoardHtml` 적용)
-- **수정 폼 로드**: `wr_6=legacy_html` 우선 + 본문 레거시 마크업(CTA·flex·background 등) 감지 시 HTML 모드 (TipTap 로드 전 판별)
-- **h1 정규화**: rich 모드에서 `<h1>` → `<h2>` (`normalizeHtmlForRichEditor`)
-- **TipTap 실패 시만 legacy 강제**: `setContent` try/catch·Error Boundary (`onForceLegacyMode`)
-
-### 2026-06-09 — 레거시 HTML 호환·에디터 정리
-
-- **레거시 HTML 모드** (`wr_6=legacy_html`): 구 그누보드 본문은 TipTap 없이 HTML textarea로 편집, 스타일 보존
-- **자동 모드 감지 (구)**: 수정 폼 로드 시 본문 HTML로 `legacy_html` 추론 — **2026-06-10부터 `wr_6` 우선으로 변경**
-- **표 정규화 버그 수정**: `boardTableHtml.ts` — 중첩 `<table>` 처리 시 `insertBefore` DOM 오류 수정
-- **HTML 탭 전환 경고**: HTML 모드에서 기본·마크다운 탭으로 바꿀 때 서식 초기화 확인 대화상자
-- **관리자 UI 축소**: 구조화 데이터(JSON-LD) 편집 섹션·「레거시 정리」버튼 제거 (기존 `wr_5` 데이터는 상세 출력 유지)
-- **TipTap 초기화**: 빈 문서로 마운트 후 `setContent` try/catch, 실패 시 레거시 모드로 전환
-- **미리보기·상세 동기화**: `BoardContentBody` 공통 컴포넌트, 미리보기 `max-w-[900px]`·제목 타이포 상세와 동일
-- **레거시 CTA 스타일**: `.board-content` 버튼형 링크 밑줄 제거, sanitizer에 flex·width·gap 등 허용
-
-### 2026-06-08 — 모바일 반응형·게시판 본문
-
-- **게시판 본문 CSS**: `board-typography.css`에 `md`(768px) 타이포 단계 추가; `board-content.css`에 모바일 2열 카드형 `table` 세로 스택·이미지 전체 너비
-- **사이트 전반 모바일 스타일**: 메인·헤더·푸터·People·Field·Contact·News 등 페이지별 레이아웃·글자 크기 조정
-- **Contact**: 서울 주사무소 카카오맵 모바일 임베드가 부천으로 나오던 오류 수정 (`mapMobile` → PC와 동일 키)
-- **Contact**: 지도 하단 주소·전화 글자 크기 `12px` / `md:14px`
-
-### 2026-06-07 — 예약 발행·수정·삭제
-
-- **예약 발행**: `SchedulePublishModal` — 즉시·10/30/60분·직접 지정; `wr_datetime` 미래 글은 공개 API·목록에서 제외
-- **예약글 관리**: `/admin/{bo_table}/scheduled/`, `GET /api/board/get_scheduled_list.php`, BoardAdminBar·수정 화면에서 예약 취소(삭제)
-- **수정·삭제**: 상세 `BoardAdminBar` 및 `DELETE /api/board/write_post.php`; 저장 후 `POST /api/board/revalidate`로 ISR 갱신
-
-### 2026-06-06 — 첨부파일·모바일 UI
-
-- **첨부 비밀번호**: PBKDF2 salt 구·신 버전 호환 검증; 설정·해제·재업로드 반영 버그 수정
-- **다운로드**: 비밀번호 없는 첨부 404 수정
-- **모바일**: 하단 플로팅 액션·Hero·People 페이지 스타일 최적화
-
-### 2026-06-05 — 관리자 글쓰기·리팩토링
-
-- **관리자 글쓰기 강화**: Tiptap 리치 에디터(마크다운·HTML 탭, 표·배경색·구분선 등), 저장 전 미리보기, 임시저장
-- **업로드 UX**: 썸네일·본문 이미지·첨부 10MB 클라이언트 선검증 및 실패 시 UI 초기화
-- **이탈 경고**: 작성 중 취소·내부 링크·탭 닫기 시 확인 (`useAdminPostLeaveGuard`)
-- **첨부 비밀번호**: 관리자 폼에서 설정·해제, 상세 `BoardAttachmentItem`에서 다운로드 전 입력
-- **게시글 상세 500 수정**: `BoardAttachmentItem`의 `formatFileSize`를 컴포넌트 내부로 이동
-- **코드 구조**: `AdminPostForm`·`BoardRichEditor`를 lib/hooks/섹션 컴포넌트로 분리
-- **백엔드 (FTP 반영)**: PHP 7.3 호환, `board_files.php`·`download_file.php`·`pbkdf2.php` 첨부 비밀번호 연동
+카페24 배포 시 업로드: `backend/lib/`(board_write.php, board_schema.php, board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, get_scheduled_list.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
 
 ### 그 이전 주요 마일스톤
 

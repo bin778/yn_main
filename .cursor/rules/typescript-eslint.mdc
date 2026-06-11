@@ -20,12 +20,12 @@ alwaysApply: false
 
 ```ts
 // ❌ BAD — lint error
-export function save(html: string, mode?: BoardContentMode) {
+export function save(html: string, options?: { strict: boolean }) {
   return sanitizeLegacy(html);
 }
 
 // ✅ GOOD — 호출부 호환용 미사용 인자
-export function save(html: string, _mode?: BoardContentMode) {
+export function save(html: string, _options?: { strict: boolean }) {
   return sanitizeLegacy(html);
 }
 
