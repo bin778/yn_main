@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 
+import { GA_EVENTS, GA_SOURCES, INQUIRY_FORM_NAME } from '@/app/constants/analyticsEvents';
 import {
   CONTACT_INQUIRY,
   INQUIRY_API_URL,
@@ -12,6 +13,7 @@ import {
   INQUIRY_VALIDATION_MESSAGES,
 } from '@/app/constants/contactContent';
 import { validateInquiryFields } from '@/app/lib/inquiryValidation';
+import { trackGaEvent } from '@/app/lib/trackGaEvent';
 
 type InquiryResponse = {
   result: string;
@@ -69,6 +71,10 @@ export default function ContactInquiryForm() {
       const data = (await response.json()) as InquiryResponse;
       alert(data.msg);
       if (data.result === '1') {
+        trackGaEvent(GA_EVENTS.GENERATE_LEAD, {
+          form_name: INQUIRY_FORM_NAME,
+          link_source: GA_SOURCES.CONTACT_FORM,
+        });
         setName('');
         setTel('');
         setContent('');

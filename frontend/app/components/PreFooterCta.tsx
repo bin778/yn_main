@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import FamilySiteDropdown from '@/app/components/FamilySiteDropdown';
+import { GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 import {
   BROCHURE_HREF,
   CONTACT_HREF,
@@ -58,6 +59,7 @@ export default function PreFooterCta() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-[196px] md:w-[226px] max-w-full items-center justify-between border border-white bg-transparent px-4 py-3 font-bold text-white"
+              {...{ [GA_SOURCE_ATTR]: GA_SOURCES.PRE_FOOTER_CTA }}
             >
               브로슈어 다운로드
               <span aria-hidden>→</span>
@@ -102,6 +104,7 @@ export default function PreFooterCta() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full max-w-[237px] items-center justify-between border border-white bg-transparent px-4 py-3 font-bold text-white md:ml-auto"
+                {...{ [GA_SOURCE_ATTR]: GA_SOURCES.PRE_FOOTER_CTA }}
               >
                 브로슈어 다운로드
                 <span aria-hidden>→</span>

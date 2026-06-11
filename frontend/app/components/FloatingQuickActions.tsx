@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 
+import { GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
+
 const QUICK_ACTIONS = [
   {
     href: 'tel:02-318-2981',
@@ -78,6 +80,8 @@ export default function FloatingQuickActions() {
             );
           }
 
+          const isTrackedAction = action.href.startsWith('tel:') || action.href.includes('pf.kakao.com');
+
           return (
             <a
               key={action.label}
@@ -86,6 +90,7 @@ export default function FloatingQuickActions() {
               aria-label={action.label}
               target={action.target}
               rel={action.rel}
+              {...(isTrackedAction ? { [GA_SOURCE_ATTR]: GA_SOURCES.FLOATING_QUICK_ACTIONS } : {})}
             >
               {content}
             </a>

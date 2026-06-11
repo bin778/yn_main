@@ -5,6 +5,7 @@ import { pretendard } from '@/app/lib/fonts';
 
 import './globals.css';
 import Analytics from './components/Analytics';
+import AnalyticsClickTracker from './components/AnalyticsClickTracker';
 import Footer from './components/Footer';
 import Header from './components/Header';
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={pretendard.variable}>
       <body className={`m-0 p-0 ${pretendard.className}`}>
         <Analytics />
+        <AnalyticsClickTracker />
         <Header />
         <main className="pt-[80px]">{children}</main>
         <FloatingQuickActions />

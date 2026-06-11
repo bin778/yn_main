@@ -3,8 +3,9 @@
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { usePathname } from 'next/navigation';
 
+import { ADMIN_PATH_PREFIX } from '@/app/constants/analyticsEvents';
+
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-const ADMIN_PATH_PREFIX = '/admin';
 
 export default function Analytics() {
   const pathname = usePathname();
