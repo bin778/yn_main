@@ -111,17 +111,19 @@ export function createBoardTinyMceInit({ onUploadImage }: CreateBoardTinyMceInit
   const init: BoardTinyMceInitOptions = {
     base_url: '/tinymce',
     suffix: '.min',
+    language: 'ko_KR',
+    language_url: '/tinymce/langs/ko_KR.js',
     menubar: false,
     statusbar: false,
     branding: false,
     promotion: false,
     height: BOARD_EDITOR_MIN_HEIGHT,
     resize: true,
-    plugins: ['lists', 'link', 'image', 'table', 'code', 'autolink', 'fullscreen'],
+    plugins: ['lists', 'link', 'image', 'table', 'autolink', 'fullscreen'],
     toolbar:
       'undo redo | blocks styles | bold italic underline strikethrough | ' +
       'forecolor backcolor | alignleft aligncenter alignright | ' +
-      'bullist numlist | blockquote hr | link image table | code fullscreen',
+      'bullist numlist | blockquote hr | link image table | fullscreen',
     block_formats: '제목1=h2;제목2=h3;제목3=h4;본문=p',
     style_formats: buildParagraphStyleFormats(),
     extended_valid_elements: EXTENDED_VALID_ELEMENTS,
