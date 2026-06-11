@@ -1,7 +1,9 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { EDITOR_CONTENT_DEBOUNCE_MS } from '../components/board-editor/constants';
 
 import {
   createBoardPost,
@@ -41,8 +43,12 @@ type UseAdminPostFormOptions = {
 };
 
 export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDelete }: UseAdminPostFormOptions) {
+  const initialContent = sanitizeContentForEditor(initial.content);
   const [subject, setSubject] = useState(initial.subject);
-  const [content, setContent] = useState(() => sanitizeContentForEditor(initial.content));
+  const [content, setContent] = useState(initialContent);
+  const [contentVersion, setContentVersion] = useState(0);
+  const contentRef = useRef(initialContent);
+  const contentDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [schema, setSchema] = useState(initial.schema);
   const [notice, setNotice] = useState(initial.notice);
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
@@ -67,6 +73,22 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
 
   const editorKey = `${mode}-${wrId ?? 'new'}-${initial.subject}`;
   const isScheduled = isScheduledPost(initial.wrDatetime);
+
+  const flushDebouncedContent = useCallback(() => {
+    if (contentDebounceRef.current !== null) {
+      clearTimeout(contentDebounceRef.current);
+      contentDebounceRef.current = null;
+      setContent(contentRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (contentDebounceRef.current !== null) {
+        clearTimeout(contentDebounceRef.current);
+      }
+    };
+  }, []);
 
   const bodyDescriptionFallback = useMemo(() => stripHtmlForMetaDescription(content), [content]);
   const seoPreviewDescription = seoDescription.trim() || bodyDescriptionFallback;
@@ -131,7 +153,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   })();
 
   function validateBeforeSubmit(): string | null {
-    if (contentIsEmpty(content)) {
+    if (contentIsEmpty(contentRef.current)) {
       return '내용을 입력해 주세요.';
     }
 
@@ -147,6 +169,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   async function submitPost(publishMode: PublishMode, scheduledLocal?: string) {
+    flushDebouncedContent();
     const validationError = validateBeforeSubmit();
     if (validationError !== null) {
       setError(validationError);
@@ -161,7 +184,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       }
     }
 
-    const cleanedContent = sanitizeContentForSave(content);
+    const cleanedContent = sanitizeContentForSave(contentRef.current);
     const cleanedSchema = schema.trim();
     const wrDatetimeLocal =
       publishMode === 'scheduled'
@@ -265,7 +288,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function handleSaveDraft() {
-    const cleaned = sanitizeContentForSave(content);
+    flushDebouncedContent();
+    const cleaned = sanitizeContentForSave(contentRef.current);
     saveBoardDraft(
       boTable,
       buildBoardPostPayload(
@@ -289,8 +313,16 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   }
 
   function loadDraft(draft: BoardPostPayload & { preview: string }) {
+    if (contentDebounceRef.current !== null) {
+      clearTimeout(contentDebounceRef.current);
+      contentDebounceRef.current = null;
+    }
+
+    const draftContent = sanitizeContentForSave(draft.wr_content);
+    contentRef.current = draftContent;
     setSubject(draft.wr_subject);
-    setContent(sanitizeContentForSave(draft.wr_content));
+    setContent(draftContent);
+    setContentVersion(version => version + 1);
     setSchema(draft.wr_schema ?? '');
     setNotice(draft.notice);
     setThumbnailUrl(draft.wr_1);
@@ -302,8 +334,26 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setRemoveAttachment(false);
   }
 
+  const syncContent = useCallback((html: string) => {
+    if (contentDebounceRef.current !== null) {
+      clearTimeout(contentDebounceRef.current);
+      contentDebounceRef.current = null;
+    }
+    contentRef.current = html;
+    setContent(html);
+  }, []);
+
   const handleContentChange = useCallback((html: string) => {
-    setContent(sanitizeContentForEditor(html));
+    contentRef.current = html;
+
+    if (contentDebounceRef.current !== null) {
+      clearTimeout(contentDebounceRef.current);
+    }
+
+    contentDebounceRef.current = setTimeout(() => {
+      setContent(html);
+      contentDebounceRef.current = null;
+    }, EDITOR_CONTENT_DEBOUNCE_MS);
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -419,10 +469,13 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     mode,
     wrId,
     editorKey,
+    contentVersion,
+    flushDebouncedContent,
     subject,
     setSubject,
     content,
     handleContentChange,
+    syncContent,
     notice,
     setNotice,
     thumbnailUrl,

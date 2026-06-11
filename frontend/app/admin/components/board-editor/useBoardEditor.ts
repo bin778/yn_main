@@ -3,22 +3,26 @@
 import type { Editor as TinyMceEditor } from 'tinymce';
 import { useCallback, useId, useRef, useState } from 'react';
 
-import { sanitizeContentForEditor } from '../../lib/boardContentSanitize';
-
 import { HTML_TAB_LEAVE_CONFIRM, TAB_LABELS } from './constants';
 import type { BoardEditorProps, EditorTab } from './types';
 
-export function useBoardEditor({ value, onChange, disabled = false }: BoardEditorProps) {
+export function useBoardEditor({ value, contentVersion, onChange, onSyncContent, disabled = false }: BoardEditorProps) {
   const labelId = useId();
   const editorRef = useRef<TinyMceEditor | null>(null);
   const [tab, setTab] = useState<EditorTab>('visual');
   const [htmlDraft, setHtmlDraft] = useState(value);
+  const [prevContentVersion, setPrevContentVersion] = useState(contentVersion);
+
+  if (contentVersion !== prevContentVersion) {
+    setPrevContentVersion(contentVersion);
+    setHtmlDraft(value);
+  }
 
   const emitChange = useCallback(
     (html: string) => {
-      onChange(sanitizeContentForEditor(html));
+      onSyncContent(html);
     },
-    [onChange],
+    [onSyncContent],
   );
 
   const handleEditorReady = useCallback((editor: TinyMceEditor) => {
@@ -27,10 +31,9 @@ export function useBoardEditor({ value, onChange, disabled = false }: BoardEdito
 
   const handleEditorChange = useCallback(
     (html: string) => {
-      setHtmlDraft(html);
-      emitChange(html);
+      onChange(html);
     },
-    [emitChange],
+    [onChange],
   );
 
   function resolveHtmlFromTab(sourceTab: EditorTab): string {

@@ -145,7 +145,9 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           <BoardEditor
             key={form.editorKey}
             value={form.content}
+            contentVersion={form.contentVersion}
             onChange={form.handleContentChange}
+            onSyncContent={form.syncContent}
             disabled={form.loading}
             onUploadImage={form.handleEditorImageUpload}
           />
@@ -175,7 +177,10 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
           loading={form.loading}
           mode={mode}
           showDelete={onDelete !== undefined && !form.isScheduled}
-          onPreview={() => form.setShowPreview(true)}
+          onPreview={() => {
+            form.flushDebouncedContent();
+            form.setShowPreview(true);
+          }}
           onCancel={handleCancel}
           onDelete={() => void form.handleDelete()}
           onScheduleClick={() => form.setShowScheduleModal(true)}

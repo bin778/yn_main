@@ -2,20 +2,21 @@
 
 import { Editor } from '@tinymce/tinymce-react';
 import type { Editor as TinyMceEditor } from 'tinymce';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { createBoardTinyMceInit } from './boardTinyMceInit';
 import type { BoardTinyMceEditorProps } from './types';
 
 export default function BoardTinyMceEditor({
-  value,
+  externalContent,
+  contentVersion,
   disabled = false,
   onUploadImage,
   onEditorReady,
   onEditorChange,
 }: BoardTinyMceEditorProps) {
   const editorRef = useRef<TinyMceEditor | null>(null);
-  const lastEmittedRef = useRef(value);
+  const [initialContent] = useState(() => externalContent);
 
   const init = useMemo(() => createBoardTinyMceInit({ onUploadImage }), [onUploadImage]);
 
@@ -28,30 +29,25 @@ export default function BoardTinyMceEditor({
   useEffect(() => {
     const editor = editorRef.current;
     if (editor === null) return;
-    if (value === lastEmittedRef.current) return;
-    if (editor.getContent() === value) return;
-    editor.setContent(value || '');
-    lastEmittedRef.current = value;
-  }, [value]);
+    if (contentVersion === 0) return;
+
+    editor.setContent(externalContent || '');
+  }, [contentVersion, externalContent]);
 
   return (
     <Editor
       licenseKey="gpl"
       tinymceScriptSrc="/tinymce/tinymce.min.js"
       disabled={disabled}
-      value={value}
+      initialValue={initialContent}
       init={init}
       onInit={(_event, editor) => {
         editorRef.current = editor;
         onEditorReady(editor);
-        lastEmittedRef.current = editor.getContent();
       }}
-      onEditorChange={(html, editor) => {
-        lastEmittedRef.current = html;
-        onEditorChange(html);
-        if (editorRef.current === null) {
-          editorRef.current = editor;
-        }
+      onEditorChange={(_html, editor) => {
+        onEditorChange(editor.getContent());
+        editorRef.current = editor;
       }}
     />
   );

@@ -10,7 +10,7 @@ import type { BoardEditorProps } from './types';
 const BoardTinyMceEditor = dynamic(() => import('./BoardTinyMceEditor'), { ssr: false });
 
 export default function BoardEditor(props: BoardEditorProps) {
-  const { value, onUploadImage } = props;
+  const { value, contentVersion, onUploadImage } = props;
   const {
     labelId,
     tab,
@@ -29,7 +29,8 @@ export default function BoardEditor(props: BoardEditorProps) {
       {tab === 'visual' ? (
         <div className="border border-[#ddd] bg-white" aria-labelledby={labelId}>
           <BoardTinyMceEditor
-            value={value}
+            externalContent={value}
+            contentVersion={contentVersion}
             disabled={disabled}
             onUploadImage={onUploadImage}
             onEditorReady={handleEditorReady}
