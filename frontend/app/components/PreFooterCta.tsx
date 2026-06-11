@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import FamilySiteDropdown from '@/app/components/FamilySiteDropdown';
 import {
   BROCHURE_HREF,
   CONTACT_HREF,
@@ -44,6 +45,7 @@ export default function PreFooterCta() {
             {PRE_FOOTER_SUBTITLE}
           </p>
           <div className="mt-8 md:mt-10 flex flex-col items-center gap-3">
+            <FamilySiteDropdown className="w-[196px] md:w-[226px] max-w-full" />
             <Link
               href={CONTACT_HREF}
               className="flex w-[196px] md:w-[226px] max-w-full cursor-pointer items-center justify-between border border-white bg-transparent px-4 py-3 font-bold text-white"
@@ -87,6 +89,7 @@ export default function PreFooterCta() {
               <p className="mt-8 text-lg leading-none tracking-tight text-white/85">{PRE_FOOTER_SUBTITLE}</p>
             </div>
             <div className="flex flex-col gap-3 md:col-span-4 md:mt-4">
+              <FamilySiteDropdown className="w-full max-w-[237px] md:ml-auto" />
               <Link
                 href={CONTACT_HREF}
                 className="flex w-full max-w-[237px] cursor-pointer items-center justify-between border border-white bg-transparent px-4 py-3 font-bold text-white md:ml-auto"

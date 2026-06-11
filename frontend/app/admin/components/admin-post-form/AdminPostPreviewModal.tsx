@@ -19,7 +19,7 @@ export default function AdminPostPreviewModal({ subject, content, onClose }: Adm
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[900px] max-h-[calc(100vh-8.5rem)] overflow-y-auto rounded bg-white shadow-xl"
+        className="relative w-full max-w-[1200px] max-h-[calc(100vh-8.5rem)] overflow-y-auto rounded bg-white shadow-xl"
         onClick={event => event.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e8e8e8] bg-white px-4 py-3 md:px-6">

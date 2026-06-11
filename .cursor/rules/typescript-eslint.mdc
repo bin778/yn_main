@@ -66,6 +66,26 @@ if (page !== prevPage) {
 
 입력 중 사용자 편집을 유지해야 하면, 포커스 여부 등으로 동기화 시점을 제한한다.
 
+## 접근성 (jsx-a11y)
+
+- `role`을 붙일 때는 해당 역할에 **필수 ARIA 속성**을 함께 정의한다 (`jsx-a11y/role-has-required-aria-props`).
+  - 예: `role="option"` → `aria-selected` 필수
+- `role="listbox"`·`role="option"`은 항목 **선택** UI에만 사용한다. 외부 링크·내비게이션 목록에는 쓰지 않는다.
+- 링크 드롭다운은 시맨틱 `<ul>` + 버튼의 `aria-expanded`·`aria-controls`로 충분하다.
+
+```tsx
+// ❌ BAD — option에 aria-selected 없음 (lint warning), 링크 목록에 listbox 부적절
+<ul role="listbox">
+  <li role="option"><a href="...">보통의 하루</a></li>
+</ul>
+
+// ✅ GOOD — 링크 드롭다운
+<button aria-expanded={open} aria-controls="family-site-menu">FAMILY SITE</button>
+<ul id="family-site-menu">
+  <li><a href="...">보통의 하루</a></li>
+</ul>
+```
+
 ## 기타
 
 - `console.log`는 디버그 후 제거. 남길 때는 `console.warn` / `console.error`만 허용.

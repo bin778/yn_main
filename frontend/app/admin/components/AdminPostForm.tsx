@@ -46,7 +46,7 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-10 md:px-6">
+    <main className="mx-auto max-w-[1200px] px-4 py-10 md:px-6">
       <p className="mb-1 text-sm text-[#666]">{meta.label}</p>
       <h1 className="mb-6 text-2xl font-semibold text-[#1a3151]">
         {mode === 'create' ? '글쓰기' : '글 수정'}

@@ -55,11 +55,11 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
   }
 
   if (loadError !== null) {
-    return <main className="mx-auto max-w-[900px] px-4 py-10 text-sm text-[#b42318] md:px-6">{loadError}</main>;
+    return <main className="mx-auto max-w-[1200px] px-4 py-10 text-sm text-[#b42318] md:px-6">{loadError}</main>;
   }
 
   if (initial === null) {
-    return <main className="mx-auto max-w-[900px] px-4 py-10 text-sm text-[#666] md:px-6">불러오는 중…</main>;
+    return <main className="mx-auto max-w-[1200px] px-4 py-10 text-sm text-[#666] md:px-6">불러오는 중…</main>;
   }
 
   return (

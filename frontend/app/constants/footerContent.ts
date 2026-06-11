@@ -5,6 +5,8 @@
 export { CONTACT_HREF } from '@/app/constants/sharedContent';
 export const BROCHURE_HREF = '/yeoon_brochure.pdf';
 
+export const FAMILY_SITES = [{ label: '보통의 하루', href: 'https://www.commonday.co.kr/' }] as const;
+
 export const PRE_FOOTER_BG_MOBILE = '/img/932a08d7d1630.webp';
 export const PRE_FOOTER_BG_DESKTOP = '/img/1cf7b35755932.webp';
 

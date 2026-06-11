@@ -1,8 +1,8 @@
 @import '../../board-typography.css';
 
 .board-editor-textarea {
-  min-height: 360px;
-  max-height: 520px;
+  min-height: 520px;
+  max-height: 720px;
   overflow-y: scroll;
   resize: none;
 }
