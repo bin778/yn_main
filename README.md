@@ -10,7 +10,7 @@ Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`) 및 레거시 그
 
 | 영역     | 스택                                                                   |
 | -------- | ---------------------------------------------------------------------- |
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Swiper, Tiptap 3.25 |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Swiper, TinyMCE 8 (self-hosted GPL) |
 | Backend  | PHP 7.3+, MariaDB 10.x                                                 |
 | Hosting  | 카페24 (Apache + `.htaccess`)                                          |
 
@@ -23,8 +23,10 @@ yn_main/
 │   │   ├── (story)/   # 게시판 목록·상세 (review, success-story, column, news)
 │   │   ├── board-content.css    # 게시판 본문 HTML 렌더링 (표·이미지·모바일 레이아웃)
 │   │   ├── board-typography.css # 본문·에디터·미리보기 공통 타이포 (md 반응형)
-│   │   └── admin/     # 관리자 대시보드·글쓰기/수정·예약글
-│   │       ├── components/   # AdminPostForm, BoardRichEditor 등
+│   │   ├── components/       # Header, Footer, PreFooterCta, FamilySiteDropdown 등
+│   │   ├── constants/        # footerContent.ts (FAMILY_SITES 등)
+│   │   └── admin/            # 관리자 대시보드·글쓰기/수정·예약글
+│   │       ├── components/   # AdminPostForm, BoardEditor 등
 │   │       ├── hooks/        # useAdminPostForm, useClickOutside 등
 │   │       └── lib/          # payload·dirty·업로드 검증 등 순수 로직
 │   ├── public/        # 정적 에셋 (img, css, yeoon_brochure.pdf 등)
@@ -76,7 +78,17 @@ npm run dev
 | `board-typography.css` | h2~h4, `data-body` 문단 크기 — 모바일 기본, `md`(768px) 이상 확대                                                                                      |
 | `board-content.css`    | 목록·이미지·인용·표; 모바일 2열 카드형 `table` 행은 세로 스택 (`:has`). 이메일형 레이아웃은 `.board-content--legacy-layout`으로 border/width 강제 해제 |
 
-에디터·미리보기(`board-rich-editor.css`)는 `board-typography.css`를 공유합니다.
+에디터·미리보기(`admin/components/board-editor.css`)는 `board-typography.css`를 공유합니다.
+
+### 푸터 직전 CTA · 패밀리 사이트 (`PreFooterCta`)
+
+모든 페이지 푸터 직전(`/contact/` 제외)에 상담·브로슈어 CTA가 노출됩니다.
+
+| 요소 | 설명 |
+| ---- | ---- |
+| FAMILY SITE | `FamilySiteDropdown` — **바로 문의하기** 위 드롭다운. 외부 링크는 새 탭 |
+| 패밀리 사이트 목록 | `frontend/app/constants/footerContent.ts`의 `FAMILY_SITES` 배열로 관리 (현재: [보통의 하루](https://www.commonday.co.kr/)) |
+| 접근성 | `aria-expanded`·`aria-controls` + 시맨틱 `<ul>` (링크 목록에 `listbox`/`option` 미사용, `.cursor/rules/typescript-eslint.mdc` 참고) |
 
 ### 환경 변수
 
@@ -154,6 +166,8 @@ PHP 7.3 + MariaDB 10.x. reCAPTCHA 없이 IP·도배·중복 전화 방어 후 `u
 
 | 기능          | 설명                                                                                                                     |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 폼·미리보기 너비 | `max-w-[1200px]` (`AdminPostForm`, 수정 로딩 화면, `AdminPostPreviewModal`)                                              |
+| 본문 에디터 높이 | TinyMCE 기본 **520px** (`BOARD_EDITOR_MIN_HEIGHT`), 하단 드래그로 확대 가능 (`resize: true`). HTML 탭 textarea 최소 520px·최대 720px |
 | 본문 에디터   | TinyMCE self-hosted(GPL). **기본(Visual)** + **HTML** 탭. CTA·인라인 스타일을 Visual에서 유지하며 글자만 편집            |
 | 본문 정제     | 편집·저장·미리보기 모두 `sanitizeLegacyBoardHtml` 단일 경로 (`boardContentSanitize.ts`)                                  |
 | TinyMCE 배포  | `npm install` 시 `postinstall`로 `public/tinymce` 생성. Git에는 미포함 (`.gitignore`) — Vercel/CI는 install 시 자동 복사 |
@@ -213,9 +227,9 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 ```
 frontend/app/admin/
 ├── components/
-│   ├── AdminPostForm.tsx          # 훅 + 섹션 조립
-│   ├── board-editor.css           # TinyMCE·textarea 스타일
-│   ├── board-editor/              # BoardEditor, BoardTinyMceEditor, useBoardEditor
+│   ├── AdminPostForm.tsx          # 훅 + 섹션 조립 (max-w-[1200px])
+│   ├── board-editor.css           # TinyMCE·textarea 스타일 (HTML 탭 min 520px)
+│   ├── board-editor/              # BoardEditor, BoardTinyMceEditor, constants (BOARD_EDITOR_MIN_HEIGHT)
 │   └── admin-post-form/           # SEO, 썸네일, 첨부, 미리보기, 예약 모달, 액션 버튼
 ├── hooks/
 │   ├── useAdminPostForm.ts        # 폼 state·즉시/예약 저장·삭제
@@ -323,7 +337,8 @@ cd frontend && npm run start
 - `GET /api/board/auth/me.php?bo_table=news` → `is_admin: "super"` (쿠키 포함)
 - `/admin/news/write`에서 글 작성·예약 발행 → 예약글 목록·공개 시각 이후 목록/상세 반영
 - 글쓰기: 임시저장·미리보기·썸네일/첨부 업로드(10MB 초과 시 안내)·이탈 경고
-- `BoardEditor`: 기본(Visual)·HTML 탭. CTA HTML 붙여넣기 → 기본 탭 전환 시 스타일 유지, 글자만 수정 가능
+- `BoardEditor`: 기본(Visual)·HTML 탭. 에디터 기본 높이 520px·폼 너비 1200px. CTA HTML 붙여넣기 → 기본 탭 전환 시 스타일 유지, 글자만 수정 가능
+- 푸터 직전 CTA: **FAMILY SITE** 드롭다운 → 보통의 하루(`commonday.co.kr`) 새 탭 링크
 - 저장 payload·API 응답에 `content_mode` 없음 (Phase 3)
 - 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드 (비밀번호 없는 첨부도 정상)
 - 상세·관리자 바에서 수정·삭제 동작 확인
@@ -334,6 +349,8 @@ cd frontend && npm run start
 
 ### 그 이전 주요 마일스톤
 
+- 푸터 CTA **FAMILY SITE** 드롭다운 (`FamilySiteDropdown`, `FAMILY_SITES` 상수)
+- 관리자 글쓰기 UI 확대: 폼·미리보기 **1200px**, TinyMCE·HTML 탭 기본 높이 **520px**
 - JWT 기반 `/admin/` 대시보드·게시판·상담 문의 관리 (`/admin/inquiries/`)
 - Next.js 게시판 목록·상세 (`(story)`), ISR, 레거시 `board.php` 301 → `/review/` 등
 - 상담 API PHP 이전 (`/backend/api/submit_inquiry.php`), Contact·About·People·Field 페이지 마이그레이션
