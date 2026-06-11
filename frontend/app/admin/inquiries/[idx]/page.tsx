@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { notFound, useParams } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 
 import { INQUIRY_LIST_PATH, INQUIRY_STATES, type InquiryState } from '@/app/constants/inquiryAdmin';
 

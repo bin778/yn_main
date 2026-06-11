@@ -1,0 +1,46 @@
+---
+description: TypeScript·ESLint 규칙 (frontend)
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TypeScript · ESLint
+
+설정: [`frontend/eslint.config.mjs`](frontend/eslint.config.mjs)
+
+## 작성·수정 후
+
+- `frontend/`에서 `npm run lint` 실행. **error 0** 이어야 한다.
+- warning도 가능하면 제거한다. 새 코드에 warning을 남기지 않는다.
+
+## 미사용 변수·인자
+
+- 의도적으로 쓰지 않는 인자·변수는 **`_` 접두사** (`_mode`, `_event`).
+- `_` 접두사 없이 남겨두지 않는다. 삭제 가능하면 삭제가 우선.
+
+```ts
+// ❌ BAD — lint error
+export function save(html: string, mode?: BoardContentMode) {
+  return sanitizeLegacy(html);
+}
+
+// ✅ GOOD — 호출부 호환용 미사용 인자
+export function save(html: string, _mode?: BoardContentMode) {
+  return sanitizeLegacy(html);
+}
+
+// ✅ GOOD — 인자 불필요 시 제거
+export function save(html: string) {
+  return sanitizeLegacy(html);
+}
+```
+
+## 타입
+
+- `any` 사용 금지. 불가피하면 `unknown` + 좁히기.
+- 타입만 import할 때 `import type { Foo }` 사용.
+
+## 기타
+
+- `console.log`는 디버그 후 제거. 남길 때는 `console.warn` / `console.error`만 허용.
+- `@ts-ignore`·`eslint-disable`은 한 줄 범위로 최소 사용, 이유를 주석으로 남긴다.

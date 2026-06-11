@@ -341,6 +341,12 @@ cd frontend && npm run start
 
 ## 최근 변경
 
+### 2026-06-11 — Phase 1 sanitizer 통일 (TinyMCE 도입 1/3)
+
+- **관리자 본문 정제 통일**: `sanitizeContentForEditor`·`sanitizeContentForSave`가 항상 legacy sanitizer 사용 — HTML 탭 입력·미리보기·저장 시 CTA·인라인 스타일 유지
+- **미리보기**: `legacy-layout` CSS는 정제된 본문 HTML 기준으로만 판별 (`contentMode` 무관)
+- **Phase 2까지 유지**: TipTap 기본 탭·HTML→기본 탭 전환·마크다운 탭은 기존 `sanitizeBoardHtml` 경로 — WYSIWYG 편집 한계 동일
+
 ### 2026-06-10 — 고급 HTML 레이아웃 보존·마이그레이션
 
 - **legacy sanitizer 확장**: `bgcolor`·`bordercolor`·`width`/`height`(상한)·`cellpadding`/`cellspacing`/`border` 허용 (`boardSanitizeLegacyAttrs.ts`)

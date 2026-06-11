@@ -1,6 +1,7 @@
 'use client';
 
-import { ChangeEvent, useId, useRef } from 'react';
+import type { ChangeEvent } from 'react';
+import { useId, useRef } from 'react';
 
 type FilePickerFieldProps = {
   accept: string;

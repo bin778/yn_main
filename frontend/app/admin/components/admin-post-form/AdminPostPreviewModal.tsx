@@ -11,14 +11,9 @@ type AdminPostPreviewModalProps = {
   onClose: () => void;
 };
 
-export default function AdminPostPreviewModal({
-  subject,
-  content,
-  contentMode = 'rich',
-  onClose,
-}: AdminPostPreviewModalProps) {
-  const previewHtml = sanitizeContentForSave(content, contentMode);
-  const legacyLayout = shouldUseLegacyLayoutRendering(contentMode, previewHtml);
+export default function AdminPostPreviewModal({ subject, content, onClose }: AdminPostPreviewModalProps) {
+  const previewHtml = sanitizeContentForSave(content);
+  const legacyLayout = shouldUseLegacyLayoutRendering(undefined, previewHtml);
 
   return (
     <div

@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 
 import { boardAdminLogin, fetchBoardAdminMe, isAnyAdmin } from '@/app/(story)/lib/boardAdminApi';
 import { ADMIN_HUB_PATH } from '@/app/constants/adminAuth';

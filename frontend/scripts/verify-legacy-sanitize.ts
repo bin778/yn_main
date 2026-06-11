@@ -1,3 +1,4 @@
+import { sanitizeContentForSave } from '../app/admin/lib/boardContentSanitize';
 import { sanitizeLegacyBoardHtml } from '../app/admin/lib/sanitizeLegacyBoardHtml';
 
 const CTA_SNIPPET = `
@@ -35,6 +36,8 @@ function assertNotContains(html: string, needle: string, label: string): void {
 }
 
 const cta = sanitizeLegacyBoardHtml(CTA_SNIPPET);
+const ctaViaContentSave = sanitizeContentForSave(CTA_SNIPPET, 'rich');
+assertStylePresent(ctaViaContentSave, 'border-radius', '50px', 'sanitizeContentForSave(rich) keeps border-radius');
 assertStylePresent(cta, 'margin', '60px 0', 'CTA outer margin shorthand');
 assertStylePresent(cta, 'margin', '0 auto', 'CTA button centering');
 assertStylePresent(cta, 'line-height', '54px', 'CTA button line-height');
