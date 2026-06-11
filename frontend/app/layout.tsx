@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { pretendard } from '@/app/lib/fonts';
 
 import './globals.css';
+import Analytics from './components/Analytics';
 import Footer from './components/Footer';
 import Header from './components/Header';
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" className={pretendard.variable}>
       <body className={`m-0 p-0 ${pretendard.className}`}>
+        <Analytics />
         <Header />
         <main className="pt-[80px]">{children}</main>
         <FloatingQuickActions />
