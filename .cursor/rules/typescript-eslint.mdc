@@ -40,6 +40,32 @@ export function save(html: string) {
 - `any` 사용 금지. 불가피하면 `unknown` + 좁히기.
 - 타입만 import할 때 `import type { Foo }` 사용.
 
+## `react-hooks/set-state-in-effect`
+
+`useEffect` 안에서 `setState`를 **동기적으로** 호출하지 않는다. (`react-hooks/set-state-in-effect`)
+
+props 변경에 state를 맞출 때는 effect 대신 **렌더 중 이전 props 비교** 패턴을 쓴다.
+
+```tsx
+// ❌ BAD — effect에서 setState (cascading render, lint error)
+const [input, setInput] = useState(String(page));
+
+useEffect(() => {
+  setInput(String(page));
+}, [page]);
+
+// ✅ GOOD — 렌더 중 props 변경 감지 후 state 동기화
+const [input, setInput] = useState(String(page));
+const [prevPage, setPrevPage] = useState(page);
+
+if (page !== prevPage) {
+  setPrevPage(page);
+  setInput(String(page));
+}
+```
+
+입력 중 사용자 편집을 유지해야 하면, 포커스 여부 등으로 동기화 시점을 제한한다.
+
 ## 기타
 
 - `console.log`는 디버그 후 제거. 남길 때는 `console.warn` / `console.error`만 허용.

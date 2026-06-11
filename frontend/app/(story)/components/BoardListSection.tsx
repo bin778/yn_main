@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { getBoardPathSlug } from '../constants/boardContent';
-import { appendBoardSortParam, DEFAULT_BOARD_SORT } from '../constants/boardSort';
+import { DEFAULT_BOARD_SORT } from '../constants/boardSort';
+import { buildBoardListHref } from '../lib/buildBoardListHref';
 import type { BoardListItem, BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
+import BoardListPagination from './BoardListPagination';
 import BoardSortSelect from './BoardSortSelect';
 
 type BoardListSectionProps = {
@@ -18,27 +20,6 @@ type BoardListSectionProps = {
 
 function formatDate(datetime: string): string {
   return datetime.slice(0, 10).replace(/-/g, '.');
-}
-
-function buildListHref(
-  boTable: BoTable,
-  page: number,
-  view: 'list' | 'grid',
-  q: string,
-  sfl: BoardSearchField,
-  sort: BoardListSort,
-): string {
-  const searchParams = new URLSearchParams();
-  if (page > 1) searchParams.set('page', String(page));
-  if (view !== 'list') searchParams.set('view', view);
-  appendBoardSortParam(searchParams, sort);
-  if (q.trim() !== '') {
-    searchParams.set('q', q.trim());
-    if (sfl !== 'subject_content') searchParams.set('sfl', sfl);
-  }
-  const pathSlug = getBoardPathSlug(boTable);
-  const query = searchParams.toString();
-  return query === '' ? `/${pathSlug}` : `/${pathSlug}?${query}`;
 }
 
 function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
@@ -182,7 +163,7 @@ function SearchToolbar({
             <BoardSortSelect current={sort} />
           </Suspense>
           <Link
-            href={buildListHref(boTable, 1, 'list', q, sfl, sort)}
+            href={buildBoardListHref(boTable, 1, 'list', q, sfl, sort)}
             className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
               view === 'list' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
             }`}
@@ -190,7 +171,7 @@ function SearchToolbar({
             목록형
           </Link>
           <Link
-            href={buildListHref(boTable, 1, 'grid', q, sfl, sort)}
+            href={buildBoardListHref(boTable, 1, 'grid', q, sfl, sort)}
             className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
               view === 'grid' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
             }`}
@@ -200,62 +181,6 @@ function SearchToolbar({
         </div>
       </div>
     </div>
-  );
-}
-
-function Pagination({
-  boTable,
-  page,
-  totalPages,
-  q,
-  sfl,
-  sort,
-  view,
-}: {
-  boTable: BoTable;
-  page: number;
-  totalPages: number;
-  q: string;
-  sfl: BoardSearchField;
-  sort: BoardListSort;
-  view: 'list' | 'grid';
-}) {
-  if (totalPages <= 1) return null;
-
-  const prevHref = page > 1 ? buildListHref(boTable, page - 1, view, q, sfl, sort) : null;
-  const nextHref = page < totalPages ? buildListHref(boTable, page + 1, view, q, sfl, sort) : null;
-
-  const btnBase =
-    'inline-flex h-10 items-center justify-center gap-2 border border-[#e0e0e0] px-5 text-[14px] font-medium tracking-tight transition-colors';
-  const activeBtn = `${btnBase} bg-white text-[#121212] hover:border-[#1a3151] hover:text-[#1a3151]`;
-  const disabledBtn = `${btnBase} cursor-not-allowed bg-[#f5f5f5] text-[#ccc]`;
-
-  return (
-    <nav className="mt-10 flex items-center justify-center gap-3" aria-label="페이지 이동">
-      {prevHref !== null ? (
-        <Link href={prevHref} className={activeBtn}>
-          ← 이전
-        </Link>
-      ) : (
-        <span className={disabledBtn} aria-disabled>
-          ← 이전
-        </span>
-      )}
-
-      <span className="text-[14px] text-[#777]">
-        {page} / {totalPages}
-      </span>
-
-      {nextHref !== null ? (
-        <Link href={nextHref} className={activeBtn}>
-          다음 →
-        </Link>
-      ) : (
-        <span className={disabledBtn} aria-disabled>
-          다음 →
-        </span>
-      )}
-    </nav>
   );
 }
 
@@ -284,7 +209,7 @@ export default function BoardListSection({ boTable, data, q, sfl, sort, view }: 
           </ul>
         )}
 
-        <Pagination
+        <BoardListPagination
           boTable={boTable}
           page={data.page}
           totalPages={data.total_pages}
