@@ -130,6 +130,7 @@ export const PRIVACY_SECTIONS: readonly PrivacySection[] = [
       '③ 회사는 Google Analytics로 전화·카카오 상담 링크 클릭 시 클릭 여부·버튼 위치 등 이용 행태 정보만 분석하며, 이용자 개인의 전화번호는 Google Analytics로 전송하지 않습니다.',
       '④ 회사는 웹사이트 이용 통계 분석을 위해 Google LLC가 제공하는 Google Analytics(GA4)를 사용할 수 있습니다.',
       'Google Analytics는 쿠키를 통해 이용자의 웹사이트 이용 정보를 수집하며, 회사는 이를 통해 방문자 수, 페이지 조회, 유입 경로, 상담 관련 전환(예: 문의 제출, 전화·카카오 상담 링크 클릭, 브로슈어 다운로드) 등을 분석합니다.',
+      '회사는 홈페이지 하단 동의 창을 통해 통계 수집 동의·거부를 받으며, 광고·리마케팅 목적의 쿠키는 사용하지 않습니다.',
       '⑤ Google Analytics를 통해 수집된 정보는 Google의 정책 및 GA4 설정에 따라 처리·보관될 수 있으며, Google의 개인정보 처리에 관한 자세한 내용은 Google 개인정보처리방침(https://policies.google.com/privacy)을 참고하시기 바랍니다.',
       '⑥ 이용자는 아래 방법으로 Google Analytics 쿠키 저장 및 정보 수집을 거부할 수 있습니다.',
       '가. 웹브라우저 설정에서 쿠키 저장을 거부하거나 기존 쿠키를 삭제',

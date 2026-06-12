@@ -1,12 +1,11 @@
 'use client';
 
-import { GoogleAnalytics } from '@next/third-parties/google';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from 'react';
 
 import { ADMIN_PATH_PREFIX } from '@/app/constants/analyticsEvents';
-
 import AnalyticsClickTracker from '@/app/components/AnalyticsClickTracker';
+import GoogleAnalyticsLoader from '@/app/components/GoogleAnalyticsLoader';
 import {
   getAnalyticsConsentServerSnapshot,
   getAnalyticsConsentSnapshot,
@@ -58,7 +57,7 @@ export default function AnalyticsProvider({ children }: { children: ReactNode })
 
   return (
     <AnalyticsConsentContext.Provider value={contextValue}>
-      {shouldLoadGa && <GoogleAnalytics gaId={GA_MEASUREMENT_ID!} />}
+      {shouldLoadGa && <GoogleAnalyticsLoader />}
       {shouldLoadGa && <AnalyticsClickTracker />}
       {children}
     </AnalyticsConsentContext.Provider>

@@ -12,7 +12,8 @@ type GaEventParams = Record<string, string | number | boolean>;
 
 declare global {
   interface Window {
-    gtag?: (command: 'event', eventName: string, params?: GaEventParams) => void;
+    gtag?: (command: string, ...args: unknown[]) => void;
+    dataLayer?: unknown[];
   }
 }
 

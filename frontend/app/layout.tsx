@@ -5,6 +5,7 @@ import { pretendard } from '@/app/lib/fonts';
 
 import './globals.css';
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner';
+import AnalyticsConsentDefaults from './components/AnalyticsConsentDefaults';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import Footer from './components/Footer';
 import Header from './components/Header';
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" className={pretendard.variable}>
       <body className={`m-0 p-0 ${pretendard.className}`}>
+        <AnalyticsConsentDefaults />
         <AnalyticsProvider>
           <Header />
           <main className="pt-[80px]">{children}</main>
