@@ -4,6 +4,22 @@ const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 const LEGACY_BOARD_PATH = '/board/bbs/board.php';
 const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+/** 전역 보안 HTTP 헤더 (CSP는 GA4·카카오 등 허용 도메인 정리 후 단계적 도입) */
+const SECURITY_HEADERS = [
+  ...(IS_PRODUCTION
+    ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
+    : []),
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  },
+];
+
 const nextConfig: NextConfig = {
   trailingSlash: true,
 
@@ -127,6 +143,10 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
+      {
+        source: '/:path*',
+        headers: SECURITY_HEADERS,
+      },
       {
         source: '/img/:path*',
         headers: [{ key: 'Cache-Control', value: ONE_YEAR_CACHE }],
