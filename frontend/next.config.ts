@@ -8,9 +8,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 /** 전역 보안 HTTP 헤더 (CSP는 GA4·카카오 등 허용 도메인 정리 후 단계적 도입) */
 const SECURITY_HEADERS = [
-  ...(IS_PRODUCTION
-    ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
-    : []),
+  ...(IS_PRODUCTION ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }] : []),
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
@@ -115,17 +113,28 @@ const nextConfig: NextConfig = {
         destination: '/admin/login/',
         permanent: false,
       },
+      // 레거시 그누보드 관리자 — Next /admin/ (JWT)로 통합
+      {
+        source: '/board/adm',
+        destination: '/admin/',
+        permanent: false,
+      },
       {
         source: '/board/adm/',
         destination: '/admin/',
         permanent: false,
       },
       {
-        source: '/board/adm',
+        source: '/board/adm/:path*',
         destination: '/admin/',
         permanent: false,
       },
-      // dbpma 직접 접근 차단 (보안)
+      // 그누보드 설치·DB 도구 직접 접근 차단
+      {
+        source: '/board/install/:path*',
+        destination: '/',
+        permanent: false,
+      },
       {
         source: '/dbpma/:path*',
         destination: '/',

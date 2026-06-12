@@ -36,10 +36,15 @@
   RewriteCond %{QUERY_STRING} ^bo_table=(review|column|news)$
   RewriteRule ^board/bbs/board\.php$ /%1/? [R=301,L]
 
-  # --- [3. 시스템 경로 보호: config 폴더 접근 원천 차단] ---
+  # --- [3. 시스템 경로 보호: 민감 경로 웹 접근 차단] ---
+  # 레거시 그누보드 관리자 — Next /admin/ (JWT)만 사용
+  RewriteRule ^board/adm(/.*)?$ - [F,L]
+  RewriteRule ^board/install(/.*)?$ - [F,L]
+  RewriteRule ^dbpma(/.*)?$ - [F,L]
   RewriteRule ^config/ - [F,L]
+  RewriteRule ^lib/ - [F,L]
 
-  # --- [4. 시스템 경로 보호: API 및 게시판 쓰기/관리 기능 유지] ---
+  # --- [4. 시스템 경로 보호: API 및 게시판 공개·데이터 경로 유지] ---
   RewriteRule ^api/ - [L]
   RewriteRule ^board/ - [L]
 
