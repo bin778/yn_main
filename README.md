@@ -23,14 +23,16 @@ yn_main/
 │   │   ├── (story)/   # 게시판 목록·상세 (review, success-story, column, news)
 │   │   ├── board-content.css    # 게시판 본문 HTML 렌더링 (표·이미지·모바일 레이아웃)
 │   │   ├── board-typography.css # 본문·에디터·미리보기 공통 타이포 (md 반응형)
-│   │   ├── components/       # Header, Footer, PreFooterCta, Analytics 등
-│   │   ├── constants/        # footerContent.ts, analyticsEvents.ts 등
-│   │   ├── lib/              # trackGaEvent.ts (GA4 커스텀 이벤트)
+│   │   ├── components/       # Header, Footer, PreFooterCta, AnalyticsProvider 등
+│   │   ├── constants/        # footerContent.ts, analyticsEvents.ts, gtagConsent.ts 등
+│   │   ├── lib/              # trackGaEvent.ts, analyticsConsent.ts, fonts.ts
 │   │   └── admin/            # 관리자 대시보드·글쓰기/수정·예약글
 │   │       ├── components/   # AdminPostForm, BoardEditor 등
 │   │       ├── hooks/        # useAdminPostForm, useClickOutside 등
 │   │       └── lib/          # payload·dirty·업로드 검증 등 순수 로직
 │   ├── public/        # 정적 에셋 (img, css, yeoon_brochure.pdf 등)
+│   ├── scripts/       # copy-tinymce.mjs, subset-pretendard.mjs 등
+│   ├── app/fonts/     # PretendardVariable.woff2(원본), PretendardSubset.woff2(운영)
 ├── backend/           # 상담·게시판 API (카페24 FTP 업로드)
 │   ├── config/        # DB·Aligo·JWT 설정 (*.sample.php → 운영 파일)
 │   ├── lib/           # board_files.php, board_auth.php, pbkdf2.php 등
@@ -95,11 +97,11 @@ npm run dev
 
 `frontend/.env.example`를 참고해 `frontend/.env.local`을 만듭니다.
 
-| 변수                            | 설명                                                                           |
-| ------------------------------- | ------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시                 |
-| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`) |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4 스크립트·이벤트 비활성화  |
+| 변수                            | 설명                                                                                |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시                      |
+| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`)      |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4·동의 배너·이벤트 모두 비활성화 |
 
 ```bash
 cp frontend/.env.example frontend/.env.local
@@ -107,14 +109,21 @@ cp frontend/.env.example frontend/.env.local
 
 ### Google Analytics 4
 
-루트 레이아웃(`app/layout.tsx`)에 GA4를 전역 적용합니다. `/admin` 경로는 스크립트 로드·이벤트 수집 모두 제외합니다.
+공개 페이지에만 GA4를 적용합니다. `/admin` 경로는 스크립트 로드·이벤트 수집·동의 배너 모두 제외합니다.
 
-| 파일                                       | 역할                                       |
-| ------------------------------------------ | ------------------------------------------ |
-| `app/components/Analytics.tsx`             | `@next/third-parties`로 gtag 스크립트 로드 |
-| `app/components/AnalyticsClickTracker.tsx` | `tel:`·카카오·브로슈어 링크 클릭 전역 위임 |
-| `app/lib/trackGaEvent.ts`                  | `gtag('event', …)` 헬퍼·링크 분류          |
-| `app/constants/analyticsEvents.ts`         | 이벤트명·`data-ga-source` 상수             |
+**동의 → Consent Mode v2 → GA 로드** 순서로 동작합니다. 동의 전에는 Google 요청이 없고, 동의 후에도 광고·리마케팅용 `ad_*` storage는 항상 `denied`입니다.
+
+| 파일                                          | 역할                                                                                  |
+| --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `app/components/AnalyticsConsentDefaults.tsx` | gtag 로드 **전** Consent Mode v2 기본값(전부 거부) `beforeInteractive` 주입           |
+| `app/components/AnalyticsProvider.tsx`        | 동의 상태 context, 동의 시에만 `GoogleAnalyticsLoader`·`AnalyticsClickTracker` 마운트 |
+| `app/components/AnalyticsConsentBanner.tsx`   | 하단 동의/거부 배너 (표시 중 플로팅 사이드바 자동 상향)                               |
+| `app/components/GoogleAnalyticsLoader.tsx`    | gtag.js 로드, `analytics_storage: granted`, `ad_*: denied`, SPA `page_view`           |
+| `app/components/AnalyticsClickTracker.tsx`    | `tel:`·카카오·브로슈어 링크 클릭 전역 위임                                            |
+| `app/constants/gtagConsent.ts`                | Consent Mode·gtag config 상수 (`allow_google_signals: false` 등)                      |
+| `app/lib/analyticsConsent.ts`                 | `localStorage` 동의 상태 (`yn_analytics_consent`)                                     |
+| `app/lib/trackGaEvent.ts`                     | `gtag('event', …)` 헬퍼·링크 분류 (동의 시에만 전송)                                  |
+| `app/constants/analyticsEvents.ts`            | 이벤트명·`data-ga-source` 상수                                                        |
 
 #### 수집 이벤트
 
@@ -140,14 +149,40 @@ cp frontend/.env.example frontend/.env.local
 
 #### GA4 콘솔 설정 (권장)
 
-배포 후 [Google Analytics](https://analytics.google.com/)에서 아래 이벤트를 **키 이벤트(전환)** 으로 등록하면 리포트에서 전환으로 집계됩니다.
+**키 이벤트(전환) 등록** — [Google Analytics](https://analytics.google.com/) → 관리 → 이벤트:
 
 - `generate_lead`
 - `phone_click`
 - `kakao_click`
 - `file_download`
 
-동작 확인: GA4 **관리 → DebugView** 또는 **보고서 → 실시간**에서 각 버튼·폼 제출 후 이벤트가 들어오는지 확인합니다.
+**서드파티 쿠키·광고 요청 최소화** — GA4 속성에서 아래를 **끄거나 연동 해제** (코드만으로는 제어 불가):
+
+| 메뉴                                 | 설정                           |
+| ------------------------------------ | ------------------------------ |
+| 관리 → 데이터 수집 → **Google 신호** | 끄기                           |
+| 관리 → **Google Ads 링크**           | 연결 해제 또는 리마케팅 비활성 |
+| 관리 → **데이터 공유 설정**          | Google 제품 간 공유 최소화     |
+
+코드(`gtagConsent.ts`)에서 `ad_storage`·`ad_user_data`·`ad_personalization`을 항상 `denied`, `allow_google_signals: false`로 설정해 두었습니다. DoubleClick(`IDE`)·`1p-user-list` 쿠키가 남으면 위 GA4 관리자 설정을 확인하세요.
+
+동작 확인: GA4 **관리 → DebugView** 또는 **보고서 → 실시간**에서 각 버튼·폼 제출 후 이벤트가 들어오는지 확인합니다. Lighthouse 권장사항 측정 시 **시크릿 창 + 동의 전**이면 GA 요청·쿠키가 없어야 합니다.
+
+### 성능 최적화
+
+| 항목                     | 설명                                                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Pretendard 서브셋**    | `app/fonts/PretendardSubset.woff2` (~145KB). 원본 `PretendardVariable.woff2`(2MB)에서 소스 텍스트 기반 생성 |
+| **폰트 재생성**          | 한글 문구·상수 대량 추가 후 `npm run fonts:subset` 실행                                                     |
+| **홈 LCP**               | `HeroSwiperFallback` — `<picture>` + `fetchPriority="high"`, Swiper는 `ssr: false` 지연 로드                |
+| **히어로 art direction** | `/about/`, `/field/` — `ResponsiveHeroBackground` (`<picture>`, 뷰포트당 1장만 high priority)               |
+| **Below-the-fold**       | 문의 배경·FAQ 등 `loading="lazy"` / `fetchPriority="low"`                                                   |
+| **Header 로고**          | LCP와 대역폭 경쟁 방지를 위해 `fetchPriority="low"` (priority 미사용)                                       |
+
+```bash
+cd frontend
+npm run fonts:subset   # PretendardSubset.woff2 재생성
+```
 
 ### 빌드/실행
 
@@ -155,7 +190,8 @@ cp frontend/.env.example frontend/.env.local
 cd frontend
 npm run build
 npm run start
-npm run lint    # ESLint
+npm run lint          # ESLint
+npm run fonts:subset  # Pretendard 서브셋 폰트 재생성 (선택)
 ```
 
 `next.config.ts`에서는 `trailingSlash: true`를 사용하고, `/img/*`, `/fonts/*` 경로에 장기 캐시 헤더를 설정합니다.
@@ -389,12 +425,16 @@ cd frontend && npm run start
 - 첨부 비밀번호 설정 글 → 상세에서 비밀번호 입력 후 다운로드 (비밀번호 없는 첨부도 정상)
 - 상세·관리자 바에서 수정·삭제 동작 확인
 - `/contact/` 서울 주사무소 카카오맵: 모바일·PC 모두 을지로 주소 표시
+- GA4: 시크릿 창 첫 방문 → 동의 전 `googletagmanager.com` 요청 없음 → 동의 후 이벤트 수집
+- GA4: 동의/거부 후 배너 사라짐, 플로팅 사이드바 원래 위치 복귀
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
 
 카페24 배포 시 업로드: `backend/lib/`(board_write.php, board_schema.php, board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, get_scheduled_list.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
 
 ### 그 이전 주요 마일스톤
 
+- GA4 Consent Mode v2·동의 배너·광고 storage 거부, `@next/third-parties` → 자체 `GoogleAnalyticsLoader`
+- Lighthouse 성능: Pretendard 서브셋, About/Field 히어로 `<picture>`, Header 로고 priority 제거
 - 푸터 CTA **FAMILY SITE** 드롭다운 (`FamilySiteDropdown`, `FAMILY_SITES` 상수)
 - 관리자 글쓰기 UI 확대: 폼·미리보기 **1200px**, TinyMCE·HTML 탭 기본 높이 **520px**
 - JWT 기반 `/admin/` 대시보드·게시판·상담 문의 관리 (`/admin/inquiries/`)
