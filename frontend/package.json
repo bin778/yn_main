@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "fonts:subset": "node scripts/subset-pretendard.mjs",
     "postinstall": "node scripts/copy-tinymce.mjs"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "subset-font": "^2.5.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

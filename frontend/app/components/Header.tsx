@@ -56,7 +56,6 @@ export default function Header() {
               <Image
                 src={logoSrc}
                 alt="법무법인 여온"
-                priority
                 fill
                 className="object-contain object-left"
                 sizes="(max-width: 1024px) 176px, 200px"

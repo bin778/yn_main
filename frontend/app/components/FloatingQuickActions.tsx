@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 
+import { useIsAnalyticsConsentBannerVisible } from '@/app/components/AnalyticsProvider';
 import { GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 
 const QUICK_ACTIONS = [
@@ -49,12 +50,18 @@ const QUICK_ACTIONS = [
 ];
 
 export default function FloatingQuickActions() {
+  const isConsentBannerVisible = useIsAnalyticsConsentBannerVisible();
+
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const positionClass = isConsentBannerVisible ? 'bottom-[9rem] md:bottom-[6.5rem]' : 'bottom-4 md:bottom-8';
+
   return (
-    <div className="fixed bottom-4 right-3 z-[100] flex flex-col items-center md:bottom-8 md:right-10">
+    <div
+      className={`fixed right-3 z-[100] flex flex-col items-center transition-[bottom] duration-300 ease-out md:right-10 ${positionClass}`}
+    >
       <div className="flex w-[60px] md:w-[80px] flex-col items-center rounded-[999px] bg-[#023373] px-2 py-2 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:px-4 md:py-3">
         {QUICK_ACTIONS.map((action, index) => {
           const content = (

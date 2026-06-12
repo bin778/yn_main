@@ -6,6 +6,7 @@ import {
   GA_SOURCES,
   KAKAO_CHANNEL_HOST,
 } from '@/app/constants/analyticsEvents';
+import { isAnalyticsGranted } from '@/app/lib/analyticsConsent';
 
 type GaEventParams = Record<string, string | number | boolean>;
 
@@ -19,6 +20,7 @@ const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export function trackGaEvent(eventName: string, params?: GaEventParams): void {
   if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!isAnalyticsGranted()) return;
   window.gtag('event', eventName, params);
 }
 
