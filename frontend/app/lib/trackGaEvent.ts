@@ -48,7 +48,7 @@ export function classifyAnchorClick(anchor: HTMLAnchorElement): { eventName: str
   if (href.startsWith('tel:')) {
     return {
       eventName: GA_EVENTS.PHONE_CLICK,
-      params: { link_url: href, link_text: linkText, link_source: linkSource },
+      params: { link_text: linkText, link_source: linkSource, contact_type: 'phone' },
     };
   }
 
