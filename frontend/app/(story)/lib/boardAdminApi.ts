@@ -138,12 +138,12 @@ export async function updateBoardPost(boTable: BoTable, wrId: number, payload: B
   await parseJson(res);
 }
 
-export async function revalidateBoardPost(boTable: BoTable, wrId: number): Promise<void> {
+export async function revalidateBoardPost(boTable: BoTable, wrId: number, seoSlug = ''): Promise<void> {
   await fetch('/api/board/revalidate', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bo_table: boTable, wr_id: wrId }),
+    body: JSON.stringify({ bo_table: boTable, wr_id: wrId, wr_seo_slug: seoSlug }),
   }).catch(error => {
     console.error('게시물 캐시 갱신에 실패했습니다.', error);
   });

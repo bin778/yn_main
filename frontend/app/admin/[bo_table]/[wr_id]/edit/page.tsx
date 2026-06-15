@@ -69,8 +69,8 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
       mode="edit"
       wrId={wrId}
       initial={initial}
-      onSaved={(_wrId, publishMode) => {
-        router.push(getRedirectPathAfterSave(boTable, wrId, publishMode));
+      onSaved={(_wrId, publishMode, seoSlug) => {
+        router.push(getRedirectPathAfterSave(boTable, wrId, publishMode, seoSlug));
         router.refresh();
       }}
       onDelete={handleDelete}

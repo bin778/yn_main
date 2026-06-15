@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 
 import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardJsonLd from '../../components/BoardJsonLd';
 import BoardViewSection from '../../components/BoardViewSection';
-import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
+import { BOARD_META, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import { fetchBoardView } from '../../lib/boardApi';
+import { buildBoardPostHref, getBoardPostPathSegment } from '../../lib/boardPostPath';
 import { resolveBoardMetaDescription } from '../../lib/boardSeo';
 
 export const revalidate = 60;
@@ -17,18 +18,16 @@ type PageProps = {
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { bo_table: pathSlug, wr_id } = await params;
+  const { bo_table: pathSlug, wr_id: postKey } = await params;
   const boTable = resolveBoTableFromPathSlug(pathSlug);
 
-  if (!boTable) return {};
-
-  const wrIdNum = parseInt(wr_id, 10);
-  if (!wrIdNum || wrIdNum <= 0) return {};
+  if (!boTable || postKey.trim() === '') return {};
 
   try {
-    const post = await fetchBoardView(boTable, wrIdNum);
+    const post = await fetchBoardView(boTable, postKey);
     const { label, description: boardDescription } = BOARD_META[boTable];
     const metaDescription = resolveBoardMetaDescription(post.wr_seo_description, post.wr_content) || boardDescription;
+    const canonical = buildBoardPostHref(boTable, post.wr_id, post.wr_seo_slug);
 
     return {
       title: `${post.wr_subject} | ${label} | ${SITE_NAME}`,
@@ -37,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: `${post.wr_subject} | ${label}`,
         description: metaDescription,
       },
-      alternates: { canonical: `/${getBoardPathSlug(boTable)}/${wrIdNum}` },
+      alternates: { canonical },
     };
   } catch {
     return {};
@@ -45,26 +44,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BoardViewPage({ params }: PageProps) {
-  const { bo_table: pathSlug, wr_id } = await params;
+  const { bo_table: pathSlug, wr_id: postKey } = await params;
   const bo_table = resolveBoTableFromPathSlug(pathSlug);
 
-  if (!bo_table) notFound();
-
-  const wrIdNum = parseInt(wr_id, 10);
-  if (!wrIdNum || wrIdNum <= 0) notFound();
+  if (!bo_table || postKey.trim() === '') notFound();
 
   let post;
   try {
-    post = await fetchBoardView(bo_table, wrIdNum);
+    post = await fetchBoardView(bo_table, postKey);
   } catch {
     notFound();
+  }
+
+  const canonicalHref = buildBoardPostHref(bo_table, post.wr_id, post.wr_seo_slug);
+  const canonicalSegment = getBoardPostPathSegment(post.wr_id, post.wr_seo_slug);
+
+  if (postKey.trim() !== canonicalSegment) {
+    permanentRedirect(canonicalHref);
   }
 
   const { label, heroBg } = BOARD_META[bo_table];
 
   return (
     <>
-      {post.wr_schema && post.wr_schema.trim() !== '' && <BoardJsonLd wrId={wrIdNum} schema={post.wr_schema} />}
+      {post.wr_schema && post.wr_schema.trim() !== '' && <BoardJsonLd wrId={post.wr_id} schema={post.wr_schema} />}
       <section className="relative w-full overflow-hidden" aria-labelledby="story-detail-hero-heading">
         {heroBg ? (
           <>
@@ -83,7 +86,7 @@ export default async function BoardViewPage({ params }: PageProps) {
       </section>
 
       <BoardCategoryTabs current={bo_table} />
-      <BoardAdminBar boTable={bo_table} wrId={wrIdNum} />
+      <BoardAdminBar boTable={bo_table} wrId={post.wr_id} />
       <BoardViewSection boTable={bo_table} post={post} />
     </>
   );

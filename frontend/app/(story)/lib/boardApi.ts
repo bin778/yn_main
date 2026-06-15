@@ -1,4 +1,5 @@
 import { boardListCacheTag, boardViewCacheTag } from './boardCache';
+import { isNumericPostKey } from './boardPostPath';
 
 import { DEFAULT_BOARD_SORT, type BoardListSort } from '../constants/boardSort';
 import type { BoardListResponse, BoardSearchField, BoardView } from '../types/board';
@@ -37,10 +38,18 @@ export async function fetchBoardList(
   return res.json() as Promise<BoardListResponse>;
 }
 
-export async function fetchBoardView(boTable: string, wrId: number): Promise<BoardView> {
-  const url = `${BOARD_API_BASE}/get_view.php?bo_table=${boTable}&wr_id=${wrId}`;
-  const res = await fetch(url, { next: { tags: [boardViewCacheTag(boTable as BoTable, wrId)] } });
-  if (!res.ok) throw new Error(`게시물을 불러오지 못했습니다. (${boTable}/${wrId})`);
+export async function fetchBoardView(boTable: string, postKey: string): Promise<BoardView> {
+  const trimmed = postKey.trim();
+  const query = isNumericPostKey(trimmed)
+    ? `bo_table=${boTable}&wr_id=${trimmed}`
+    : `bo_table=${boTable}&slug=${encodeURIComponent(trimmed)}`;
+  const url = `${BOARD_API_BASE}/get_view.php?${query}`;
+  const res = await fetch(url, {
+    next: {
+      tags: [boardViewCacheTag(boTable as BoTable, isNumericPostKey(trimmed) ? Number(trimmed) : trimmed)],
+    },
+  });
+  if (!res.ok) throw new Error(`게시물을 불러오지 못했습니다. (${boTable}/${trimmed})`);
   return res.json() as Promise<BoardView>;
 }
 

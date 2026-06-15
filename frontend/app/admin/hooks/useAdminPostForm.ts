@@ -38,7 +38,7 @@ type UseAdminPostFormOptions = {
   mode: 'create' | 'edit';
   wrId?: number;
   initial: AdminPostInitial;
-  onSaved: (wrId: number, publishMode: PublishMode) => void;
+  onSaved: (wrId: number, publishMode: PublishMode, seoSlug: string) => void;
   onDelete?: () => Promise<void>;
 };
 
@@ -242,7 +242,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         setDownloadMode(uploaded.has_password ? 'password' : 'public');
       }
 
-      await revalidateBoardPost(boTable, savedId);
+      await revalidateBoardPost(boTable, savedId, payload.wr_seo_slug);
 
       if (publishMode === 'scheduled') {
         window.alert(
@@ -251,7 +251,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       }
 
       setShowScheduleModal(false);
-      onSaved(savedId, publishMode);
+      onSaved(savedId, publishMode, payload.wr_seo_slug);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '저장에 실패했습니다.');
       setPendingAttachment(null);
@@ -437,7 +437,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
           setPendingAttachment(null);
           setAttachmentPassword('');
           setDownloadMode(uploaded.has_password ? 'password' : 'public');
-          await revalidateBoardPost(boTable, wrId);
+          await revalidateBoardPost(boTable, wrId, seoSlug);
         })
         .catch(uploadError => {
           setError(uploadError instanceof Error ? uploadError.message : '첨부 업로드에 실패했습니다.');

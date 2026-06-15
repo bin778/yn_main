@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { getBoardPathSlug } from '@/app/(story)/constants/boardContent';
 import { boardListCacheTag, boardViewCacheTag } from '@/app/(story)/lib/boardCache';
+import { buildBoardPostHref } from '@/app/(story)/lib/boardPostPath';
 import type { BoTable } from '@/app/(story)/types/board';
 
 const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board';
@@ -10,12 +11,14 @@ const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/boa
 type RevalidateBody = {
   bo_table?: BoTable;
   wr_id?: number;
+  wr_seo_slug?: string;
 };
 
 export async function POST(request: Request) {
   const body = (await request.json()) as RevalidateBody;
   const boTable = body.bo_table;
   const wrId = Number(body.wr_id ?? 0);
+  const seoSlug = (body.wr_seo_slug ?? '').trim();
 
   if (boTable === undefined || wrId <= 0) {
     return NextResponse.json({ error: '유효하지 않은 요청입니다.' }, { status: 400 });
@@ -38,7 +41,11 @@ export async function POST(request: Request) {
 
   const pathSlug = getBoardPathSlug(boTable);
   revalidateTag(boardViewCacheTag(boTable, wrId), 'max');
+  if (seoSlug !== '') {
+    revalidateTag(boardViewCacheTag(boTable, seoSlug), 'max');
+  }
   revalidateTag(boardListCacheTag(boTable), 'max');
+  revalidatePath(buildBoardPostHref(boTable, wrId, seoSlug));
   revalidatePath(`/${pathSlug}/${wrId}/`);
   revalidatePath(`/${pathSlug}/`);
 

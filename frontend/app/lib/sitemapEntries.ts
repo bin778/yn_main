@@ -1,4 +1,5 @@
 import { ALLOWED_BO_TABLES, BOARD_PATH_SLUG } from '@/app/(story)/constants/boardContent';
+import { getBoardPostPathSegment } from '@/app/(story)/lib/boardPostPath';
 import type { BoardListItem, BoardListResponse } from '@/app/(story)/types/board';
 import type { BoTable } from '@/app/(story)/types/board';
 import { PEOPLE_IDS } from '@/app/constants/peopleContent';
@@ -94,7 +95,8 @@ async function fetchBoardPostEntries(boTable: BoTable): Promise<MetadataRoute.Si
 function boardPostEntry(slug: string, item: BoardListItem): MetadataRoute.Sitemap[number] {
   const parsed = new Date(item.wr_datetime);
   const lastModified = Number.isNaN(parsed.getTime()) ? undefined : parsed;
-  return toSitemapEntry(`/${slug}/${item.wr_id}/`, 'weekly', 0.6, lastModified);
+  const postSegment = getBoardPostPathSegment(item.wr_id, item.wr_seo_slug);
+  return toSitemapEntry(`/${slug}/${postSegment}/`, 'weekly', 0.6, lastModified);
 }
 
 export async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {

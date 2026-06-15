@@ -160,6 +160,7 @@ try {
             w.wr_file,
             w.wr_content,
             w.wr_1,
+            w.wr_2,
             w.wr_option,
             (
                 SELECT bf_file
@@ -218,6 +219,7 @@ try {
             'wr_hit'        => (int) $row['wr_hit'],
             'has_file'      => (int) $row['wr_file'] > 0,
             'thumbnail_url' => $thumbnail_url,
+            'wr_seo_slug'   => (string) ($row['wr_2'] ?? ''),
         ];
     }, $rows);
 

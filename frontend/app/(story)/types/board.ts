@@ -12,6 +12,7 @@ export type BoardListItem = {
   wr_hit: number;
   has_file: boolean;
   thumbnail_url: string | null;
+  wr_seo_slug?: string;
 };
 
 export type BoardListResponse = {
@@ -39,6 +40,7 @@ export type BoardFile = {
 export type BoardNavItem = {
   wr_id: number;
   wr_subject: string;
+  wr_seo_slug?: string;
 } | null;
 
 export type BoardView = {
@@ -48,6 +50,7 @@ export type BoardView = {
   wr_name: string;
   wr_datetime: string;
   wr_hit: number;
+  wr_seo_slug?: string;
   wr_seo_description?: string;
   wr_schema?: string;
   prev: BoardNavItem;

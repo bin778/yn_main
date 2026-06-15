@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { getBoardPathSlug } from '../constants/boardContent';
 import { DEFAULT_BOARD_SORT } from '../constants/boardSort';
 import { buildBoardListHref } from '../lib/buildBoardListHref';
+import { buildBoardPostHref } from '../lib/boardPostPath';
 import type { BoardListItem, BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
 import BoardListPagination from './BoardListPagination';
 import BoardSortSelect from './BoardSortSelect';
@@ -23,7 +24,7 @@ function formatDate(datetime: string): string {
 }
 
 function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
-  const href = `/${getBoardPathSlug(boTable)}/${item.wr_id}`;
+  const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
 
   return (
     <li className="border-b border-[#e8e8e8] last:border-b-0">
@@ -68,7 +69,7 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
 }
 
 function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
-  const href = `/${getBoardPathSlug(boTable)}/${item.wr_id}`;
+  const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
 
   return (
     <li className="h-full border border-[#e8e8e8]">

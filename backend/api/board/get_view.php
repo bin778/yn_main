@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 require_once __DIR__ . '/../../config/db_conn.php';
-require_once __DIR__ . '/../../lib/board_schema.php';
+require_once __DIR__ . '/../../lib/board_write.php';
 require_once __DIR__ . '/../../lib/board_files.php';
 require_once __DIR__ . '/../../lib/board_editor_images.php';
 
@@ -77,25 +77,39 @@ if (
 $bo_table = $raw_table;
 $table    = 'g5_write_' . $bo_table;
 $wr_id    = (int) ($_GET['wr_id'] ?? 0);
+$slug     = trim((string) ($_GET['slug'] ?? ''));
 
-if ($wr_id <= 0) {
-    json_response(['error' => '유효하지 않은 게시물 번호입니다.'], 400);
+if ($wr_id <= 0 && $slug === '') {
+    json_response(['error' => '게시물 식별자가 필요합니다.'], 400);
 }
 
 // ── 게시물 조회 ────────────────────────────────────────────────────────────
 
 try {
-    $view_sql = "
-        SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_4, wr_5
-        FROM   `{$table}`
-        WHERE  wr_id = :wr_id
-        AND    wr_is_comment = 0
-        AND    wr_datetime <= NOW()
-        LIMIT  1
-    ";
+    if ($wr_id > 0) {
+        $view_sql = "
+            SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_2, wr_4, wr_5
+            FROM   `{$table}`
+            WHERE  wr_id = :wr_id
+            AND    wr_is_comment = 0
+            AND    wr_datetime <= NOW()
+            LIMIT  1
+        ";
+        $stmt = $pdo->prepare($view_sql);
+        $stmt->bindValue(':wr_id', $wr_id, PDO::PARAM_INT);
+    } else {
+        $view_sql = "
+            SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_2, wr_4, wr_5
+            FROM   `{$table}`
+            WHERE  wr_2 = :slug
+            AND    wr_is_comment = 0
+            AND    wr_datetime <= NOW()
+            LIMIT  1
+        ";
+        $stmt = $pdo->prepare($view_sql);
+        $stmt->bindValue(':slug', $slug, PDO::PARAM_STR);
+    }
 
-    $stmt = $pdo->prepare($view_sql);
-    $stmt->bindValue(':wr_id', $wr_id, PDO::PARAM_INT);
     $stmt->execute();
     $post = $stmt->fetch();
 
@@ -103,12 +117,14 @@ try {
         json_response(['error' => '게시물을 찾을 수 없습니다.'], 404);
     }
 
+    $resolved_wr_id = (int) $post['wr_id'];
+
     // ── 조회수 증가 (실패해도 응답에 영향 없음) ───────────────────────────
 
     try {
         $hit_sql  = "UPDATE `{$table}` SET wr_hit = wr_hit + 1 WHERE wr_id = :wr_id";
         $hit_stmt = $pdo->prepare($hit_sql);
-        $hit_stmt->bindValue(':wr_id', $wr_id, PDO::PARAM_INT);
+        $hit_stmt->bindValue(':wr_id', $resolved_wr_id, PDO::PARAM_INT);
         $hit_stmt->execute();
     } catch (PDOException $e) {
         error_log('[board/get_view] hit count update failed: ' . $e->getMessage());
@@ -117,7 +133,7 @@ try {
     // ── 이전 글 (같은 게시판에서 현재보다 wr_num이 큰 것 중 가장 작은 것) ──
     // wr_num은 음수: -1(가장 오래된), -n(가장 최신). 이전 글 = wr_num이 크다 = 더 오래된 글.
     $prev_sql = "
-        SELECT wr_id, wr_subject
+        SELECT wr_id, wr_subject, wr_2
         FROM   `{$table}`
         WHERE  wr_is_comment = 0
         AND    wr_num > :wr_num
@@ -131,7 +147,7 @@ try {
 
     // ── 다음 글 (wr_num이 작은 것 중 가장 큰 것 = 바로 다음으로 최신 글) ──
     $next_sql = "
-        SELECT wr_id, wr_subject
+        SELECT wr_id, wr_subject, wr_2
         FROM   `{$table}`
         WHERE  wr_is_comment = 0
         AND    wr_num < :wr_num
@@ -154,31 +170,36 @@ try {
     ";
     $files_stmt = $pdo->prepare($files_sql);
     $files_stmt->bindValue(':bo_table', $bo_table, PDO::PARAM_STR);
-    $files_stmt->bindValue(':wr_id',    $wr_id,    PDO::PARAM_INT);
+    $files_stmt->bindValue(':wr_id',    $resolved_wr_id, PDO::PARAM_INT);
     $files_stmt->execute();
     $file_rows = $files_stmt->fetchAll();
 
-    $files = array_map(function (array $file) use ($bo_table, $wr_id): array {
-        return board_format_attachment_meta($file, $bo_table, $wr_id);
+    $files = array_map(function (array $file) use ($bo_table, $resolved_wr_id): array {
+        return board_format_attachment_meta($file, $bo_table, $resolved_wr_id);
     }, $file_rows);
 
     // ── 응답 조립 ──────────────────────────────────────────────────────────
 
     $format_nav = function (?array $row): ?array {
-        if ($row === null) return null;
+        if ($row === null) {
+            return null;
+        }
+
         return [
-            'wr_id'      => (int) $row['wr_id'],
-            'wr_subject' => $row['wr_subject'],
+            'wr_id'        => (int) $row['wr_id'],
+            'wr_subject'   => $row['wr_subject'],
+            'wr_seo_slug'  => (string) ($row['wr_2'] ?? ''),
         ];
     };
 
     json_response([
-        'wr_id'                => (int) $post['wr_id'],
+        'wr_id'                => $resolved_wr_id,
         'wr_subject'           => $post['wr_subject'],
         'wr_content'           => board_normalize_content_image_sources((string) $post['wr_content']),
         'wr_name'              => $post['wr_name'],
         'wr_datetime'          => $post['wr_datetime'],
         'wr_hit'               => (int) $post['wr_hit'] + 1,
+        'wr_seo_slug'          => (string) ($post['wr_2'] ?? ''),
         'wr_seo_description'   => (string) ($post['wr_4'] ?? ''),
         'wr_schema'            => (string) ($post['wr_5'] ?? ''),
         'prev'                 => $format_nav($prev_row),

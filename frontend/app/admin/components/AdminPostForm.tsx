@@ -28,7 +28,7 @@ type AdminPostFormProps = {
   mode: 'create' | 'edit';
   wrId?: number;
   initial: AdminPostInitial;
-  onSaved: (wrId: number, publishMode: PublishMode) => void;
+  onSaved: (wrId: number, publishMode: PublishMode, seoSlug: string) => void;
   onDelete?: () => Promise<void>;
 };
 

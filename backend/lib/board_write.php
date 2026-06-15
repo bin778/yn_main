@@ -110,6 +110,67 @@ function board_slugify(string $text): string
     return $slug;
 }
 
+const BOARD_SEO_SLUG_MAX_LENGTH = 120;
+
+function board_normalize_seo_slug(string $raw): string
+{
+    $trimmed = trim($raw);
+    if ($trimmed === '') {
+        return '';
+    }
+
+    return board_slugify($trimmed);
+}
+
+/**
+ * @return string|null 오류 메시지 또는 null
+ */
+function board_validate_seo_slug(string $slug, PDO $pdo, string $write_table, int $exclude_wr_id = 0): ?string
+{
+    if ($slug === '') {
+        return null;
+    }
+
+    if (preg_match('/^\d+$/', $slug)) {
+        return 'Slug는 숫자만으로 구성할 수 없습니다.';
+    }
+
+    if (mb_strlen($slug, 'UTF-8') > BOARD_SEO_SLUG_MAX_LENGTH) {
+        return 'Slug는 ' . BOARD_SEO_SLUG_MAX_LENGTH . '자 이내로 입력해 주세요.';
+    }
+
+    $dup_sql = "SELECT wr_id FROM `{$write_table}`
+                WHERE wr_2 = :slug AND wr_is_comment = 0 AND wr_id <> :exclude_wr_id
+                LIMIT 1";
+    $dup_stmt = $pdo->prepare($dup_sql);
+    $dup_stmt->execute([
+        'slug'          => $slug,
+        'exclude_wr_id' => $exclude_wr_id,
+    ]);
+    if ($dup_stmt->fetch(PDO::FETCH_ASSOC)) {
+        return '이미 사용 중인 Slug입니다.';
+    }
+
+    return null;
+}
+
+/**
+ * @return array{mode: 'id'|'slug', value: string}
+ */
+function board_resolve_post_key(string $post_key): array
+{
+    $trimmed = trim($post_key);
+    if ($trimmed === '') {
+        return ['mode' => 'id', 'value' => '0'];
+    }
+
+    if (preg_match('/^\d+$/', $trimmed)) {
+        return ['mode' => 'id', 'value' => $trimmed];
+    }
+
+    return ['mode' => 'slug', 'value' => $trimmed];
+}
+
 /**
  * @param array<string, mixed> $body
  * @return array{
@@ -139,10 +200,8 @@ function board_parse_post_body(array $body, string $default_datetime): array
         $wr_3 = $wr_subject;
     }
 
-    $wr_2 = trim((string) ($body['wr_seo_slug'] ?? $body['wr_2'] ?? ''));
-    if ($wr_2 === '' && $wr_subject !== '') {
-        $wr_2 = board_slugify($wr_subject);
-    }
+    $wr_2_raw = trim((string) ($body['wr_seo_slug'] ?? $body['wr_2'] ?? ''));
+    $wr_2 = $wr_2_raw === '' ? '' : board_normalize_seo_slug($wr_2_raw);
 
     $wr_4 = trim((string) ($body['wr_seo_description'] ?? $body['wr_4'] ?? ''));
     if (mb_strlen($wr_4, 'UTF-8') > 500) {

@@ -19,8 +19,8 @@ function AdminWriteForm({ boTable }: AdminWriteFormProps) {
       boTable={boTable}
       mode="create"
       initial={emptyAdminPostInitial()}
-      onSaved={(wrId, publishMode) => {
-        router.push(getRedirectPathAfterSave(boTable, wrId, publishMode));
+      onSaved={(wrId, publishMode, seoSlug) => {
+        router.push(getRedirectPathAfterSave(boTable, wrId, publishMode, seoSlug));
         router.refresh();
       }}
     />

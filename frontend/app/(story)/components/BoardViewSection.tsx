@@ -5,6 +5,7 @@ import { shouldUseLegacyLayoutRendering } from '@/app/lib/boardLegacyLayout';
 
 import type { BoTable, BoardView } from '../types/board';
 import { BOARD_META, getBoardPathSlug } from '../constants/boardContent';
+import { buildBoardPostHref } from '../lib/boardPostPath';
 
 import BoardAttachmentItem from './BoardAttachmentItem';
 
@@ -73,7 +74,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
           <nav className="mt-10 border-t border-[#e8e8e8]" aria-label="이전/다음 글">
             {post.prev !== null && (
               <Link
-                href={`/${pathSlug}/${post.prev.wr_id}`}
+                href={buildBoardPostHref(boTable, post.prev.wr_id, post.prev.wr_seo_slug)}
                 className="flex items-start gap-3 border-b border-[#f0f0f0] px-1 py-4 text-[14px] transition-colors hover:bg-[#f8f8f8]"
               >
                 <span className="mt-0.5 shrink-0 text-[#aaa]">← 이전글</span>
@@ -82,7 +83,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
             )}
             {post.next !== null && (
               <Link
-                href={`/${pathSlug}/${post.next.wr_id}`}
+                href={buildBoardPostHref(boTable, post.next.wr_id, post.next.wr_seo_slug)}
                 className="flex items-start gap-3 px-1 py-4 text-[14px] transition-colors hover:bg-[#f8f8f8]"
               >
                 <span className="mt-0.5 shrink-0 text-[#aaa]">다음글 →</span>

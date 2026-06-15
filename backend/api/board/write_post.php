@@ -65,6 +65,11 @@ if ($method === 'POST') {
         board_json_response(['error' => $schema_error], 400);
     }
 
+    $slug_error = board_validate_seo_slug($parsed['wr_2'], $pdo, $write_table, 0);
+    if ($slug_error !== null) {
+        board_json_response(['error' => $slug_error], 400);
+    }
+
     $parsed['wr_content'] = board_normalize_content_image_sources($parsed['wr_content']);
 
     try {
@@ -182,6 +187,11 @@ if ($method === 'PUT' || $method === 'PATCH') {
         board_json_response(['error' => $schema_error], 400);
     }
 
+    $slug_error = board_validate_seo_slug($parsed['wr_2'], $pdo, $write_table, $wr_id);
+    if ($slug_error !== null) {
+        board_json_response(['error' => $slug_error], 400);
+    }
+
     $parsed['wr_content'] = board_normalize_content_image_sources($parsed['wr_content']);
 
     $check = $pdo->prepare(
@@ -288,7 +298,7 @@ if ($method === 'DELETE') {
             'UPDATE g5_board SET
                 bo_count_write = GREATEST(0, CAST(bo_count_write AS SIGNED) - :write_delta),
                 bo_count_comment = GREATEST(0, CAST(bo_count_comment AS SIGNED) - :comment_delta)
-             WHERE bo_table = :bo_table'
+                WHERE bo_table = :bo_table'
         )->execute([
             'write_delta'   => $write_delta,
             'comment_delta' => $comment_count,

@@ -1,4 +1,5 @@
 import { ALLOWED_BO_TABLES, getBoardPathSlug, resolveBoTableFromPathSlug } from '@/app/(story)/constants/boardContent';
+import { buildBoardPostHref } from '@/app/(story)/lib/boardPostPath';
 import type { BoTable } from '@/app/(story)/types/board';
 
 export function resolveAdminBoTable(slug: string): BoTable | null {
@@ -19,11 +20,16 @@ export function getAdminScheduledListPath(boTable: BoTable): string {
   return `/admin/${getBoardPathSlug(boTable)}/scheduled/`;
 }
 
-export function getRedirectPathAfterSave(boTable: BoTable, wrId: number, publishMode: AdminSavePublishMode): string {
+export function getRedirectPathAfterSave(
+  boTable: BoTable,
+  wrId: number,
+  publishMode: AdminSavePublishMode,
+  seoSlug?: string,
+): string {
   if (publishMode === 'scheduled') {
     return getAdminListPath(boTable);
   }
-  return `${getAdminListPath(boTable)}${wrId}/`;
+  return buildBoardPostHref(boTable, wrId, seoSlug);
 }
 
 export { ALLOWED_BO_TABLES, getBoardPathSlug };
