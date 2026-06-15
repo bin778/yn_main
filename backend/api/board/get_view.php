@@ -11,7 +11,7 @@
  *
  * Response:
  *   {
- *     wr_id, wr_subject, wr_content, wr_name, wr_datetime, wr_hit,
+ *     wr_id, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, og_image_url,
  *     prev: { wr_id, wr_subject } | null,
  *     next: { wr_id, wr_subject } | null,
  *     files: [{ no, source, url, size, is_image, width, height }]
@@ -88,7 +88,7 @@ if ($wr_id <= 0 && $slug === '') {
 try {
     if ($wr_id > 0) {
         $view_sql = "
-            SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_2, wr_4, wr_5
+            SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_1, wr_2, wr_4, wr_5
             FROM   `{$table}`
             WHERE  wr_id = :wr_id
             AND    wr_is_comment = 0
@@ -99,7 +99,7 @@ try {
         $stmt->bindValue(':wr_id', $wr_id, PDO::PARAM_INT);
     } else {
         $view_sql = "
-            SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_2, wr_4, wr_5
+            SELECT wr_id, wr_num, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_1, wr_2, wr_4, wr_5
             FROM   `{$table}`
             WHERE  wr_2 = :slug
             AND    wr_is_comment = 0
@@ -178,6 +178,21 @@ try {
         return board_format_attachment_meta($file, $bo_table, $resolved_wr_id);
     }, $file_rows);
 
+    $thumbnail_file = null;
+    foreach ($file_rows as $file_row) {
+        if ((int) ($file_row['bf_width'] ?? 0) > 0) {
+            $thumbnail_file = (string) $file_row['bf_file'];
+            break;
+        }
+    }
+
+    $og_image_url = board_resolve_post_image_url(
+        $bo_table,
+        (string) ($post['wr_1'] ?? ''),
+        $thumbnail_file,
+        (string) ($post['wr_content'] ?? '')
+    );
+
     // ── 응답 조립 ──────────────────────────────────────────────────────────
 
     $format_nav = function (?array $row): ?array {
@@ -202,6 +217,7 @@ try {
         'wr_seo_slug'          => (string) ($post['wr_2'] ?? ''),
         'wr_seo_description'   => (string) ($post['wr_4'] ?? ''),
         'wr_schema'            => (string) ($post['wr_5'] ?? ''),
+        'og_image_url'         => $og_image_url,
         'prev'                 => $format_nav($prev_row),
         'next'                 => $format_nav($next_row),
         'files'                => $files,

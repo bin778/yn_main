@@ -11,6 +11,7 @@ export type BoardListItem = {
   wr_datetime: string;
   wr_hit: number;
   has_file: boolean;
+  notice: boolean;
   thumbnail_url: string | null;
   wr_seo_slug?: string;
 };
@@ -53,6 +54,7 @@ export type BoardView = {
   wr_seo_slug?: string;
   wr_seo_description?: string;
   wr_schema?: string;
+  og_image_url?: string | null;
   prev: BoardNavItem;
   next: BoardNavItem;
   files: BoardFile[];

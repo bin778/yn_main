@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { label, description: boardDescription } = BOARD_META[boTable];
     const metaDescription = resolveBoardMetaDescription(post.wr_seo_description, post.wr_content) || boardDescription;
     const canonical = buildBoardPostHref(boTable, post.wr_id, post.wr_seo_slug);
+    const ogImageUrl = post.og_image_url?.trim() ?? '';
 
     return {
       title: `${post.wr_subject} | ${label} | ${SITE_NAME}`,
@@ -35,6 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       openGraph: {
         title: `${post.wr_subject} | ${label}`,
         description: metaDescription,
+        ...(ogImageUrl !== '' ? { images: [{ url: ogImageUrl }] } : {}),
       },
       alternates: { canonical },
     };

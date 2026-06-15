@@ -46,10 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 require_once __DIR__ . '/../../config/db_conn.php';
 require_once __DIR__ . '/../../lib/board_editor_images.php';
+require_once __DIR__ . '/../../lib/board_write.php';
 
 const ALLOWED_TABLES   = ['review', 'success', 'column', 'news'];
-const BOARD_FILE_BASE  = 'https://yeoon.co.kr/board/data/file';
-const SITE_BASE_URL    = 'https://yeoon.co.kr';
 const DEFAULT_PER_PAGE = 12;
 const MAX_PER_PAGE     = 50;
 const DEFAULT_SORT     = 'datetime_desc';
@@ -70,20 +69,6 @@ function json_response(array $payload, int $status = 200): void
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
-}
-
-function extract_first_image_src(string $html): ?string
-{
-    if (!preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $html, $matches)) {
-        return null;
-    }
-
-    $src = trim(html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-    if ($src === '') {
-        return null;
-    }
-
-    return $src;
 }
 
 // ── 입력 검증 ─────────────────────────────────────────────────────────────
@@ -198,18 +183,13 @@ try {
     $rows = $stmt->fetchAll();
 
     $items = array_map(function (array $row) use ($bo_table): array {
-        $thumbnail_url = null;
-        $wr1 = trim((string) ($row['wr_1'] ?? ''));
-        if ($wr1 !== '') {
-            $thumbnail_url = board_resolve_editor_image_url($wr1);
-        } elseif ($row['thumbnail_file'] !== null) {
-            $thumbnail_url = BOARD_FILE_BASE . '/' . $bo_table . '/' . $row['thumbnail_file'];
-        } else {
-            $first_image_src = extract_first_image_src((string) $row['wr_content']);
-            if ($first_image_src !== null) {
-                $thumbnail_url = board_resolve_editor_image_url($first_image_src);
-            }
-        }
+        $thumbnail_url = board_resolve_post_image_url(
+            $bo_table,
+            (string) ($row['wr_1'] ?? ''),
+            $row['thumbnail_file'] !== null ? (string) $row['thumbnail_file'] : null,
+            (string) ($row['wr_content'] ?? '')
+        );
+        $option = board_parse_wr_option($row['wr_option'] ?? null);
 
         return [
             'wr_id'         => (int) $row['wr_id'],
@@ -218,6 +198,7 @@ try {
             'wr_datetime'   => $row['wr_datetime'],
             'wr_hit'        => (int) $row['wr_hit'],
             'has_file'      => (int) $row['wr_file'] > 0,
+            'notice'        => $option['notice'],
             'thumbnail_url' => $thumbnail_url,
             'wr_seo_slug'   => (string) ($row['wr_2'] ?? ''),
         ];

@@ -149,3 +149,43 @@ function board_normalize_content_image_sources(string $html): string
         $html
     ) ?? $html;
 }
+
+function board_extract_first_image_src(string $html): ?string
+{
+    if (!preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $html, $matches)) {
+        return null;
+    }
+
+    $src = trim(html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    if ($src === '') {
+        return null;
+    }
+
+    return $src;
+}
+
+/**
+ * 썸네일·OG 이미지 우선순위: wr_1 → 첨부 이미지 → 본문 첫 img
+ */
+function board_resolve_post_image_url(
+    string $bo_table,
+    string $wr_1,
+    ?string $thumbnail_file,
+    string $wr_content
+): ?string {
+    $wr1 = trim($wr_1);
+    if ($wr1 !== '') {
+        return board_resolve_editor_image_url($wr1);
+    }
+
+    if ($thumbnail_file !== null && trim($thumbnail_file) !== '') {
+        return BOARD_EDITOR_SITE_BASE . '/board/data/file/' . $bo_table . '/' . $thumbnail_file;
+    }
+
+    $first_image_src = board_extract_first_image_src($wr_content);
+    if ($first_image_src !== null) {
+        return board_resolve_editor_image_url($first_image_src);
+    }
+
+    return null;
+}

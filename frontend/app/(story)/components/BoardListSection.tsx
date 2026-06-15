@@ -23,6 +23,14 @@ function formatDate(datetime: string): string {
   return datetime.slice(0, 10).replace(/-/g, '.');
 }
 
+function NoticeBadge() {
+  return (
+    <span className="inline-flex shrink-0 items-center bg-[#1a3151] px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">
+      공지
+    </span>
+  );
+}
+
 function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
   const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
 
@@ -30,7 +38,9 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
     <li className="border-b border-[#e8e8e8] last:border-b-0">
       <Link
         href={href}
-        className="group flex items-start gap-4 py-6 transition-colors hover:bg-[#f8f8f8] md:gap-6 md:px-4"
+        className={`group flex items-start gap-4 py-6 transition-colors md:gap-6 md:px-4 ${
+          item.notice ? 'bg-[#f5f7fa] hover:bg-[#eef1f6]' : 'hover:bg-[#f8f8f8]'
+        }`}
       >
         {item.thumbnail_url !== null && (
           <div className="relative hidden h-[80px] w-[120px] shrink-0 overflow-hidden bg-[#f0f0f0] md:block">
@@ -39,8 +49,9 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151] md:text-[18px]">
-            {item.wr_subject}
+          <p className="flex items-center gap-2 text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151] md:text-[18px]">
+            {item.notice ? <NoticeBadge /> : null}
+            <span className="truncate">{item.wr_subject}</span>
           </p>
           <div className="mt-2 flex items-center gap-3 text-[12px] text-[#999] md:text-[13px]">
             <span>{item.wr_name}</span>
@@ -72,7 +83,7 @@ function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTabl
   const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
 
   return (
-    <li className="h-full border border-[#e8e8e8]">
+    <li className={`h-full border border-[#e8e8e8] ${item.notice ? 'ring-1 ring-inset ring-[#1a3151]/20' : ''}`}>
       <Link href={href} className="group flex h-full flex-col">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f0f0f0]">
           {item.thumbnail_url !== null ? (
@@ -88,8 +99,9 @@ function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTabl
           )}
         </div>
         <div className="flex flex-1 flex-col px-4 py-4">
-          <p className="line-clamp-2 text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151]">
-            {item.wr_subject}
+          <p className="flex items-start gap-2 text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151]">
+            {item.notice ? <NoticeBadge /> : null}
+            <span className="line-clamp-2">{item.wr_subject}</span>
           </p>
           <p className="mt-auto pt-3 text-[12px] text-[#999]">
             {item.wr_name} · {formatDate(item.wr_datetime)} · 조회 {item.wr_hit.toLocaleString()}
