@@ -17,6 +17,11 @@ const PreFooterCta = dynamic(() => import('./components/PreFooterCta'));
 export const metadata: Metadata = {
   title: '법무법인 여온',
   description: '재배당/사무장 없는 법무법인 여온',
+  verification: {
+    other: {
+      'naver-site-verification': 'f2af03f086696bdbf2f7c762e19ad817dd77e6d1',
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
