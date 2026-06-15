@@ -9,6 +9,7 @@ import AnalyticsConsentDefaults from './components/AnalyticsConsentDefaults';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import Footer from './components/Footer';
 import Header from './components/Header';
+import VercelMetrics from './components/VercelMetrics';
 
 const FloatingQuickActions = dynamic(() => import('./components/FloatingQuickActions'));
 const PreFooterCta = dynamic(() => import('./components/PreFooterCta'));
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <AnalyticsConsentBanner />
         </AnalyticsProvider>
+        <VercelMetrics />
       </body>
     </html>
   );
