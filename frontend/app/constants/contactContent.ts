@@ -115,6 +115,11 @@ function resolveInquiryApiUrl(): string {
   const configured = process.env.NEXT_PUBLIC_INQUIRY_API_URL?.trim() ?? '';
   if (configured === '') return '';
 
+  // Vercel·로컬 dev same-origin — rewrite가 카페24 /api/submit_inquiry.php 로 프록시
+  if (configured.startsWith('/')) {
+    return configured;
+  }
+
   if (configured.endsWith(LEGACY_INQUIRY_API_SUFFIX) && !configured.includes('/backend/api/')) {
     return configured.replace(LEGACY_INQUIRY_API_SUFFIX, CORRECT_INQUIRY_API_SUFFIX);
   }

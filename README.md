@@ -97,11 +97,11 @@ npm run dev
 
 `frontend/.env.example`를 참고해 `frontend/.env.local`을 만듭니다.
 
-| 변수                            | 설명                                                                                                        |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 접수 PHP API URL. Vercel·로컬은 `/backend/api/submit_inquiry.php`(same-origin). 카페24 단독은 절대 URL |
-| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`)                              |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4·동의 배너·이벤트 모두 비활성화                         |
+| 변수                            | 설명                                                                                                           |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_INQUIRY_API_URL`   | Vercel·로컬: `/api/submit_inquiry.php`(same-origin). 카페24 단독: `https://yeoon.co.kr/api/submit_inquiry.php` |
+| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`)                                 |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4·동의 배너·이벤트 모두 비활성화                            |
 
 ```bash
 cp frontend/.env.example frontend/.env.local
@@ -367,11 +367,13 @@ backend/
 3. `db_conn.php`에 DB 호스트·계정·DB명 입력.
 4. DB에 `schema.sql`의 `user_inquiry` 테이블이 있는지 확인.
 5. `app_config.php`에 Aligo 알림톡·`JWT_SECRET` 입력. JWT 없으면 관리자 API가 동작하지 않습니다.
-6. 공개 URL 확인 (경로 예시):
+6. 공개 URL (카페24 실제 파일 경로):
 
-   `https://yeoon.co.kr/backend/api/submit_inquiry.php`
+   `https://yeoon.co.kr/api/submit_inquiry.php`
 
-7. 빌드 전 `frontend/.env.local`의 `NEXT_PUBLIC_INQUIRY_API_URL`에 위 URL 설정.
+   Vercel·로컬 dev는 `NEXT_PUBLIC_INQUIRY_API_URL=/api/submit_inquiry.php`(상대 경로). `next.config.ts` rewrite가 위 카페24 URL로 프록시합니다. `/backend/api/submit_inquiry.php`도 동일 alias입니다.
+
+7. 카페24 정적 호스팅만 쓸 때 — 빌드 전 `frontend/.env.local`에 절대 URL 설정.
 
 ### 상담 API 계약
 
@@ -393,9 +395,9 @@ backend/
 - `http://localhost:3000` (Next dev)
 - `http://localhost:4173`
 
-**Vercel 배포** — `NEXT_PUBLIC_INQUIRY_API_URL=/backend/api/submit_inquiry.php`로 두면 브라우저가 same-origin으로 요청하고 `next.config.ts` rewrite가 카페24로 프록시하므로 CORS가 필요 없습니다.
+**Vercel 배포 (권장)** — `NEXT_PUBLIC_INQUIRY_API_URL=/api/submit_inquiry.php`로 두면 브라우저가 same-origin으로 요청하고 `next.config.ts` rewrite가 카페24 `/api/submit_inquiry.php`로 프록시하므로 CORS가 필요 없습니다.
 
-**방법 A (당장)** — 절대 URL을 쓰는 동안은 카페24 운영 `submit_inquiry.php`의 `$allowed_origins`에 Origin을 추가합니다. 샘플은 `backend/api/submit_inquiry.sample.php`를 참고해 FTP로 반영합니다.
+**방법 A (카페24 단독·절대 URL)** — cross-origin일 때만 카페24 `api/submit_inquiry.php`의 `$allowed_origins`에 Origin을 추가합니다.
 
 추가 도메인이 필요하면 `submit_inquiry.php`·`backend/lib/cors.php`의 허용 목록을 함께 수정합니다.
 
