@@ -21,6 +21,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowed_origins = [
     'https://yeoon.co.kr',
     'https://www.yeoon.co.kr',
+    'https://new.yeoon.co.kr',
     'http://localhost:3000',
     'http://localhost:4173',
 ];

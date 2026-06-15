@@ -97,11 +97,11 @@ npm run dev
 
 `frontend/.env.example`를 참고해 `frontend/.env.local`을 만듭니다.
 
-| 변수                            | 설명                                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 접수 PHP API URL. 비우면 폼 제출 시 안내 스텁 메시지 표시                      |
-| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`)      |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4·동의 배너·이벤트 모두 비활성화 |
+| 변수                            | 설명                                                                                                        |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 접수 PHP API URL. Vercel·로컬은 `/backend/api/submit_inquiry.php`(same-origin). 카페24 단독은 절대 URL |
+| `BOARD_API_URL`                 | 게시판 조회 API URL (서버사이드 전용, 기본값: `https://yeoon.co.kr/api/board`)                              |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 측정 ID (`G-`로 시작). 비우면 GA4·동의 배너·이벤트 모두 비활성화                         |
 
 ```bash
 cp frontend/.env.example frontend/.env.local
@@ -385,12 +385,19 @@ backend/
 
 ### CORS 허용 Origin
 
+상담 API(`submit_inquiry.php`)·게시판 API(`cors.php`) 공통:
+
 - `https://yeoon.co.kr`
 - `https://www.yeoon.co.kr`
+- `https://new.yeoon.co.kr` (Vercel 스테이징)
 - `http://localhost:3000` (Next dev)
 - `http://localhost:4173`
 
-추가 도메인이 필요하면 `api/submit_inquiry.php`의 `$allowed_origins` 배열을 수정합니다.
+**Vercel 배포** — `NEXT_PUBLIC_INQUIRY_API_URL=/backend/api/submit_inquiry.php`로 두면 브라우저가 same-origin으로 요청하고 `next.config.ts` rewrite가 카페24로 프록시하므로 CORS가 필요 없습니다.
+
+**방법 A (당장)** — 절대 URL을 쓰는 동안은 카페24 운영 `submit_inquiry.php`의 `$allowed_origins`에 Origin을 추가합니다. 샘플은 `backend/api/submit_inquiry.sample.php`를 참고해 FTP로 반영합니다.
+
+추가 도메인이 필요하면 `submit_inquiry.php`·`backend/lib/cors.php`의 허용 목록을 함께 수정합니다.
 
 ### 보안
 

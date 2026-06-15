@@ -22,7 +22,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowed_origins = [
     'https://yeoon.co.kr',
     'https://www.yeoon.co.kr',
-    'https://yn-main-orcin.vercel.app',
+    'https://new.yeoon.co.kr',
     'http://localhost:3000',
     'http://localhost:4173',
 ];

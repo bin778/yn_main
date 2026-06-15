@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
         // 상담문의 API
         { source: '/api/inquiry/:path*', destination: `${CAFE24}/api/inquiry/:path*` },
         { source: '/api/submit_inquiry.php', destination: `${CAFE24}/api/submit_inquiry.php` },
+        { source: '/backend/api/submit_inquiry.php', destination: `${CAFE24}/backend/api/submit_inquiry.php` },
 
         // 랜딩페이지들 (PHP 레거시)
         { source: '/landing/:path*', destination: `${CAFE24}/landing/:path*` },

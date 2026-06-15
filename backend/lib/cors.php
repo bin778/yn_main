@@ -3,7 +3,7 @@
 const BOARD_ALLOWED_ORIGINS = [
     'https://yeoon.co.kr',
     'https://www.yeoon.co.kr',
-    'https://yn-main-orcin.vercel.app',
+    'https://new.yeoon.co.kr',
     'http://localhost:3000',
     'http://localhost:4173',
 ];
