@@ -25,7 +25,9 @@ yn_main/
 │   │   ├── board-typography.css # 본문·에디터·미리보기 공통 타이포 (md 반응형)
 │   │   ├── components/       # Header, Footer, PreFooterCta, AnalyticsProvider 등
 │   │   ├── constants/        # footerContent.ts, analyticsEvents.ts, gtagConsent.ts 등
-│   │   ├── lib/              # trackGaEvent.ts, analyticsConsent.ts, fonts.ts
+│   │   ├── lib/              # trackGaEvent.ts, analyticsConsent.ts, fonts.ts, sitemapEntries.ts
+│   │   ├── robots.ts         # /robots.txt (검색·AI 크롤러 정책)
+│   │   ├── sitemap.ts        # /sitemap.xml (ISR revalidate 1h)
 │   │   └── admin/            # 관리자 대시보드·글쓰기/수정·예약글
 │   │       ├── components/   # AdminPostForm, BoardEditor 등
 │   │       ├── hooks/        # useAdminPostForm, useClickOutside 등
@@ -71,6 +73,45 @@ npm run dev
 | `/{slug}/[wr_id]/` | 게시물 상세 (ISR `revalidate: 60`) |
 
 `trailingSlash: true` 설정으로 운영 URL은 슬래시(`/`)로 끝납니다.
+
+### SEO / GEO
+
+별도 `robots.txt` 파일은 없습니다. `app/robots.ts`·`app/sitemap.ts`가 배포 시 `/robots.txt`, `/sitemap.xml`을 생성합니다. 운영 도메인 기준 URL은 `app/lib/sitemapEntries.ts`의 `SITE_ORIGIN`(`https://yeoon.co.kr`)입니다.
+
+#### robots.txt (`app/robots.ts`)
+
+주요 검색엔진·AI 검색 크롤러가 공개 페이지를 수집할 수 있도록 전면 `Allow: /`를 명시하고, `sitemap.xml` 경로를 하단에 둡니다.
+
+| User-agent      | 정책                            |
+| --------------- | ------------------------------- |
+| `*`             | `Allow: /`, `Disallow: /admin/` |
+| `Googlebot`     | `Allow: /`                      |
+| `Bingbot`       | `Allow: /`                      |
+| `Yeti`          | `Allow: /` (네이버)             |
+| `OAI-SearchBot` | `Allow: /` (OpenAI 검색)        |
+| `GPTBot`        | `Allow: /` (OpenAI 학습·크롤)   |
+
+- `/admin/` `Disallow`는 **보안 장치가 아닙니다** (JWT·API 권한이 실제 방어선). 양심 있는 크롤러의 관리자 URL 방문·색인 시도를 줄이는 위생 조치이며, `/admin/*`에는 `X-Robots-Tag: noindex, nofollow`·`admin/layout.tsx` 메타 noindex가 함께 적용됩니다.
+- 레거시 `/board/bbs/faq.php`는 서버에 파일이 없어 robots 규칙에서 제외했습니다. 홈 FAQ는 `components/home/FaqAccordion.tsx`·`constants/homeContent.ts`의 `FAQ_ITEMS`로 제공합니다.
+
+배포 후 예시: `https://yeoon.co.kr/robots.txt`
+
+#### sitemap.xml (`app/sitemap.ts`)
+
+`buildSitemapEntries()`(`app/lib/sitemapEntries.ts`)가 정적 페이지·구성원 상세·게시판 목록/글 URL을 조합합니다. `revalidate: 3600`(1시간)으로 ISR 갱신합니다.
+
+| 포함 경로                                                    | 비고                         |
+| ------------------------------------------------------------ | ---------------------------- |
+| `/`, `/about/`, `/field/`, `/people/`, …                     | 정적 페이지                  |
+| `/people/[id]/`                                              | `PEOPLE_IDS` 기준            |
+| `/review/`, `/success-story/`, `/column/`, `/news/` 및 각 글 | 게시판 API 목록 페이징(50건) |
+
+`/admin/`·비공개 예약글은 sitemap에 넣지 않습니다.
+
+#### 사이트 소유 확인·메타
+
+- 네이버 서치어드바이저: `app/layout.tsx` `metadata.verification.other['naver-site-verification']`
+- 페이지별 `canonical`·게시글 SEO 메타: 각 `page.tsx`·`generateMetadata`, 관리자 글쓰기 `AdminPostForm` SEO 필드
 
 ### 게시판 본문 스타일 (`board-content.css`)
 
@@ -437,11 +478,14 @@ cd frontend && npm run start
 - GA4: 시크릿 창 첫 방문 → 동의 전 `googletagmanager.com` 요청 없음 → 동의 후 이벤트 수집
 - GA4: 동의/거부 후 배너 사라짐, 플로팅 사이드바 원래 위치 복귀
 - 레거시 URL 301, `/api/board/`, `/backend/api/` 응답 확인
+- `/robots.txt`: 공개 `Allow: /`, `/admin/` `Disallow`, `Sitemap: https://yeoon.co.kr/sitemap.xml`, Yeti·GPTBot 등 봇별 규칙
+- `/sitemap.xml`: 정적·people·게시판 URL 포함, 200 응답
 
 카페24 배포 시 업로드: `backend/lib/`(board_write.php, board_schema.php, board_files.php, pbkdf2.php), `backend/api/board/`(get_view.php, get_post.php, get_scheduled_list.php, upload_file.php, download_file.php, write_post.php), `config/app_config.php`(JWT_SECRET).
 
 ### 그 이전 주요 마일스톤
 
+- SEO/GEO: `robots.ts` 검색·AI 크롤러 전면 허용 + `/admin/` disallow, `sitemap.xml` 명시, 네이버 사이트 소유 확인 메타
 - GA4 Consent Mode v2·동의 배너·광고 storage 거부, `@next/third-parties` → 자체 `GoogleAnalyticsLoader`
 - Lighthouse 성능: Pretendard 서브셋, About/Field 히어로 `<picture>`, Header 로고 priority 제거
 - 푸터 CTA **FAMILY SITE** 드롭다운 (`FamilySiteDropdown`, `FAMILY_SITES` 상수)
@@ -449,4 +493,4 @@ cd frontend && npm run start
 - JWT 기반 `/admin/` 대시보드·게시판·상담 문의 관리 (`/admin/inquiries/`)
 - Next.js 게시판 목록·상세 (`(story)`), ISR, 레거시 `board.php` 301 → `/review/` 등
 - 상담 API PHP 이전 (`/backend/api/submit_inquiry.php`), Contact·About·People·Field 페이지 마이그레이션
-- 게시판 정렬(날짜·조회수·제목), 검색, 그리드/리스트 뷰, LCP·Hero Swiper 최적화
+- 게시판 정렬(날짜·조회수·제목)
