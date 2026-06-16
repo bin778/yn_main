@@ -12,6 +12,10 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # --- [루트 도메인 접속 시 Vercel(www)로 즉시 넘김] ---
+  RewriteCond %{HTTP_HOST} ^yeoon\.co\.kr$ [NC]
+  RewriteRule ^(.*)$ https://www.yeoon.co.kr/$1 [L,R=301]
+
   # --- [1. SEO 301 영구 리다이렉트: 레거시 PHP 페이지] ---
   RewriteCond %{QUERY_STRING} ^p=(\d+)$ [NC]
   RewriteRule ^peoples\.php$ /people/%1/? [R=301,L]
