@@ -112,7 +112,7 @@ export function createBoardTinyMceInit({ onUploadImage }: CreateBoardTinyMceInit
     base_url: '/tinymce',
     suffix: '.min',
     language: 'ko_KR',
-    language_url: '/tinymce/langs/ko_KR.js',
+    language_url: '/tinymce/langs/ko_KR.js?v=1',
     menubar: false,
     statusbar: false,
     branding: false,
