@@ -10,6 +10,21 @@ export const STORY_SUBLINKS = [
   { href: '/review', label: '후기' },
 ] as const;
 
+export type NavSublink = {
+  label: string;
+  href?: string;
+};
+
+export const DRUNK_CONSULTATION_HREF = 'https://yeoon.co.kr/drunk';
+
+export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [
+  { href: DRUNK_CONSULTATION_HREF, label: '음주운전' },
+  { label: '카촬죄' },
+  { label: '강제추행' },
+];
+
+export const CONSULTATION_NAV_LABEL = '형사 전문';
+
 export const MAIN_NAV_LINKS = [
   { href: '/about', label: '여온의 약속' },
   { href: '/people', label: '여온의 사람들' },
