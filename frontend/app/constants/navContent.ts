@@ -25,6 +25,9 @@ export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [
 
 export const CONSULTATION_NAV_LABEL = '형사 전문';
 
+/** 형사 전문 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */
+export const SHOW_CONSULTATION_NAV = false;
+
 export const MAIN_NAV_LINKS = [
   { href: '/about', label: '여온의 약속' },
   { href: '/people', label: '여온의 사람들' },
