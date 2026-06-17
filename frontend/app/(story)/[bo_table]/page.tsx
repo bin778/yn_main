@@ -5,10 +5,11 @@ import { notFound } from 'next/navigation';
 import BoardCategoryTabs from '../components/BoardCategoryTabs';
 import BoardAdminBar from '../components/BoardAdminBar';
 import BoardListSection from '../components/BoardListSection';
+import SuccessStorySubTabs from '../components/SuccessStorySubTabs';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
-import { parseBoardListSort } from '../constants/boardSort';
+import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import { fetchBoardList } from '../lib/boardApi';
-import type { BoardListResponse, BoardSearchField } from '../types/board';
+import type { BoardListResponse } from '../types/board';
 
 const EMPTY_LIST: BoardListResponse = {
   total: 0,
@@ -22,7 +23,7 @@ export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ bo_table: string }>;
-  searchParams: Promise<{ page?: string; q?: string; view?: string; sfl?: string; sort?: string }>;
+  searchParams: Promise<BoardListSearchParams>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -46,14 +47,13 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
   if (!bo_table) notFound();
 
   const { page: pageParam, q: qParam, view: viewParam, sfl: sflParam, sort: sortParam } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
-  const q = (qParam ?? '').trim();
-  const viewMode = viewParam === 'grid' ? 'grid' : 'list';
-  const sfl: BoardSearchField =
-    sflParam === 'subject' || sflParam === 'content' || sflParam === 'name' || sflParam === 'subject_content'
-      ? sflParam
-      : 'subject_content';
-  const sort = parseBoardListSort(sortParam);
+  const { page, q, viewMode, sfl, sort } = parseBoardListQuery({
+    page: pageParam,
+    q: qParam,
+    view: viewParam,
+    sfl: sflParam,
+    sort: sortParam,
+  });
 
   let data: BoardListResponse;
   try {
@@ -92,6 +92,7 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
       </section>
 
       <BoardCategoryTabs current={bo_table} />
+      {bo_table === 'success' ? <SuccessStorySubTabs current={null} /> : null}
       <BoardAdminBar boTable={bo_table} />
       <BoardListSection boTable={bo_table} data={data} q={q} sfl={sfl} sort={sort} view={viewMode} />
     </>

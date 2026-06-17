@@ -2,6 +2,7 @@ import { boardListCacheTag, boardViewCacheTag } from './boardCache';
 import { isNumericPostKey } from './boardPostPath';
 
 import { DEFAULT_BOARD_SORT, type BoardListSort } from '../constants/boardSort';
+import type { SuccessStoryCategory } from '../constants/successStoryCategories';
 import type { BoardListResponse, BoardSearchField, BoardView } from '../types/board';
 import type { BoTable } from '../types/board';
 
@@ -16,6 +17,7 @@ export async function fetchBoardList(
   q = '',
   sfl: BoardSearchField = 'subject_content',
   sort: BoardListSort = DEFAULT_BOARD_SORT,
+  category?: SuccessStoryCategory,
 ): Promise<BoardListResponse> {
   const searchParams = new URLSearchParams({
     bo_table: boTable,
@@ -25,6 +27,10 @@ export async function fetchBoardList(
 
   if (sort !== DEFAULT_BOARD_SORT) {
     searchParams.set('sort', sort);
+  }
+
+  if (category) {
+    searchParams.set('category', category);
   }
 
   if (q.trim() !== '') {

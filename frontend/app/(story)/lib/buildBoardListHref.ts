@@ -1,5 +1,6 @@
 import { getBoardPathSlug } from '../constants/boardContent';
 import { appendBoardSortParam } from '../constants/boardSort';
+import { buildSuccessStoryListPath, type SuccessStoryCategory } from '../constants/successStoryCategories';
 import type { BoardListSort, BoardSearchField, BoTable } from '../types/board';
 
 export function buildBoardListHref(
@@ -9,6 +10,7 @@ export function buildBoardListHref(
   q: string,
   sfl: BoardSearchField,
   sort: BoardListSort,
+  successCategory?: SuccessStoryCategory | null,
 ): string {
   const searchParams = new URLSearchParams();
   if (page > 1) searchParams.set('page', String(page));
@@ -18,7 +20,10 @@ export function buildBoardListHref(
     searchParams.set('q', q.trim());
     if (sfl !== 'subject_content') searchParams.set('sfl', sfl);
   }
-  const pathSlug = getBoardPathSlug(boTable);
+  const basePath =
+    boTable === 'success' && successCategory
+      ? buildSuccessStoryListPath(successCategory)
+      : `/${getBoardPathSlug(boTable)}`;
   const query = searchParams.toString();
-  return query === '' ? `/${pathSlug}` : `/${pathSlug}?${query}`;
+  return query === '' ? basePath : `${basePath}?${query}`;
 }

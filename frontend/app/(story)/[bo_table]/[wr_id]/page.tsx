@@ -6,15 +6,23 @@ import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardJsonLd from '../../components/BoardJsonLd';
 import BoardViewSection from '../../components/BoardViewSection';
+import SuccessStoryCategoryListPage from '../../components/SuccessStoryCategoryListPage';
 import { BOARD_META, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
+import {
+  buildSuccessStoryListPath,
+  getSuccessStoryCategoryLabel,
+  isSuccessStoryCategorySlug,
+} from '../../constants/successStoryCategories';
 import { fetchBoardView } from '../../lib/boardApi';
 import { buildBoardPostHref, getBoardPostPathSegment } from '../../lib/boardPostPath';
+import type { BoardListSearchParams } from '../../lib/parseBoardListQuery';
 import { resolveBoardMetaDescription } from '../../lib/boardSeo';
 
 export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ bo_table: string; wr_id: string }>;
+  searchParams: Promise<BoardListSearchParams>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -22,6 +30,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const boTable = resolveBoTableFromPathSlug(pathSlug);
 
   if (!boTable || postKey.trim() === '') return {};
+
+  const trimmedKey = postKey.trim();
+
+  if (boTable === 'success' && isSuccessStoryCategorySlug(trimmedKey)) {
+    const categoryLabel = getSuccessStoryCategoryLabel(trimmedKey);
+    const { label, description } = BOARD_META.success;
+
+    return {
+      title: `${label} · ${categoryLabel} | ${SITE_NAME}`,
+      description,
+      alternates: { canonical: buildSuccessStoryListPath(trimmedKey) },
+    };
+  }
 
   try {
     const post = await fetchBoardView(boTable, postKey);
@@ -45,11 +66,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function BoardViewPage({ params }: PageProps) {
+export default async function BoardViewPage({ params, searchParams }: PageProps) {
   const { bo_table: pathSlug, wr_id: postKey } = await params;
   const bo_table = resolveBoTableFromPathSlug(pathSlug);
 
   if (!bo_table || postKey.trim() === '') notFound();
+
+  const trimmedKey = postKey.trim();
+
+  if (bo_table === 'success' && isSuccessStoryCategorySlug(trimmedKey)) {
+    const resolvedSearchParams = await searchParams;
+
+    return <SuccessStoryCategoryListPage category={trimmedKey} searchParams={resolvedSearchParams} />;
+  }
 
   let post;
   try {

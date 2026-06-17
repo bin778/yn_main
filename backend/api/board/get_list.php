@@ -60,6 +60,7 @@ const ALLOWED_SORTS    = [
     'subject_asc'   => 'w.wr_subject ASC, w.wr_id ASC',
     'subject_desc'  => 'w.wr_subject DESC, w.wr_id DESC',
 ];
+const SUCCESS_CATEGORIES = ['criminal', 'civil', 'family', 'real-estate'];
 
 /**
  * @param array<string, mixed> $payload
@@ -99,10 +100,19 @@ $raw_sort = trim((string) ($_GET['sort'] ?? DEFAULT_SORT));
 $sort     = array_key_exists($raw_sort, ALLOWED_SORTS) ? $raw_sort : DEFAULT_SORT;
 $order_by = ALLOWED_SORTS[$sort];
 
+$raw_category = trim((string) ($_GET['category'] ?? ''));
+$category     = '';
+if ($bo_table === 'success' && in_array($raw_category, SUCCESS_CATEGORIES, true)) {
+    $category = $raw_category;
+}
+
 // ── 총 게시물 수 조회 ─────────────────────────────────────────────────────
 
 try {
     $where_sql = "WHERE wr_is_comment = 0 AND wr_datetime <= NOW()";
+    if ($category !== '') {
+        $where_sql .= " AND wr_7 = :category";
+    }
     if ($has_q) {
         if ($sfl === 'subject') {
             $where_sql .= " AND wr_subject LIKE :q_subject";
@@ -117,6 +127,9 @@ try {
 
     $count_sql = "SELECT COUNT(*) FROM `{$table}` {$where_sql}";
     $count_stmt = $pdo->prepare($count_sql);
+    if ($category !== '') {
+        $count_stmt->bindValue(':category', $category, PDO::PARAM_STR);
+    }
     if ($has_q) {
         if ($sfl === 'subject') {
             $count_stmt->bindValue(':q_subject', '%' . $q . '%', PDO::PARAM_STR);
@@ -164,6 +177,9 @@ try {
 
     $stmt = $pdo->prepare($list_sql);
     $stmt->bindValue(':bo_table_sub', $bo_table, PDO::PARAM_STR);
+    if ($category !== '') {
+        $stmt->bindValue(':category', $category, PDO::PARAM_STR);
+    }
     if ($has_q) {
         if ($sfl === 'subject') {
             $stmt->bindValue(':q_subject', '%' . $q . '%', PDO::PARAM_STR);
@@ -212,6 +228,7 @@ try {
         'q'           => $q,
         'sfl'         => $sfl,
         'sort'        => $sort,
+        'category'    => $category !== '' ? $category : null,
         'items'       => $items,
     ]);
 } catch (PDOException $e) {

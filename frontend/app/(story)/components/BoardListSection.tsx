@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 
 import { getBoardPathSlug } from '../constants/boardContent';
 import { DEFAULT_BOARD_SORT } from '../constants/boardSort';
+import { buildSuccessStoryListPath, type SuccessStoryCategory } from '../constants/successStoryCategories';
 import { buildBoardListHref } from '../lib/buildBoardListHref';
 import { buildBoardPostHref } from '../lib/boardPostPath';
 import type { BoardListItem, BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
@@ -17,6 +18,7 @@ type BoardListSectionProps = {
   sfl: BoardSearchField;
   sort: BoardListSort;
   view: 'list' | 'grid';
+  successCategory?: SuccessStoryCategory | null;
 };
 
 function formatDate(datetime: string): string {
@@ -122,17 +124,22 @@ function SearchToolbar({
   sfl,
   sort,
   view,
+  successCategory,
 }: {
   boTable: BoTable;
   q: string;
   sfl: BoardSearchField;
   sort: BoardListSort;
   view: 'list' | 'grid';
+  successCategory?: SuccessStoryCategory | null;
 }) {
+  const formAction =
+    boTable === 'success' ? buildSuccessStoryListPath(successCategory ?? null) : `/${getBoardPathSlug(boTable)}`;
+
   return (
     <div className="mb-4 flex flex-col gap-3">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <form action={`/${getBoardPathSlug(boTable)}`} method="get" className="flex w-full max-w-[520px] gap-2">
+        <form action={formAction} method="get" className="flex w-full max-w-[520px] gap-2">
           {view === 'grid' ? <input type="hidden" name="view" value="grid" /> : null}
           {sort !== DEFAULT_BOARD_SORT ? <input type="hidden" name="sort" value={sort} /> : null}
           <select
@@ -176,7 +183,7 @@ function SearchToolbar({
             <BoardSortSelect current={sort} />
           </Suspense>
           <Link
-            href={buildBoardListHref(boTable, 1, 'list', q, sfl, sort)}
+            href={buildBoardListHref(boTable, 1, 'list', q, sfl, sort, successCategory)}
             className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
               view === 'list' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
             }`}
@@ -184,7 +191,7 @@ function SearchToolbar({
             목록형
           </Link>
           <Link
-            href={buildBoardListHref(boTable, 1, 'grid', q, sfl, sort)}
+            href={buildBoardListHref(boTable, 1, 'grid', q, sfl, sort, successCategory)}
             className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
               view === 'grid' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
             }`}
@@ -197,11 +204,19 @@ function SearchToolbar({
   );
 }
 
-export default function BoardListSection({ boTable, data, q, sfl, sort, view }: BoardListSectionProps) {
+export default function BoardListSection({
+  boTable,
+  data,
+  q,
+  sfl,
+  sort,
+  view,
+  successCategory,
+}: BoardListSectionProps) {
   return (
     <section className="bg-white px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-[900px]">
-        <SearchToolbar boTable={boTable} q={q} sfl={sfl} sort={sort} view={view} />
+        <SearchToolbar boTable={boTable} q={q} sfl={sfl} sort={sort} view={view} successCategory={successCategory} />
         <p className="mb-1 text-right text-[13px] text-[#999]">
           총 {data.total.toLocaleString()}건 {q !== '' ? `(검색어: ${q})` : ''}
         </p>
@@ -230,6 +245,7 @@ export default function BoardListSection({ boTable, data, q, sfl, sort, view }: 
           sfl={sfl}
           sort={sort}
           view={view}
+          successCategory={successCategory}
         />
       </div>
     </section>
