@@ -3,7 +3,7 @@ import type { Editor as TinyMceEditor } from 'tinymce';
 
 type BoardTinyMceInitOptions = NonNullable<IAllProps['init']>;
 
-import { PARAGRAPH_STYLE_OPTIONS } from '../../lib/boardParagraphStyles';
+import { BODY_FONT_SIZES, PARAGRAPH_STYLE_OPTIONS } from '../../lib/boardParagraphStyles';
 
 import { BOARD_EDITOR_MIN_HEIGHT } from './constants';
 
@@ -83,6 +83,22 @@ const EXTENDED_VALID_ELEMENTS = [
   'li[*]',
 ].join(',');
 
+function buildEditorBodyTypographyCss(): string {
+  const { '1': body1, '2': body2, '3': body3 } = BODY_FONT_SIZES;
+
+  return `
+      p { line-height: 1.75; margin: 0 0 0.75em; }
+      p[data-body='2'], p:not([data-body]) { font-size: ${body2.mobile}; }
+      p[data-body='1'] { font-size: ${body1.mobile}; }
+      p[data-body='3'] { font-size: ${body3.mobile}; }
+      @media (min-width: 768px) {
+        p[data-body='2'], p:not([data-body]) { font-size: ${body2.desktop}; }
+        p[data-body='1'] { font-size: ${body1.desktop}; }
+        p[data-body='3'] { font-size: ${body3.desktop}; }
+      }
+    `;
+}
+
 function buildParagraphStyleFormats() {
   return PARAGRAPH_STYLE_OPTIONS.map(option => {
     if (option.id === 'title1') {
@@ -136,11 +152,12 @@ export function createBoardTinyMceInit({ onUploadImage }: CreateBoardTinyMceInit
     content_style: `
       body {
         font-family: Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 14px;
+        font-size: ${BODY_FONT_SIZES['2'].mobile};
         line-height: 1.75;
         color: #333;
         padding: 8px 12px;
       }
+      ${buildEditorBodyTypographyCss()}
       img { max-width: 100%; height: auto; }
     `,
     setup: (editor: TinyMceEditor) => {

@@ -4,6 +4,17 @@ import { useEffect } from 'react';
 
 import { confirmLeave } from '../lib/adminPostFormDirty';
 
+const LEAVE_GUARD_HISTORY_STATE = { adminPostLeaveGuard: true } as const;
+
+function isLeaveGuardHistoryState(state: unknown): boolean {
+  return (
+    typeof state === 'object' &&
+    state !== null &&
+    'adminPostLeaveGuard' in state &&
+    (state as { adminPostLeaveGuard: unknown }).adminPostLeaveGuard === true
+  );
+}
+
 export function useAdminPostLeaveGuard(isDirty: boolean): void {
   useEffect(() => {
     if (!isDirty) return;
@@ -40,6 +51,28 @@ export function useAdminPostLeaveGuard(isDirty: boolean): void {
 
     document.addEventListener('click', handleDocumentClick, true);
     return () => document.removeEventListener('click', handleDocumentClick, true);
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    window.history.pushState(LEAVE_GUARD_HISTORY_STATE, '');
+
+    function handlePopState() {
+      if (!confirmLeave()) {
+        window.history.pushState(LEAVE_GUARD_HISTORY_STATE, '');
+        return;
+      }
+      window.history.back();
+    }
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (isLeaveGuardHistoryState(window.history.state)) {
+        window.history.back();
+      }
+    };
   }, [isDirty]);
 }
 
