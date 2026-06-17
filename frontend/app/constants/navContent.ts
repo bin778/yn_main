@@ -17,16 +17,12 @@ export type NavSublink = {
 
 export const DRUNK_CONSULTATION_HREF = 'https://yeoon.co.kr/drunk';
 
-export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [
-  { href: DRUNK_CONSULTATION_HREF, label: '음주운전' },
-  { label: '카촬죄' },
-  { label: '강제추행' },
-];
+export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [{ href: DRUNK_CONSULTATION_HREF, label: '음주운전' }];
 
 export const CONSULTATION_NAV_LABEL = '형사 전문';
 
 /** 형사 전문 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */
-export const SHOW_CONSULTATION_NAV = false;
+export const SHOW_CONSULTATION_NAV = true;
 
 export const MAIN_NAV_LINKS = [
   { href: '/about', label: '여온의 약속' },
