@@ -3,6 +3,7 @@ import type { NextConfig } from 'next';
 const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 const LEGACY_BOARD_PATH = '/board/bbs/board.php';
 const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
+const LANDING_NEW_ADMIN_LOGIN = '/landing_new/admin/admin/index.php';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
@@ -109,6 +110,26 @@ const nextConfig: NextConfig = {
 
     return [
       ...legacyBoardRedirects,
+      {
+        source: '/landing_new/admin',
+        destination: LANDING_NEW_ADMIN_LOGIN,
+        permanent: false,
+      },
+      {
+        source: '/landing_new/admin/',
+        destination: LANDING_NEW_ADMIN_LOGIN,
+        permanent: false,
+      },
+      {
+        source: '/landing_new/admin/admin',
+        destination: LANDING_NEW_ADMIN_LOGIN,
+        permanent: false,
+      },
+      {
+        source: '/landing_new/admin/admin/',
+        destination: LANDING_NEW_ADMIN_LOGIN,
+        permanent: false,
+      },
       {
         source: '/board/bbs/login.php',
         destination: '/admin/login/',
