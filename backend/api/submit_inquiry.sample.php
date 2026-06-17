@@ -149,8 +149,9 @@ function send_kakao_alimtalk(string $name, string $phone, string $case_keyword, 
 
     $receiver_index = 1;
     foreach ($ALIGO_RECEIVERS as $receiver) {
-        if ($receiver_index > 3) {
-            break;
+        $receiver = trim((string) $receiver);
+        if ($receiver === '') {
+            continue;
         }
         $variables['receiver_' . $receiver_index] = $receiver;
         $variables['message_' . $receiver_index] = $message;
