@@ -210,6 +210,9 @@ const nextConfig: NextConfig = {
         pathname: '/board/data/**',
       },
     ],
+    deviceSizes: [640, 1024, 1920], // 큰 이미지용 반응형 분기점 축소
+    imageSizes: [320, 480], // 작은 이미지용 사이즈 축소
+    formats: ['image/avif', 'image/webp'], // 최신 압축 포맷 우선 적용
   },
 };
 
