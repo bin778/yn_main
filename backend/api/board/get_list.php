@@ -61,6 +61,7 @@ const ALLOWED_SORTS    = [
     'subject_desc'  => 'w.wr_subject DESC, w.wr_id DESC',
 ];
 const SUCCESS_CATEGORIES = ['criminal', 'civil', 'family', 'real-estate'];
+const PRACTICE_AREA_TABLES = ['success', 'column'];
 
 /**
  * @param array<string, mixed> $payload
@@ -102,7 +103,7 @@ $order_by = ALLOWED_SORTS[$sort];
 
 $raw_category = trim((string) ($_GET['category'] ?? ''));
 $category     = '';
-if ($bo_table === 'success' && in_array($raw_category, SUCCESS_CATEGORIES, true)) {
+if (in_array($bo_table, PRACTICE_AREA_TABLES, true) && in_array($raw_category, SUCCESS_CATEGORIES, true)) {
     $category = $raw_category;
 }
 

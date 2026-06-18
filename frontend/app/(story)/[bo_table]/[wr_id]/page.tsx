@@ -6,13 +6,14 @@ import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardJsonLd from '../../components/BoardJsonLd';
 import BoardViewSection from '../../components/BoardViewSection';
-import SuccessStoryCategoryListPage from '../../components/SuccessStoryCategoryListPage';
+import PracticeAreaCategoryListPage from '../../components/PracticeAreaCategoryListPage';
 import { BOARD_META, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import {
-  buildSuccessStoryListPath,
-  getSuccessStoryCategoryLabel,
-  isSuccessStoryCategorySlug,
-} from '../../constants/successStoryCategories';
+  buildPracticeAreaListPath,
+  getPracticeAreaCategoryLabel,
+  hasPracticeAreaCategories,
+  isPracticeAreaCategorySlug,
+} from '../../constants/practiceAreaCategories';
 import { fetchBoardView } from '../../lib/boardApi';
 import { buildBoardPostHref, getBoardPostPathSegment } from '../../lib/boardPostPath';
 import type { BoardListSearchParams } from '../../lib/parseBoardListQuery';
@@ -33,14 +34,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const trimmedKey = postKey.trim();
 
-  if (boTable === 'success' && isSuccessStoryCategorySlug(trimmedKey)) {
-    const categoryLabel = getSuccessStoryCategoryLabel(trimmedKey);
-    const { label, description } = BOARD_META.success;
+  if (hasPracticeAreaCategories(boTable) && isPracticeAreaCategorySlug(trimmedKey)) {
+    const categoryLabel = getPracticeAreaCategoryLabel(trimmedKey);
+    const { label, description } = BOARD_META[boTable];
 
     return {
       title: `${label} · ${categoryLabel} | ${SITE_NAME}`,
       description,
-      alternates: { canonical: buildSuccessStoryListPath(trimmedKey) },
+      alternates: { canonical: buildPracticeAreaListPath(boTable, trimmedKey) },
     };
   }
 
@@ -74,10 +75,12 @@ export default async function BoardViewPage({ params, searchParams }: PageProps)
 
   const trimmedKey = postKey.trim();
 
-  if (bo_table === 'success' && isSuccessStoryCategorySlug(trimmedKey)) {
+  if (hasPracticeAreaCategories(bo_table) && isPracticeAreaCategorySlug(trimmedKey)) {
     const resolvedSearchParams = await searchParams;
 
-    return <SuccessStoryCategoryListPage category={trimmedKey} searchParams={resolvedSearchParams} />;
+    return (
+      <PracticeAreaCategoryListPage boTable={bo_table} category={trimmedKey} searchParams={resolvedSearchParams} />
+    );
   }
 
   let post;

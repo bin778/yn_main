@@ -3,9 +3,13 @@ import Image from 'next/image';
 import BoardCategoryTabs from './BoardCategoryTabs';
 import BoardAdminBar from './BoardAdminBar';
 import BoardListSection from './BoardListSection';
-import SuccessStorySubTabs from './SuccessStorySubTabs';
+import PracticeAreaSubTabs from './PracticeAreaSubTabs';
 import { BOARD_META } from '../constants/boardContent';
-import { getSuccessStoryCategoryLabel, type SuccessStoryCategory } from '../constants/successStoryCategories';
+import {
+  getPracticeAreaCategoryLabel,
+  type PracticeAreaBoTable,
+  type PracticeAreaCategory,
+} from '../constants/practiceAreaCategories';
 import { fetchBoardList } from '../lib/boardApi';
 import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import type { BoardListResponse } from '../types/board';
@@ -18,26 +22,28 @@ const EMPTY_LIST: BoardListResponse = {
   items: [],
 };
 
-type SuccessStoryCategoryListPageProps = {
-  category: SuccessStoryCategory;
+type PracticeAreaCategoryListPageProps = {
+  boTable: PracticeAreaBoTable;
+  category: PracticeAreaCategory;
   searchParams: BoardListSearchParams;
 };
 
-export default async function SuccessStoryCategoryListPage({
+export default async function PracticeAreaCategoryListPage({
+  boTable,
   category,
   searchParams,
-}: SuccessStoryCategoryListPageProps) {
+}: PracticeAreaCategoryListPageProps) {
   const { page, q, viewMode, sfl, sort } = parseBoardListQuery(searchParams);
 
   let data: BoardListResponse;
   try {
-    data = await fetchBoardList('success', page, q, sfl, sort, category);
+    data = await fetchBoardList(boTable, page, q, sfl, sort, category);
   } catch {
     data = EMPTY_LIST;
   }
 
-  const { label, description, heroBg } = BOARD_META.success;
-  const categoryLabel = getSuccessStoryCategoryLabel(category);
+  const { label, description, heroBg } = BOARD_META[boTable];
+  const categoryLabel = getPracticeAreaCategoryLabel(category);
 
   return (
     <>
@@ -69,17 +75,17 @@ export default async function SuccessStoryCategoryListPage({
         </div>
       </section>
 
-      <BoardCategoryTabs current="success" />
-      <SuccessStorySubTabs current={category} />
-      <BoardAdminBar boTable="success" />
+      <BoardCategoryTabs current={boTable} />
+      <PracticeAreaSubTabs boTable={boTable} current={category} />
+      <BoardAdminBar boTable={boTable} />
       <BoardListSection
-        boTable="success"
+        boTable={boTable}
         data={data}
         q={q}
         sfl={sfl}
         sort={sort}
         view={viewMode}
-        successCategory={category}
+        practiceAreaCategory={category}
       />
     </>
   );

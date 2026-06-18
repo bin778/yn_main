@@ -1,27 +1,31 @@
 import Link from 'next/link';
 
+import { BOARD_META } from '../constants/boardContent';
 import {
-  SUCCESS_STORY_CATEGORIES,
-  buildSuccessStoryListPath,
-  type SuccessStoryCategory,
-} from '../constants/successStoryCategories';
+  PRACTICE_AREA_CATEGORIES,
+  buildPracticeAreaListPath,
+  type PracticeAreaBoTable,
+  type PracticeAreaCategory,
+} from '../constants/practiceAreaCategories';
 
-type SuccessStorySubTabsProps = {
-  current: SuccessStoryCategory | null;
+type PracticeAreaSubTabsProps = {
+  boTable: PracticeAreaBoTable;
+  current: PracticeAreaCategory | null;
 };
 
-export default function SuccessStorySubTabs({ current }: SuccessStorySubTabsProps) {
-  const tabs: { slug: SuccessStoryCategory | null; label: string }[] = [
+export default function PracticeAreaSubTabs({ boTable, current }: PracticeAreaSubTabsProps) {
+  const boardLabel = BOARD_META[boTable].label;
+  const tabs: { slug: PracticeAreaCategory | null; label: string }[] = [
     { slug: null, label: '전체' },
-    ...SUCCESS_STORY_CATEGORIES.map(item => ({ slug: item.slug, label: item.label })),
+    ...PRACTICE_AREA_CATEGORIES.map(item => ({ slug: item.slug, label: item.label })),
   ];
 
   return (
-    <nav className="mx-auto mb-6 max-w-[900px] px-4 md:px-6" aria-label="성공사례 분류 선택">
+    <nav className="mx-auto mb-6 max-w-[900px] px-4 md:px-6" aria-label={`${boardLabel} 분류 선택`}>
       <ul className="grid grid-cols-3 gap-2 md:grid-cols-5">
         {tabs.map(tab => {
           const isActive = current === tab.slug;
-          const href = buildSuccessStoryListPath(tab.slug);
+          const href = buildPracticeAreaListPath(boTable, tab.slug);
 
           return (
             <li key={tab.slug ?? 'all'}>

@@ -4,7 +4,11 @@ import { Suspense } from 'react';
 
 import { getBoardPathSlug } from '../constants/boardContent';
 import { DEFAULT_BOARD_SORT } from '../constants/boardSort';
-import { buildSuccessStoryListPath, type SuccessStoryCategory } from '../constants/successStoryCategories';
+import {
+  buildPracticeAreaListPath,
+  hasPracticeAreaCategories,
+  type PracticeAreaCategory,
+} from '../constants/practiceAreaCategories';
 import { buildBoardListHref } from '../lib/buildBoardListHref';
 import { buildBoardPostHref } from '../lib/boardPostPath';
 import type { BoardListItem, BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
@@ -18,7 +22,7 @@ type BoardListSectionProps = {
   sfl: BoardSearchField;
   sort: BoardListSort;
   view: 'list' | 'grid';
-  successCategory?: SuccessStoryCategory | null;
+  practiceAreaCategory?: PracticeAreaCategory | null;
 };
 
 function formatDate(datetime: string): string {
@@ -124,17 +128,18 @@ function SearchToolbar({
   sfl,
   sort,
   view,
-  successCategory,
+  practiceAreaCategory,
 }: {
   boTable: BoTable;
   q: string;
   sfl: BoardSearchField;
   sort: BoardListSort;
   view: 'list' | 'grid';
-  successCategory?: SuccessStoryCategory | null;
+  practiceAreaCategory?: PracticeAreaCategory | null;
 }) {
-  const formAction =
-    boTable === 'success' ? buildSuccessStoryListPath(successCategory ?? null) : `/${getBoardPathSlug(boTable)}`;
+  const formAction = hasPracticeAreaCategories(boTable)
+    ? buildPracticeAreaListPath(boTable, practiceAreaCategory ?? null)
+    : `/${getBoardPathSlug(boTable)}`;
 
   return (
     <div className="mb-4 flex flex-col gap-3">
@@ -183,7 +188,7 @@ function SearchToolbar({
             <BoardSortSelect current={sort} />
           </Suspense>
           <Link
-            href={buildBoardListHref(boTable, 1, 'list', q, sfl, sort, successCategory)}
+            href={buildBoardListHref(boTable, 1, 'list', q, sfl, sort, practiceAreaCategory)}
             className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
               view === 'list' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
             }`}
@@ -191,7 +196,7 @@ function SearchToolbar({
             목록형
           </Link>
           <Link
-            href={buildBoardListHref(boTable, 1, 'grid', q, sfl, sort, successCategory)}
+            href={buildBoardListHref(boTable, 1, 'grid', q, sfl, sort, practiceAreaCategory)}
             className={`inline-flex h-10 items-center justify-center border px-4 text-[13px] ${
               view === 'grid' ? 'border-[#1a3151] bg-[#1a3151] text-white' : 'border-[#ddd] bg-white text-[#666]'
             }`}
@@ -211,12 +216,19 @@ export default function BoardListSection({
   sfl,
   sort,
   view,
-  successCategory,
+  practiceAreaCategory,
 }: BoardListSectionProps) {
   return (
     <section className="bg-white px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-[900px]">
-        <SearchToolbar boTable={boTable} q={q} sfl={sfl} sort={sort} view={view} successCategory={successCategory} />
+        <SearchToolbar
+          boTable={boTable}
+          q={q}
+          sfl={sfl}
+          sort={sort}
+          view={view}
+          practiceAreaCategory={practiceAreaCategory}
+        />
         <p className="mb-1 text-right text-[13px] text-[#999]">
           총 {data.total.toLocaleString()}건 {q !== '' ? `(검색어: ${q})` : ''}
         </p>
@@ -245,7 +257,7 @@ export default function BoardListSection({
           sfl={sfl}
           sort={sort}
           view={view}
-          successCategory={successCategory}
+          practiceAreaCategory={practiceAreaCategory}
         />
       </div>
     </section>

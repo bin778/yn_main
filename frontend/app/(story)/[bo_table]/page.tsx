@@ -5,8 +5,9 @@ import { notFound } from 'next/navigation';
 import BoardCategoryTabs from '../components/BoardCategoryTabs';
 import BoardAdminBar from '../components/BoardAdminBar';
 import BoardListSection from '../components/BoardListSection';
-import SuccessStorySubTabs from '../components/SuccessStorySubTabs';
+import PracticeAreaSubTabs from '../components/PracticeAreaSubTabs';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
+import { hasPracticeAreaCategories } from '../constants/practiceAreaCategories';
 import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import { fetchBoardList } from '../lib/boardApi';
 import type { BoardListResponse } from '../types/board';
@@ -92,7 +93,7 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
       </section>
 
       <BoardCategoryTabs current={bo_table} />
-      {bo_table === 'success' ? <SuccessStorySubTabs current={null} /> : null}
+      {hasPracticeAreaCategories(bo_table) ? <PracticeAreaSubTabs boTable={bo_table} current={null} /> : null}
       <BoardAdminBar boTable={bo_table} />
       <BoardListSection boTable={bo_table} data={data} q={q} sfl={sfl} sort={sort} view={viewMode} />
     </>
