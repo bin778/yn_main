@@ -61,6 +61,7 @@ yn_main/
 ├── frontend/              # Next.js 앱
 │   ├── app/
 │   │   ├── (story)/       # 게시판 목록·상세 (review, success-story, column, news)
+│   │   │                  # 성공사례·칼럼: practiceAreaCategories 소분류 (형사·민사·가사·부동산)
 │   │   ├── admin/         # 관리자 대시보드·글쓰기/수정·예약글·상담 문의
 │   │   ├── components/    # Header, Footer, Analytics 등
 │   │   ├── constants/     # 페이지·푸터·GA 이벤트 상수
@@ -97,10 +98,39 @@ yn_main/
 | `/contact/`                 | 오시는 길·상담 문의                                                                    |
 | `/privacy/`                 | 개인정보처리방침                                                                       |
 | `/review/`                  | 후기 (`bo_table=review`)                                                               |
-| `/success-story/`           | 성공사례 (`bo_table=success`)                                                          |
-| `/column/`                  | 칼럼                                                                                   |
+| `/success-story/`           | 성공사례 전체 (`bo_table=success`, 미분류·분류 글 모두)                                |
+| `/success-story/{area}/`    | 성공사례 소분류 목록. `{area}`: `criminal` \| `civil` \| `family` \| `real-estate`     |
+| `/column/`                  | 칼럼 전체 (`bo_table=column`)                                                          |
+| `/column/{area}/`           | 칼럼 소분류 목록 (slug는 성공사례와 동일)                                              |
 | `/news/`                    | 여온소식                                                                               |
 | `/{slug}/[postKey]/`        | 게시물 상세 (ISR `revalidate: 60`). `postKey`는 SEO Slug(`wr_2`) 또는 글 번호(`wr_id`) |
+
+### 성공사례·칼럼 소분류
+
+성공사례(`success`)와 칼럼(`column`)은 **형사·민사·가사·부동산** 4개 소분류를 지원합니다.
+
+| 경로 예시                                        | 표시 대상                                      |
+| ------------------------------------------------ | ---------------------------------------------- |
+| `/success-story/`, `/column/`                    | **전체** — `wr_7`이 비어 있거나 분류된 글 모두 |
+| `/success-story/criminal/`, `/column/family/` 등 | **해당 분류만** — DB `wr_7` 값이 일치하는 글   |
+
+- 소분류 slug: `criminal`(형사), `civil`(민사), `family`(가사), `real-estate`(부동산)
+- 분류 저장 필드: `g5_write_success` / `g5_write_column`의 **`wr_7`**
+- 상세 URL은 변경 없음 — `/success-story/{slug}/`, `/column/{slug}/` 유지
+- 라우팅: `[bo_table]/[wr_id]`에서 소분류 slug와 게시물 slug를 분기 (`practiceAreaCategories.ts`)
+- 프론트: `PracticeAreaSubTabs`, `PracticeAreaCategoryListPage`
+
+**게시판 커스텀 필드 (`wr_*`)**
+
+| 필드   | 용도                                                                                     |
+| ------ | ---------------------------------------------------------------------------------------- |
+| `wr_1` | 썸네일 URL                                                                               |
+| `wr_2` | SEO slug                                                                                 |
+| `wr_3` | SEO title                                                                                |
+| `wr_4` | SEO description                                                                          |
+| `wr_5` | JSON-LD schema                                                                           |
+| `wr_6` | 본문 형식 마커 (`legacy_html`)                                                           |
+| `wr_7` | 성공사례·칼럼 소분류 (`criminal` \| `civil` \| `family` \| `real-estate`, 비우면 미분류) |
 
 ## 환경 변수
 
@@ -201,11 +231,11 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 ### 게시판 조회 (공개)
 
-| 엔드포인트                         | 설명                                                          |
-| ---------------------------------- | ------------------------------------------------------------- |
-| `GET /api/board/get_list.php`      | 목록 (`sort`: 최신순·조회수·제목 등)                          |
-| `GET /api/board/get_view.php`      | 상세 + 이전/다음 + 첨부 (`wr_datetime <= NOW()` 미래 글 제외) |
-| `GET /api/board/download_file.php` | 첨부 다운로드 (비밀번호·JWT 검증)                             |
+| 엔드포인트                         | 설명                                                                                                                                                        |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/board/get_list.php`      | 목록 (`sort`: 최신순·조회수·제목 등). `success`·`column`은 `category` 쿼리로 `wr_7` 필터 (`criminal` \| `civil` \| `family` \| `real-estate`, 생략 시 전체) |
+| `GET /api/board/get_view.php`      | 상세 + 이전/다음 + 첨부 (`wr_datetime <= NOW()` 미래 글 제외)                                                                                               |
+| `GET /api/board/download_file.php` | 첨부 다운로드 (비밀번호·JWT 검증)                                                                                                                           |
 
 허용 게시판: `review`, `success`, `column`, `news`
 
@@ -284,6 +314,8 @@ cd frontend && npm run build && npm run lint
 
 - [ ] `/contact/` 상담 제출 → `result: "1"`, DB 적재
 - [ ] `/review/`, `/success-story/`, `/column/`, `/news/` 목록·상세 (첨부 글 500 없음)
+- [ ] `/success-story/criminal/` 등 소분류 목록·검색·페이지네이션, `/success-story/{wr_id}/` 상세 404 없음
+- [ ] `/column/criminal/` 등 칼럼 소분류·상세 동일 동작
 - [ ] 게시물 상세 모바일 — 레거시 2열 표 세로 스택
 - [ ] `/admin/login` → 로그인 → 게시판 관리자 바 노출
 - [ ] 글 작성·예약 발행·첨부 업로드(10MB)·비밀번호 첨부 다운로드
