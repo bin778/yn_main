@@ -15,7 +15,7 @@ export type NavSublink = {
   href?: string;
 };
 
-export const DRUNK_CONSULTATION_HREF = 'https://yeoon.co.kr/drunk';
+export const DRUNK_CONSULTATION_HREF = 'https://www.yeoon.co.kr/criminal/drunk-driving/';
 
 export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [{ href: DRUNK_CONSULTATION_HREF, label: '음주운전' }];
 

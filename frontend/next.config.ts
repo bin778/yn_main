@@ -24,8 +24,12 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return {
-      // Next.js 내부 라우트보다 먼저 실행 (정적파일 등)
-      beforeFiles: [],
+      // Next.js [bo_table]/[wr_id] 라우트보다 먼저 — criminal 게시판 slug와 충돌 방지
+      beforeFiles: [
+        { source: '/criminal/drunk-driving', destination: `${CAFE24}/criminal/drunk-driving/` },
+        { source: '/criminal/drunk-driving/', destination: `${CAFE24}/criminal/drunk-driving/` },
+        { source: '/criminal/drunk-driving/:path*', destination: `${CAFE24}/criminal/drunk-driving/:path*` },
+      ],
 
       // Next.js 페이지 매칭 후, 없을 때만 프록시
       afterFiles: [
