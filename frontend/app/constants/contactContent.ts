@@ -39,20 +39,20 @@ export const CONTACT_OFFICES: readonly ContactOffice[] = [
   {
     id: 'seoul',
     title: '서울 주사무소',
-    address: '서울특별시 중구 남대문로 10길 28, 10층 903호 (수하동, 우석빌딩)',
+    address: '서울특별시 중구 남대문로 10길 28, 9층 903호 (수하동, 우석빌딩)',
     directions: [
       {
         id: 'seoul-euljiro',
         iconSrc: SUBWAY_ICON,
         label: '을지로입구역',
-        description: '3번 출구로 나와 10m 직진 후 스타벅스 앞에서 우회전 1층 낙원커피 건물 10층 903호',
+        description: '3번 출구로 나와 10m 직진 후 스타벅스 앞에서 우회전 1층 낙원커피 건물 9층 903호',
       },
       {
         id: 'seoul-jonggak',
         iconSrc: SUBWAY_ICON,
         label: '종각역',
         description:
-          '5번 출구에서 나와 직진 후 DGB금융센터에서 길을 건넌 뒤 직진 후 처음 나오는 삼거리에서 좌회전, 전방에 보이는 낙원커피 빌딩 10층',
+          '5번 출구에서 나와 직진 후 DGB금융센터에서 길을 건넌 뒤 직진 후 처음 나오는 삼거리에서 좌회전, 전방에 보이는 낙원커피 빌딩 9층',
       },
       {
         id: 'seoul-parking',
