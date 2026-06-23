@@ -136,6 +136,16 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: '/board/bbs',
+        destination: '/admin/login/',
+        permanent: false,
+      },
+      {
+        source: '/board/bbs/',
+        destination: '/admin/login/',
+        permanent: false,
+      },
+      {
         source: '/board/bbs/login.php',
         destination: '/admin/login/',
         permanent: false,

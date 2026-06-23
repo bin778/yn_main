@@ -19,9 +19,9 @@ export const DRUNK_CONSULTATION_HREF = 'https://www.yeoon.co.kr/criminal/drunk-d
 
 export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [{ href: DRUNK_CONSULTATION_HREF, label: '음주운전' }];
 
-export const CONSULTATION_NAV_LABEL = '형사 전문';
+export const CONSULTATION_NAV_LABEL = '형사 전문 센터';
 
-/** 형사 전문 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */
+/** 형사 전문 센터 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */
 export const SHOW_CONSULTATION_NAV = true;
 
 export const MAIN_NAV_LINKS = [
