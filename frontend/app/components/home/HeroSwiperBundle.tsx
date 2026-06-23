@@ -1,6 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { Autoplay, EffectFade, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -40,14 +40,12 @@ export default function HeroSwiperBundle() {
           {HERO_SLIDES_MOBILE.map((slide, index) => (
             <SwiperSlide key={slide.backgroundSrc}>
               <div className="relative min-h-[min(100vh,720px)] w-full">
-                <Image
+                <img
                   src={slide.backgroundSrc}
                   alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 767px) 100vw, 1px"
-                  // 모바일 priority 속성 제거 완료
-                  loading={index === 0 ? undefined : 'lazy'}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
                 />
                 <div className="absolute inset-0 z-[1] bg-black/25" aria-hidden />
                 <Link href={CONTACT_HREF} className="absolute inset-0 z-[2]" aria-label="상담 문의로 이동" />
@@ -81,14 +79,12 @@ export default function HeroSwiperBundle() {
           {HERO_SLIDES_DESKTOP.map((slide, index) => (
             <SwiperSlide key={slide.backgroundSrc}>
               <div className="relative min-h-[640px] w-full lg:min-h-[720px]">
-                <Image
+                <img
                   src={slide.backgroundSrc}
                   alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(min-width: 768px) 100vw, 1px"
-                  // 데스크톱 priority 속성 제거 완료
-                  loading={index === 0 ? undefined : 'lazy'}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
                 />
                 <div className="absolute inset-0 z-[1] bg-black/20" aria-hidden />
                 <Link href={CONTACT_HREF} className="absolute inset-0 z-[2]" aria-label="상담 문의로 이동" />

@@ -1,4 +1,4 @@
-import Image from 'next/image';
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -50,7 +50,7 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
       >
         {item.thumbnail_url !== null && (
           <div className="relative hidden h-[80px] w-[120px] shrink-0 overflow-hidden bg-[#f0f0f0] md:block">
-            <Image src={item.thumbnail_url} alt="" fill className="object-cover" sizes="120px" />
+            <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" loading="lazy" />
           </div>
         )}
 
@@ -93,12 +93,11 @@ function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTabl
       <Link href={href} className="group flex h-full flex-col">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f0f0f0]">
           {item.thumbnail_url !== null ? (
-            <Image
+            <img
               src={item.thumbnail_url}
               alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-[13px] text-[#999]">이미지 없음</div>
