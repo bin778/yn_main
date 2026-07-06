@@ -16,8 +16,12 @@ export type NavSublink = {
 };
 
 export const DRUNK_CONSULTATION_HREF = 'https://www.yeoon.co.kr/criminal/drunk-driving/';
+export const INDECENT_ASSAULT_CONSULTATION_HREF = 'https://www.yeoon.co.kr/criminal/indecent-assault/';
 
-export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [{ href: DRUNK_CONSULTATION_HREF, label: '음주운전' }];
+export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [
+  { href: DRUNK_CONSULTATION_HREF, label: '음주운전' },
+  { href: INDECENT_ASSAULT_CONSULTATION_HREF, label: '강제추행' },
+];
 
 export const CONSULTATION_NAV_LABEL = '형사 전문 센터';
 
