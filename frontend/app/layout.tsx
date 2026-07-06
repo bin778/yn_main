@@ -15,8 +15,9 @@ const FloatingQuickActions = dynamic(() => import('./components/FloatingQuickAct
 const PreFooterCta = dynamic(() => import('./components/PreFooterCta'));
 
 export const metadata: Metadata = {
-  title: '법무법인 여온',
-  description: '재배당/사무장 없는 법무법인 여온',
+  title: '음주운전·성범죄·강제추행·마약 형사전문변호사 | 법무법인 여온',
+  description:
+    '음주운전, 성범죄, 강제추행, 마약 형사사건 전담. 담당 변호사가 상담부터 재판까지 직접 밀착 진행합니다. 02-318-2981',
   verification: {
     other: {
       'naver-site-verification': 'f2af03f086696bdbf2f7c762e19ad817dd77e6d1',

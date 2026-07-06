@@ -9,6 +9,7 @@ import PersonDetailHero from '@/app/components/people/PersonDetailHero';
 import {
   getPersonById,
   getPersonDetailDescription,
+  getPersonDetailTitle,
   PEOPLE_IDS,
 } from '@/app/constants/peopleContent';
 
@@ -25,11 +26,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const person = getPersonById(id);
   if (!person) return {};
 
-  const description = getPersonDetailDescription(person);
-
   return {
-    title: `${person.name} ${person.role} | 법무법인 여온`,
-    description,
+    title: getPersonDetailTitle(person),
+    description: getPersonDetailDescription(person),
     alternates: { canonical: `/people/${id}` },
   };
 }

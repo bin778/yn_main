@@ -12,7 +12,7 @@ import FieldQuoteSection from '@/app/components/field/FieldQuoteSection';
 import { FIELD_PAGE_DESCRIPTION, FIELD_PAGE_TITLE } from '@/app/constants/fieldContent';
 
 export const metadata: Metadata = {
-  title: `${FIELD_PAGE_TITLE} | 법무법인 여온`,
+  title: FIELD_PAGE_TITLE,
   description: FIELD_PAGE_DESCRIPTION,
   alternates: { canonical: '/field' },
 };

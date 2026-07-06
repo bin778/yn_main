@@ -32,11 +32,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const boTable = resolveBoTableFromPathSlug(pathSlug);
   if (!boTable) return {};
 
-  const { label, description } = BOARD_META[boTable];
+  const { label, description, pageTitle, pageDescription } = BOARD_META[boTable];
 
   return {
-    title: `${label} | ${SITE_NAME}`,
-    description,
+    title: pageTitle ?? `${label} | ${SITE_NAME}`,
+    description: pageDescription ?? description,
     alternates: { canonical: `/${getBoardPathSlug(boTable)}` },
   };
 }

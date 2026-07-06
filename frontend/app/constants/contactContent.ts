@@ -23,11 +23,12 @@ export type ContactOffice = {
   mapMobile: KakaoMapEmbed;
 };
 
-export const CONTACT_PAGE_TITLE = '여온과 함께하기';
-export const CONTACT_PAGE_DESCRIPTION = '법무법인 여온 서울 주사무소·부천 분사무소 오시는 길 및 상담 문의 안내입니다.';
+export const CONTACT_PAGE_TITLE = '법무법인 여온 상담 예약 | 서울 을지로 본사 및 경기 부천 분사무소';
+export const CONTACT_PAGE_DESCRIPTION =
+  '서울 을지로입구역 3번 출구 도보 1분. 경기 부천 심곡동. 전화 및 카카오 즉시 상담. 서울사무소 02-318-2981 / 부천사무소 032-666-2981';
 
 export const CONTACT_HERO = {
-  title: CONTACT_PAGE_TITLE,
+  title: '여온과 함께하기',
   subtitle: '법무법인 여온과 함께라면 당신의 문제는 여행이 됩니다.',
   bg: '/img/3f2ae6827f971.webp',
 } as const;

@@ -34,11 +34,11 @@ export type PersonProfile = {
   detail: PersonDetailContent;
 };
 
-export const PEOPLE_PAGE_TITLE = '여온의 사람들';
-export const PEOPLE_PAGE_DESCRIPTION = '법무법인 여온의 대표변호사, 변호사, 고문, 운영진을 소개합니다.';
+export const PEOPLE_PAGE_TITLE = '형사전문변호사 소개 | 법무법인 여온';
+export const PEOPLE_PAGE_DESCRIPTION = '대한변호사협회 형사전문변호사 인증. 담당 변호사가 상담부터 직접 진행합니다.';
 
 export const PEOPLE_HERO = {
-  title: PEOPLE_PAGE_TITLE,
+  title: '여온의 사람들',
   subtitle: '법무법인 여온과 함께라면 당신의 문제는 여행이 됩니다.',
   bgSrc: '/img/d7676ac934abe.webp',
 } as const;
@@ -47,6 +47,25 @@ export const EXPERTS_SECTION_TITLE = '여온 전문가';
 export const STAFF_SECTION_TITLE = '여온 운영진';
 
 export const PEOPLE_IDS: readonly PersonId[] = ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+export const PERSON_DETAIL_PAGE_SEO: Partial<Record<PersonId, { pageTitle: string; pageDescription: string }>> = {
+  '1': {
+    pageTitle: '유영규 변호사 | 형사전문 대표변호사 | 법무법인 여온',
+    pageDescription: '대한변호사협회 형사전문변호사. 음주운전·성범죄·마약 형사사건 직접 수행.',
+  },
+  '2': {
+    pageTitle: '김환섭 변호사 | 형사·민사전문 변호사 | 법무법인 여온',
+    pageDescription: '대한변호사협회 형사·민사전문변호사. 형사사건·민사분쟁 대응 및 사건 수행.',
+  },
+  '3': {
+    pageTitle: '홍기웅 변호사 | 형사사건·기업자문 변호사 | 법무법인 여온',
+    pageDescription: '서울시 공익변호사. 형사사건, 기업 자문, 교권·교육 관련 사건을 함께 검토합니다.',
+  },
+  '4': {
+    pageTitle: '김선호 변호사 | 학교폭력·형사사건 변호사 | 법무법인 여온',
+    pageDescription: '서울동부교육지원청 학교폭력심의위원. 학교폭력·형사사건 상담 및 대응.',
+  },
+};
 
 export const PEOPLE: readonly PersonProfile[] = [
   {
@@ -336,7 +355,16 @@ export function getPersonById(id: string): PersonProfile | undefined {
   return PEOPLE.find(person => person.id === id);
 }
 
+export function getPersonDetailTitle(person: PersonProfile): string {
+  const seo = PERSON_DETAIL_PAGE_SEO[person.id];
+  if (seo) return seo.pageTitle;
+  return `${person.name} ${person.role} | 법무법인 여온`;
+}
+
 export function getPersonDetailDescription(person: PersonProfile): string {
+  const seo = PERSON_DETAIL_PAGE_SEO[person.id];
+  if (seo) return seo.pageDescription;
+
   const { detail, listCareerLines } = person;
   if (detail.headline) return detail.headline.replace(/\s+/g, ' ').trim();
   if (listCareerLines[0]) return listCareerLines[0];

@@ -9,12 +9,12 @@ export type FieldPractice = {
   paragraphs: readonly string[];
 };
 
-export const FIELD_PAGE_TITLE = '여온이 하는 일';
+export const FIELD_PAGE_TITLE = '형사·가사·민사·행정 전문변호사 | 법무법인 여온 업무분야';
 export const FIELD_PAGE_DESCRIPTION =
-  '법무법인 여온의 민사, 형사, 행정, 가사, 부동산, 해외법률자문 등 업무분야를 소개합니다.';
+  '음주운전·성범죄·마약 형사, 이혼·양육권 가사, 부동산·강제집행 민사. 분야별 담당 변호사가 직접 맡습니다.';
 
 export const FIELD_HERO = {
-  title: FIELD_PAGE_TITLE,
+  title: '여온이 하는 일',
   subtitle: '법무법인 여온과 함께라면 당신의 문제는 여행이 됩니다.',
   bgMobile: '/img/d7676ac934abe.webp',
   bgDesktop: '/img/field_bg.webp',

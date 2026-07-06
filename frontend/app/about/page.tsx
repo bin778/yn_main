@@ -21,7 +21,7 @@ import ExpertiseSection from '@/app/components/about/ExpertiseSection';
 import { ABOUT_PAGE_DESCRIPTION, ABOUT_PAGE_TITLE } from '@/app/constants/aboutContent';
 
 export const metadata: Metadata = {
-  title: `${ABOUT_PAGE_TITLE} | 법무법인 여온`,
+  title: ABOUT_PAGE_TITLE,
   description: ABOUT_PAGE_DESCRIPTION,
 };
 

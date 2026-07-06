@@ -6,13 +6,10 @@ import type { Metadata } from 'next';
 import ExpertProfileSection from '@/app/components/people/ExpertProfileSection';
 import PeopleHero from '@/app/components/people/PeopleHero';
 import StaffSection from '@/app/components/people/StaffSection';
-import {
-  PEOPLE_PAGE_DESCRIPTION,
-  PEOPLE_PAGE_TITLE,
-} from '@/app/constants/peopleContent';
+import { PEOPLE_PAGE_DESCRIPTION, PEOPLE_PAGE_TITLE } from '@/app/constants/peopleContent';
 
 export const metadata: Metadata = {
-  title: `${PEOPLE_PAGE_TITLE} | 법무법인 여온`,
+  title: PEOPLE_PAGE_TITLE,
   description: PEOPLE_PAGE_DESCRIPTION,
   alternates: { canonical: '/people' },
 };

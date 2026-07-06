@@ -13,7 +13,7 @@ import OfficeSection from '@/app/components/contact/OfficeSection';
 import { CONTACT_OFFICES, CONTACT_PAGE_DESCRIPTION, CONTACT_PAGE_TITLE } from '@/app/constants/contactContent';
 
 export const metadata: Metadata = {
-  title: `${CONTACT_PAGE_TITLE} | 법무법인 여온`,
+  title: CONTACT_PAGE_TITLE,
   description: CONTACT_PAGE_DESCRIPTION,
   alternates: { canonical: '/contact' },
 };
