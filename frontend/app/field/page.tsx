@@ -14,7 +14,7 @@ import { FIELD_PAGE_DESCRIPTION, FIELD_PAGE_TITLE } from '@/app/constants/fieldC
 export const metadata: Metadata = {
   title: FIELD_PAGE_TITLE,
   description: FIELD_PAGE_DESCRIPTION,
-  alternates: { canonical: '/field' },
+  alternates: { canonical: '/field/' },
 };
 
 export default function FieldPage() {

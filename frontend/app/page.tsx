@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+
 /**
  * Home route (`/`). Section order matches legacy `www/index.php` flow:
  * 1. Hero (Swiper, mobile + desktop)
@@ -13,6 +15,10 @@ import HomeHeroSection from './components/home/HomeHeroSection';
 import ProcessSocialSection from './components/home/ProcessSocialSection';
 import ThreeReasonsSection from './components/home/ThreeReasonsSection';
 import WhoWeAreSection from './components/home/WhoWeAreSection';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 
 export default function Home() {
   return (

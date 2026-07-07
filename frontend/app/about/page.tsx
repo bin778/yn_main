@@ -23,6 +23,7 @@ import { ABOUT_PAGE_DESCRIPTION, ABOUT_PAGE_TITLE } from '@/app/constants/aboutC
 export const metadata: Metadata = {
   title: ABOUT_PAGE_TITLE,
   description: ABOUT_PAGE_DESCRIPTION,
+  alternates: { canonical: '/about/' },
 };
 
 export default function AboutPage() {

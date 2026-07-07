@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: getPersonDetailTitle(person),
     description: getPersonDetailDescription(person),
-    alternates: { canonical: `/people/${id}` },
+    alternates: { canonical: `/people/${id}/` },
   };
 }
 

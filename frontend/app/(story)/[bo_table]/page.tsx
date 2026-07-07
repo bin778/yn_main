@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: pageTitle ?? `${label} | ${SITE_NAME}`,
     description: pageDescription ?? description,
-    alternates: { canonical: `/${getBoardPathSlug(boTable)}` },
+    alternates: { canonical: `/${getBoardPathSlug(boTable)}/` },
   };
 }
 

@@ -4,9 +4,11 @@ import type { BoardListItem, BoardListResponse } from '@/app/(story)/types/board
 import type { BoTable } from '@/app/(story)/types/board';
 import { PEOPLE_IDS } from '@/app/constants/peopleContent';
 
+import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
+
 import type { MetadataRoute } from 'next';
 
-export const SITE_ORIGIN = 'https://yeoon.co.kr';
+export { SITE_ORIGIN };
 const BOARD_API_BASE = process.env.BOARD_API_URL ?? `${SITE_ORIGIN}/api/board`;
 const SITEMAP_PER_PAGE = 50;
 

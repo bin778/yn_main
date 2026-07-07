@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 
 import { pretendard } from '@/app/lib/fonts';
+import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 
 import './globals.css';
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner';
@@ -15,6 +16,7 @@ const FloatingQuickActions = dynamic(() => import('./components/FloatingQuickAct
 const PreFooterCta = dynamic(() => import('./components/PreFooterCta'));
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: '음주운전·성범죄·강제추행·마약 형사전문변호사 | 법무법인 여온',
   description:
     '음주운전, 성범죄, 강제추행, 마약 형사사건 전담. 담당 변호사가 상담부터 재판까지 직접 밀착 진행합니다. 02-318-2981',

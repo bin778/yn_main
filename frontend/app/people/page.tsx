@@ -11,7 +11,7 @@ import { PEOPLE_PAGE_DESCRIPTION, PEOPLE_PAGE_TITLE } from '@/app/constants/peop
 export const metadata: Metadata = {
   title: PEOPLE_PAGE_TITLE,
   description: PEOPLE_PAGE_DESCRIPTION,
-  alternates: { canonical: '/people' },
+  alternates: { canonical: '/people/' },
 };
 
 export default function PeoplePage() {

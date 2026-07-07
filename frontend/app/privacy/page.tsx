@@ -10,7 +10,7 @@ import { PRIVACY_PAGE_DESCRIPTION, PRIVACY_PAGE_TITLE } from '@/app/constants/pr
 export const metadata: Metadata = {
   title: `${PRIVACY_PAGE_TITLE} | 법무법인 여온`,
   description: PRIVACY_PAGE_DESCRIPTION,
-  alternates: { canonical: '/privacy' },
+  alternates: { canonical: '/privacy/' },
 };
 
 export default function PrivacyPage() {
