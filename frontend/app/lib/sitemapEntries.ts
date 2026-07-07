@@ -20,6 +20,8 @@ type SitemapPageConfig = {
 
 const STATIC_PAGES: readonly SitemapPageConfig[] = [
   { path: '/', changeFrequency: 'weekly', priority: 1 },
+  { path: '/criminal/drunk-driving/', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/criminal/indecent-assault/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/about/', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/field/', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/people/', changeFrequency: 'monthly', priority: 0.8 },
