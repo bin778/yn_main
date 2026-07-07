@@ -5,6 +5,16 @@ const LEGACY_BOARD_PATH = '/board/bbs/board.php';
 const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
 const LANDING_NEW_ADMIN_LOGIN = '/landing_new/admin/admin/index.php';
 
+/** `www/landing/` 메인 사이트 덤프 — 광고 랜딩(`yn**.php`)과 무관 */
+const LANDING_DUMP_REDIRECTS = [
+  { source: '/landing/about.php', destination: '/about/', permanent: true },
+  { source: '/landing/field.php', destination: '/field/', permanent: true },
+  { source: '/landing/people.php', destination: '/people/', permanent: true },
+  { source: '/landing/inc.top.php', destination: '/', permanent: true },
+] as const;
+
+const LEGACY_PEOPLE_DETAIL_IDS = ['1', '2', '3', '4', '5', '6', '7', '8'] as const;
+
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 /** 전역 보안 HTTP 헤더 (CSP는 GA4·카카오 등 허용 도메인 정리 후 단계적 도입) */
@@ -116,8 +126,17 @@ const nextConfig: NextConfig = {
       },
     ];
 
+    const legacyPeopleDetailRedirects = LEGACY_PEOPLE_DETAIL_IDS.map(id => ({
+      source: '/peoples.php',
+      has: [{ type: 'query' as const, key: 'p', value: id }],
+      destination: `/people/${id}/`,
+      permanent: true,
+    }));
+
     return [
       ...legacyBoardRedirects,
+      ...LANDING_DUMP_REDIRECTS,
+      ...legacyPeopleDetailRedirects,
       {
         source: '/landing_new/admin',
         destination: LANDING_NEW_ADMIN_LOGIN,
