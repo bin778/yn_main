@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 
+import JsonLd from '@/app/components/JsonLd';
+import { LEGAL_SERVICE_SCHEMA } from '@/app/constants/structuredData';
+
 /**
  * Home route (`/`). Section order matches legacy `www/index.php` flow:
  * 1. Hero (Swiper, mobile + desktop)
@@ -23,6 +26,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
+      <JsonLd id="legal-service-schema" data={LEGAL_SERVICE_SCHEMA} />
       <HomeHeroSection />
       <WhoWeAreSection />
       <HomeFaqSection />

@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation';
 
 import PersonDetailBody from '@/app/components/people/PersonDetailBody';
 import PersonDetailHero from '@/app/components/people/PersonDetailHero';
+import JsonLd from '@/app/components/JsonLd';
+import { YOO_YOUNG_KYU_PERSON_SCHEMA } from '@/app/constants/structuredData';
 import {
   getPersonById,
   getPersonDetailDescription,
@@ -40,6 +42,7 @@ export default async function PersonDetailPage({ params }: PageProps) {
 
   return (
     <>
+      {id === '1' && <JsonLd id="person-yoo-young-kyu-schema" data={YOO_YOUNG_KYU_PERSON_SCHEMA} />}
       <PersonDetailHero person={person} />
       <PersonDetailBody person={person} />
     </>
