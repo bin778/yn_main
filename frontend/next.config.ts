@@ -43,6 +43,9 @@ const nextConfig: NextConfig = {
         { source: '/criminal/indecent-assault', destination: `${CAFE24}/criminal/indecent-assault/` },
         { source: '/criminal/indecent-assault/', destination: `${CAFE24}/criminal/indecent-assault/` },
         { source: '/criminal/indecent-assault/:path*', destination: `${CAFE24}/criminal/indecent-assault/:path*` },
+        { source: '/criminal/indecent-assault2', destination: `${CAFE24}/criminal/indecent-assault2/` },
+        { source: '/criminal/indecent-assault2/', destination: `${CAFE24}/criminal/indecent-assault2/` },
+        { source: '/criminal/indecent-assault2/:path*', destination: `${CAFE24}/criminal/indecent-assault2/:path*` },
       ],
 
       // Next.js 페이지 매칭 후, 없을 때만 프록시
