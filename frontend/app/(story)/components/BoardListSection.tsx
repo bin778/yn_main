@@ -10,6 +10,7 @@ import {
   type PracticeAreaCategory,
 } from '../constants/practiceAreaCategories';
 import { buildBoardListHref } from '../lib/buildBoardListHref';
+import { formatBoardAuthorLabel, formatBoardPostMetaLine } from '../lib/formatBoardAuthor';
 import { buildBoardPostHref } from '../lib/boardPostPath';
 import type { BoardListItem, BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
 import BoardListPagination from './BoardListPagination';
@@ -39,6 +40,7 @@ function NoticeBadge() {
 
 function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
   const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
+  const authorLabel = formatBoardAuthorLabel(boTable, item.wr_name);
 
   return (
     <li className="border-b border-[#e8e8e8] last:border-b-0">
@@ -60,7 +62,7 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
             <span className="truncate">{item.wr_subject}</span>
           </p>
           <div className="mt-2 flex items-center gap-3 text-[12px] text-[#999] md:text-[13px]">
-            <span>{item.wr_name}</span>
+            <span>{authorLabel}</span>
             <span aria-hidden>·</span>
             <time dateTime={item.wr_datetime}>{formatDate(item.wr_datetime)}</time>
             <span aria-hidden>·</span>
@@ -87,6 +89,7 @@ function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable
 
 function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
   const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
+  const metaLine = formatBoardPostMetaLine(boTable, item.wr_name, item.wr_datetime, item.wr_hit, formatDate);
 
   return (
     <li className={`h-full border border-[#e8e8e8] ${item.notice ? 'ring-1 ring-inset ring-[#1a3151]/20' : ''}`}>
@@ -108,9 +111,7 @@ function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTabl
             {item.notice ? <NoticeBadge /> : null}
             <span className="line-clamp-2">{item.wr_subject}</span>
           </p>
-          <p className="mt-auto pt-3 text-[12px] text-[#999]">
-            {item.wr_name} · {formatDate(item.wr_datetime)} · 조회 {item.wr_hit.toLocaleString()}
-          </p>
+          <p className="mt-auto pt-3 text-[12px] text-[#999]">{metaLine}</p>
         </div>
       </Link>
     </li>

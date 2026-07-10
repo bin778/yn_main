@@ -5,6 +5,7 @@ import { shouldUseLegacyLayoutRendering } from '@/app/lib/boardLegacyLayout';
 
 import type { BoTable, BoardView } from '../types/board';
 import { BOARD_META, getBoardPathSlug } from '../constants/boardContent';
+import { formatBoardAuthorLabel } from '../lib/formatBoardAuthor';
 import { buildBoardPostHref } from '../lib/boardPostPath';
 
 import BoardAttachmentItem from './BoardAttachmentItem';
@@ -23,6 +24,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
   const listHref = `/${pathSlug}`;
   const { label } = BOARD_META[boTable];
   const legacyLayout = shouldUseLegacyLayoutRendering(post.wr_content);
+  const authorLabel = formatBoardAuthorLabel(boTable, post.wr_name);
 
   return (
     <article className="bg-white px-4 py-12 md:px-6 md:py-16">
@@ -45,7 +47,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
 
         {/* 메타 정보 */}
         <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#e8e8e8] pb-6 text-[13px] text-[#999]">
-          <span>{post.wr_name}</span>
+          <span>{authorLabel}</span>
           <span aria-hidden>·</span>
           <time dateTime={post.wr_datetime}>{formatDate(post.wr_datetime)}</time>
           <span aria-hidden>·</span>
