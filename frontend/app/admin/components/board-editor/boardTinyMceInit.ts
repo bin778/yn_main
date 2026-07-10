@@ -3,6 +3,11 @@ import type { Editor as TinyMceEditor } from 'tinymce';
 
 type BoardTinyMceInitOptions = NonNullable<IAllProps['init']>;
 
+import {
+  cleanupTypographyInSubtree,
+  isBoardTypographyFormat,
+  stripTypographyFromBlocks,
+} from '../../lib/boardPasteTypographyCleanup';
 import { BODY_FONT_SIZES, PARAGRAPH_STYLE_OPTIONS } from '../../lib/boardParagraphStyles';
 
 import { BOARD_EDITOR_MIN_HEIGHT } from './constants';
@@ -102,20 +107,48 @@ function buildEditorBodyTypographyCss(): string {
 function buildParagraphStyleFormats() {
   return PARAGRAPH_STYLE_OPTIONS.map(option => {
     if (option.id === 'title1') {
-      return { title: option.label, block: 'h2' };
+      return { title: option.label, block: 'h2', name: option.id };
     }
     if (option.id === 'title2') {
-      return { title: option.label, block: 'h3' };
+      return { title: option.label, block: 'h3', name: option.id };
     }
     if (option.id === 'title3') {
-      return { title: option.label, block: 'h4' };
+      return { title: option.label, block: 'h4', name: option.id };
     }
     const bodyLevel = option.id.replace('body', '');
     return {
       title: option.label,
       block: 'p',
+      name: option.id,
       attributes: { 'data-body': bodyLevel },
     };
+  });
+}
+
+const FORMAT_BLOCK_TAGS = new Set(['h2', 'h3', 'h4', 'p']);
+
+function scheduleTypographyCleanup(editor: TinyMceEditor): void {
+  queueMicrotask(() => {
+    stripTypographyFromBlocks(editor.selection.getSelectedBlocks());
+  });
+}
+
+function registerTypographyCleanupHandlers(editor: TinyMceEditor): void {
+  editor.on('PastePostProcess', event => {
+    cleanupTypographyInSubtree(event.node);
+  });
+
+  editor.on('ApplyFormat', event => {
+    const formatName = typeof event.format === 'string' ? event.format : '';
+    if (!isBoardTypographyFormat(formatName)) return;
+    scheduleTypographyCleanup(editor);
+  });
+
+  editor.on('ExecCommand', event => {
+    if (event.command !== 'FormatBlock') return;
+    const tag = String(event.value ?? '').toLowerCase();
+    if (!FORMAT_BLOCK_TAGS.has(tag)) return;
+    scheduleTypographyCleanup(editor);
   });
 }
 
@@ -137,16 +170,15 @@ export function createBoardTinyMceInit({ onUploadImage }: CreateBoardTinyMceInit
     resize: true,
     plugins: ['lists', 'link', 'image', 'table', 'autolink', 'fullscreen'],
     toolbar:
-      'undo redo | blocks styles | bold italic underline strikethrough | ' +
+      'undo redo | styles | bold italic underline strikethrough | ' +
       'forecolor backcolor | alignleft aligncenter alignright | ' +
       'bullist numlist | blockquote hr | link image table | fullscreen',
-    block_formats: '제목1=h2;제목2=h3;제목3=h4;본문=p',
     style_formats: buildParagraphStyleFormats(),
     extended_valid_elements: EXTENDED_VALID_ELEMENTS,
     valid_styles: {
       '*': VALID_STYLE_PROPERTIES,
     },
-    paste_webkit_styles: 'all',
+    paste_webkit_styles: 'color font-weight font-style text-decoration background-color',
     verify_html: false,
     convert_urls: false,
     content_style: `
@@ -164,6 +196,7 @@ export function createBoardTinyMceInit({ onUploadImage }: CreateBoardTinyMceInit
       editor.on('init', () => {
         editor.getBody().setAttribute('class', 'board-editor-body mce-content-body');
       });
+      registerTypographyCleanupHandlers(editor);
     },
   };
 
