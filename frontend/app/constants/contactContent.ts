@@ -160,6 +160,14 @@ export const CONTACT_INQUIRY = {
   inflowMobile: '상담 페이지(Mobile)',
 } as const;
 
+/** 상담 접수 `c_inflowurl` — 오가닉 vs 구글 광고 */
+export const INQUIRY_INFLOW_URL = {
+  CONTACT: 'contact',
+  CONTACT_GOOGLE: 'contact-ad',
+} as const;
+
+export type InquiryInflowUrl = (typeof INQUIRY_INFLOW_URL)[keyof typeof INQUIRY_INFLOW_URL];
+
 const LEGACY_INQUIRY_API_SUFFIX = '/api/submit_inquiry.php';
 const CORRECT_INQUIRY_API_SUFFIX = '/backend/api/submit_inquiry.php';
 

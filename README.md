@@ -224,7 +224,7 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 - **POST** `/api/submit_inquiry.php`
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **필드**: `c_name`, `c_tel`, `c_content` (필수), `c_inflow` (선택)
+- **필드**: `c_name`, `c_tel`, `c_content` (필수), `c_inflow` (선택), `c_inflowurl` (선택: `contact` | `contact-ad`)
 - **검증**: 성함 한글 2~10자 · 연락처 `010`+8자리 · 문의 5~500자
 - **응답**: `{ "result": "1"|"0", "msg": "..." }`
 - 차단 IP·1시간 3회 도배: 사용자에게는 성공처럼 응답, DB INSERT 없음

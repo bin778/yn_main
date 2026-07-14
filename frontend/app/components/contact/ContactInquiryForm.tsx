@@ -12,6 +12,7 @@ import {
   INQUIRY_STUB_MESSAGE,
   INQUIRY_VALIDATION_MESSAGES,
 } from '@/app/constants/contactContent';
+import { getInquiryInflowUrl } from '@/app/lib/inquiryInflow';
 import { validateInquiryFields } from '@/app/lib/inquiryValidation';
 import { trackGaEvent } from '@/app/lib/trackGaEvent';
 
@@ -60,6 +61,7 @@ export default function ContactInquiryForm() {
         c_tel: validTel,
         c_content: validContent,
         c_inflow: getInflowLabel(),
+        c_inflowurl: getInquiryInflowUrl(),
       });
 
       const response = await fetch(INQUIRY_API_URL, {

@@ -10,6 +10,7 @@ import AnalyticsConsentDefaults from './components/AnalyticsConsentDefaults';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import Footer from './components/Footer';
 import Header from './components/Header';
+import InquiryInflowCapture from './components/InquiryInflowCapture';
 import VercelMetrics from './components/VercelMetrics';
 
 const FloatingQuickActions = dynamic(() => import('./components/FloatingQuickActions'));
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`m-0 p-0 ${pretendard.className}`}>
         <AnalyticsConsentDefaults />
         <AnalyticsProvider>
+          <InquiryInflowCapture />
           <Header />
           <main className="pt-[80px]">{children}</main>
           <FloatingQuickActions />
