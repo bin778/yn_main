@@ -28,12 +28,8 @@ type KakaoRoughMapProps = {
   className?: string;
 };
 
-/** Kakao roughmap injects `.address` / `.phone` with `.tit`(주소·전화) and `.txt` values. */
-const KAKAO_MAP_CONTACT_INFO_CLASSES =
-  '[&_.address_.tit]:!text-[12px] md:[&_.address_.tit]:!text-[14px] ' +
-  '[&_.address_.txt]:!text-[12px] md:[&_.address_.txt]:!text-[14px] ' +
-  '[&_.phone_.tit]:!text-[12px] md:[&_.phone_.tit]:!text-[14px] ' +
-  '[&_.phone_.txt]:!text-[12px] md:[&_.phone_.txt]:!text-[14px]';
+/** Kakao roughmap injects `.address` / `.phone` — hide them under the map. */
+const KAKAO_MAP_CONTACT_INFO_CLASSES = '[&_.address]:!hidden [&_.phone]:!hidden';
 
 function KakaoRoughMapInner({ embed, className }: KakaoRoughMapProps) {
   const containerId = `daumRoughmapContainer${embed.timestamp}`;

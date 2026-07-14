@@ -1,9 +1,9 @@
 /**
  * Contact route (`/contact`). Legacy `www/contact.php`:
  * 1. Hero
- * 2. Seoul office
- * 3. Bucheon office
- * 4. Inquiry form band
+ * 2. Inquiry form band
+ * 3. Seoul office
+ * 4. Bucheon office
  */
 import type { Metadata } from 'next';
 
@@ -22,10 +22,10 @@ export default function ContactPage() {
   return (
     <>
       <ContactHero />
+      <ContactInquirySection />
       {CONTACT_OFFICES.map(office => (
         <OfficeSection key={office.id} office={office} />
       ))}
-      <ContactInquirySection />
     </>
   );
 }

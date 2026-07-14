@@ -43,19 +43,19 @@ function OfficeInfo({ office }: { office: ContactOffice }) {
 export default function OfficeSection({ office }: OfficeSectionProps) {
   return (
     <section
-      className="mx-auto max-w-[1200px] px-6 py-12 md:px-12 md:py-[80px]"
+      className="mx-auto max-w-[1200px] px-6 py-12 md:px-12 md:py-[40px]"
       aria-labelledby={`${office.id}-office-title`}
     >
       <span id={`${office.id}-office-title`} className="sr-only">
         {office.title}
       </span>
 
-      <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
-        <div className="min-w-0 lg:order-2 lg:pt-9">
-          <OfficeInfo office={office} />
-        </div>
-        <div className="min-w-0 w-full lg:order-1 lg:mt-10">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+        <div className="min-w-0 w-full lg:mt-10">
           <OfficeMap office={office} />
+        </div>
+        <div className="min-w-0 lg:pt-9">
+          <OfficeInfo office={office} />
         </div>
       </div>
     </section>
