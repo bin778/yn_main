@@ -6,6 +6,7 @@ import {
   GA_SOURCES,
   KAKAO_CHANNEL_HOST,
 } from '@/app/constants/analyticsEvents';
+import { getGaMeasurementId, isAnalyticsConfigured } from '@/app/lib/analyticsConfig';
 import { isAnalyticsGranted } from '@/app/lib/analyticsConsent';
 
 type GaEventParams = Record<string, string | number | boolean>;
@@ -17,12 +18,20 @@ declare global {
   }
 }
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-
+/** GA4(gtag) + GTM(dataLayer)에 동일 이벤트 전달. 동의·설정이 있을 때만. */
 export function trackGaEvent(eventName: string, params?: GaEventParams): void {
-  if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) return;
-  if (!isAnalyticsGranted()) return;
-  window.gtag('event', eventName, params);
+  if (typeof window === 'undefined') return;
+  if (!isAnalyticsConfigured() || !isAnalyticsGranted()) return;
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: eventName,
+    ...(params ?? {}),
+  });
+
+  if (getGaMeasurementId() !== '' && typeof window.gtag === 'function') {
+    window.gtag('event', eventName, params);
+  }
 }
 
 function getLinkSource(anchor: HTMLAnchorElement): string {

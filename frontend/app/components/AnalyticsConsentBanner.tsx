@@ -5,14 +5,13 @@ import { usePathname } from 'next/navigation';
 
 import { useAnalyticsConsent } from '@/app/components/AnalyticsProvider';
 import { ADMIN_PATH_PREFIX } from '@/app/constants/analyticsEvents';
-
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+import { isAnalyticsConfigured } from '@/app/lib/analyticsConfig';
 
 export default function AnalyticsConsentBanner() {
   const pathname = usePathname();
   const { consent, grantConsent, denyConsent } = useAnalyticsConsent();
 
-  if (!GA_MEASUREMENT_ID) return null;
+  if (!isAnalyticsConfigured()) return null;
   if (pathname.startsWith(ADMIN_PATH_PREFIX)) return null;
   if (consent !== null) return null;
 

@@ -19,7 +19,7 @@ Next.js 사이트(`frontend/`)와 카페24 PHP API(`backend/`), 레거시 그누
 - [페이지](#페이지)
 - [환경 변수](#환경-변수)
 - [SEO](#seo)
-- [Google Analytics 4](#google-analytics-4)
+- [Google Analytics 4 · Google Tag Manager](#google-analytics-4--google-tag-manager)
 - [성능 최적화](#성능-최적화)
 - [관리자](#관리자)
 - [백엔드 API](#백엔드-api)
@@ -140,7 +140,8 @@ yn_main/
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 API. Vercel·로컬: `/api/submit_inquiry.php` (same-origin). 카페24 단독: `https://yeoon.co.kr/api/submit_inquiry.php` |
 | `BOARD_API_URL`                 | 게시판 API (서버사이드 전용, 기본: `https://yeoon.co.kr/api/board`)                                                       |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 측정 ID (`G-`로 시작). 비우면 GA4 비활성화                                                                            |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 측정 ID (`G-`로 시작). 비우면 직접 gtag GA4 비활성화                                                                  |
+| `NEXT_PUBLIC_GTM_ID`            | GTM 컨테이너 ID (`GTM-`로 시작). 비우면 GTM 비활성화. 동의 후 로드, 이벤트는 `dataLayer`로 전달                           |
 
 ## SEO
 
@@ -152,25 +153,27 @@ yn_main/
 
 **사이트 소유 확인** — 네이버: `app/layout.tsx` `metadata.verification`. 페이지별 canonical·게시글 SEO 메타는 각 `page.tsx`·`generateMetadata`, 관리자 `AdminPostForm` SEO 필드.
 
-## Google Analytics 4
+## Google Analytics 4 · Google Tag Manager
 
 공개 페이지에만 적용. `/admin`은 스크립트·이벤트·동의 배너 모두 제외.
 
-**동의 → Consent Mode v2 → GA 로드** 순서. 동의 전 Google 요청 없음. 광고·리마케팅용 `ad_*` storage는 항상 `denied` (`gtagConsent.ts`).
+**동의 → Consent Mode v2 → GA/GTM 로드** 순서. 동의 전 Google 요청 없음. 광고·리마케팅용 `ad_*` storage는 항상 `denied` (`gtagConsent.ts`).
 
-| 이벤트          | 트리거                         |
-| --------------- | ------------------------------ |
-| `page_view`     | 공개 페이지 방문               |
-| `generate_lead` | `/contact/` 상담 폼 API 성공   |
-| `phone_click`   | `tel:` 링크 클릭               |
-| `kakao_click`   | `pf.kakao.com` 링크 클릭       |
-| `file_download` | `yeoon_brochure.pdf` 링크 클릭 |
+| 이벤트          | 트리거                         | 주요 파라미터                                                        |
+| --------------- | ------------------------------ | -------------------------------------------------------------------- |
+| `page_view`     | 공개 페이지 방문               | `page_path` (GTM dataLayer)                                          |
+| `generate_lead` | `/contact/` 상담 폼 API 성공   | `form_name`, `link_source`, `inflow_url` (`contact` \| `contact-ad`) |
+| `phone_click`   | `tel:` 링크 클릭               | `link_source` 등                                                     |
+| `kakao_click`   | `pf.kakao.com` 링크 클릭       | `link_source` 등                                                     |
+| `file_download` | `yeoon_brochure.pdf` 링크 클릭 | `link_source` 등                                                     |
 
-`link_source` 파라미터로 클릭 위치 구분 (`floating_quick_actions`, `pre_footer_cta`, `board_content`, `inline`, `contact_form`). `data-ga-source` 속성 또는 `AnalyticsClickTracker` 전역 위임으로 처리.
+`trackGaEvent`는 동의 후 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
 
-**GA4 콘솔 권장** — `generate_lead`, `phone_click`, `kakao_click`, `file_download`를 키 이벤트로 등록. Google 신호·Google Ads 링크·데이터 공유는 최소화.
+**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `generate_lead`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계).
 
-주요 파일: `AnalyticsConsentDefaults`, `AnalyticsProvider`, `AnalyticsConsentBanner`, `GoogleAnalyticsLoader`, `lib/analyticsConsent.ts`, `lib/trackGaEvent.ts`.
+**GA4 콘솔 권장** — `generate_lead`, `phone_click`, `kakao_click`, `file_download`를 키 이벤트로 등록. `inflow_url` 맞춤 측정기준 등록. Google 신호·데이터 공유는 최소화.
+
+주요 파일: `AnalyticsConsentDefaults`, `AnalyticsProvider`, `AnalyticsConsentBanner`, `GoogleAnalyticsLoader`, `GoogleTagManagerLoader`, `lib/analyticsConfig.ts`, `lib/analyticsConsent.ts`, `lib/trackGaEvent.ts`.
 
 ## 성능 최적화
 

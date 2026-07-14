@@ -53,6 +53,7 @@ export default function ContactInquiryForm() {
     }
 
     const { name: validName, tel: validTel, content: validContent } = validation.values;
+    const inflowUrl = getInquiryInflowUrl();
 
     setSubmitting(true);
     try {
@@ -61,7 +62,7 @@ export default function ContactInquiryForm() {
         c_tel: validTel,
         c_content: validContent,
         c_inflow: getInflowLabel(),
-        c_inflowurl: getInquiryInflowUrl(),
+        c_inflowurl: inflowUrl,
       });
 
       const response = await fetch(INQUIRY_API_URL, {
@@ -76,6 +77,7 @@ export default function ContactInquiryForm() {
         trackGaEvent(GA_EVENTS.GENERATE_LEAD, {
           form_name: INQUIRY_FORM_NAME,
           link_source: GA_SOURCES.CONTACT_FORM,
+          inflow_url: inflowUrl,
         });
         setName('');
         setTel('');

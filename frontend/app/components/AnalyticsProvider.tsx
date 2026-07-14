@@ -6,6 +6,8 @@ import { createContext, useContext, useSyncExternalStore, type ReactNode } from 
 import { ADMIN_PATH_PREFIX } from '@/app/constants/analyticsEvents';
 import AnalyticsClickTracker from '@/app/components/AnalyticsClickTracker';
 import GoogleAnalyticsLoader from '@/app/components/GoogleAnalyticsLoader';
+import GoogleTagManagerLoader from '@/app/components/GoogleTagManagerLoader';
+import { getGaMeasurementId, getGtmId, isAnalyticsConfigured } from '@/app/lib/analyticsConfig';
 import {
   getAnalyticsConsentServerSnapshot,
   getAnalyticsConsentSnapshot,
@@ -13,8 +15,6 @@ import {
   subscribeAnalyticsConsent,
   type AnalyticsConsentValue,
 } from '@/app/lib/analyticsConsent';
-
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 type AnalyticsConsentContextValue = {
   consent: AnalyticsConsentValue | null;
@@ -35,7 +35,7 @@ export function useAnalyticsConsent(): AnalyticsConsentContextValue {
 export function useIsAnalyticsConsentBannerVisible(): boolean {
   const pathname = usePathname();
   const { consent } = useAnalyticsConsent();
-  return Boolean(GA_MEASUREMENT_ID) && !pathname.startsWith(ADMIN_PATH_PREFIX) && consent === null;
+  return isAnalyticsConfigured() && !pathname.startsWith(ADMIN_PATH_PREFIX) && consent === null;
 }
 
 export default function AnalyticsProvider({ children }: { children: ReactNode }) {
@@ -53,12 +53,15 @@ export default function AnalyticsProvider({ children }: { children: ReactNode })
     denyConsent: () => setAnalyticsConsent('denied'),
   };
 
-  const shouldLoadGa = Boolean(GA_MEASUREMENT_ID) && !isAdmin && consent === 'granted';
+  const shouldLoadAnalytics = isAnalyticsConfigured() && !isAdmin && consent === 'granted';
+  const shouldLoadGtm = shouldLoadAnalytics && getGtmId() !== '';
+  const shouldLoadGa = shouldLoadAnalytics && getGaMeasurementId() !== '';
 
   return (
     <AnalyticsConsentContext.Provider value={contextValue}>
+      {shouldLoadGtm && <GoogleTagManagerLoader />}
       {shouldLoadGa && <GoogleAnalyticsLoader />}
-      {shouldLoadGa && <AnalyticsClickTracker />}
+      {shouldLoadAnalytics && <AnalyticsClickTracker />}
       {children}
     </AnalyticsConsentContext.Provider>
   );
