@@ -9,9 +9,19 @@ export type OfficeDirection = {
   description: string;
 };
 
-export type KakaoMapEmbed = {
-  timestamp: string;
-  key: string;
+export type OfficeMapLocation = {
+  lat: number;
+  lng: number;
+  zoom: number;
+  /** 네이버 지도 장소(Place) ID — 클릭 시 map.naver.com 상세로 이동 */
+  naverPlaceId: string;
+  /** 네이버 장소명(길찾기 도착지 표시용) */
+  naverPlaceName: string;
+  /**
+   * 네이버 지도 공유 URL의 인코딩 좌표(예: `3zhVpA,2AM5BZ`).
+   * 없으면 lng,lat 소수점 좌표로 대체한다.
+   */
+  naverEncodedCoords?: string;
 };
 
 export type ContactOffice = {
@@ -19,9 +29,51 @@ export type ContactOffice = {
   title: string;
   address: string;
   directions: readonly OfficeDirection[];
-  mapDesktop: KakaoMapEmbed;
-  mapMobile: KakaoMapEmbed;
+  map: OfficeMapLocation;
 };
+
+export function getNaverPlaceUrl(placeId: string): string {
+  return `https://map.naver.com/p/entry/place/${placeId}`;
+}
+
+/** 도착지를 해당 장소로 둔 네이버 지도 길찾기(대중교통) */
+export function getNaverDirectionsUrl(location: OfficeMapLocation): string {
+  const coords = location.naverEncodedCoords ?? `${location.lng},${location.lat}`;
+  const destination = [coords, encodeURIComponent(location.naverPlaceName), location.naverPlaceId, 'PLACE_POI'].join(
+    ',',
+  );
+  return `https://map.naver.com/p/directions/-/${destination}/-/transit?c=15.00,0,0,0,dh`;
+}
+
+/** 카카오맵 도착지 지정 링크(웹) — 앱에서 대중교통 길찾기 선택 가능 */
+export function getKakaoDirectionsUrl(location: OfficeMapLocation): string {
+  const name = encodeURIComponent(location.naverPlaceName);
+  return `https://map.kakao.com/link/to/${name},${location.lat},${location.lng}`;
+}
+
+/** 티맵 앱 스킴 지원 플랫폼 (PC는 null) */
+export type TmapPlatform = 'ios' | 'android';
+
+export function getTmapPlatform(userAgent: string): TmapPlatform | null {
+  if (/iPhone|iPad|iPod/i.test(userAgent)) return 'ios';
+  if (/Android/i.test(userAgent)) return 'android';
+  return null;
+}
+
+/** 티맵 자동차 길찾기(앱 스킴) — iOS/Android 파라미터 상이 */
+export function getTmapDirectionsUrl(location: OfficeMapLocation, platform: TmapPlatform): string {
+  const name = encodeURIComponent(location.naverPlaceName);
+  if (platform === 'ios') {
+    return `tmap://route?rGoName=${name}&rGoX=${location.lng}&rGoY=${location.lat}`;
+  }
+  return `tmap://route?referrer=com.skt.Tmap&goalname=${name}&goalx=${location.lng}&goaly=${location.lat}`;
+}
+
+export const MAP_DIRECTION_ICONS = {
+  naver: '/img/naver_map.webp',
+  kakao: '/img/kakao_map.webp',
+  tmap: '/img/t_map.webp',
+} as const;
 
 export const CONTACT_PAGE_TITLE = '법무법인 여온 상담 예약 | 서울 을지로 본사 및 경기 부천 분사무소';
 export const CONTACT_PAGE_DESCRIPTION =
@@ -62,13 +114,13 @@ export const CONTACT_OFFICES: readonly ContactOffice[] = [
         description: '| 인근 유료 주차장 이용',
       },
     ],
-    mapDesktop: {
-      timestamp: '1776314533103',
-      key: 'm6x7wqeywdg',
-    },
-    mapMobile: {
-      timestamp: '1776314533103',
-      key: 'm6x7wqeywdg',
+    map: {
+      lat: 37.5674435,
+      lng: 126.9842354,
+      zoom: 16,
+      naverPlaceId: '1212409809',
+      naverPlaceName: '법무법인 여온',
+      naverEncodedCoords: '3zhVpA,2AM5BZ',
     },
   },
   {
@@ -89,13 +141,12 @@ export const CONTACT_OFFICES: readonly ContactOffice[] = [
         description: '| 인근 유료 주차장 이용',
       },
     ],
-    mapDesktop: {
-      timestamp: '1776664337389',
-      key: 'megwp8pjsa9',
-    },
-    mapMobile: {
-      timestamp: '1776664337389',
-      key: 'megwp8pjsa9',
+    map: {
+      lat: 37.4868757,
+      lng: 126.7833253,
+      zoom: 16,
+      naverPlaceId: '2096887533',
+      naverPlaceName: '법무법인 여온 부천 분사무소',
     },
   },
 ] as const;
@@ -153,3 +204,5 @@ export const INQUIRY_VALIDATION_MESSAGES = {
   contentMax: `문의사항은 ${INQUIRY_FIELD_LIMITS.content}자 이내로 입력해 주세요.`,
   agree: '개인정보 처리 방침에 동의해주세요.',
 } as const;
+
+export const NAVER_MAP_CLIENT_ID = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID?.trim() ?? '';

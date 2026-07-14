@@ -51,7 +51,7 @@ export default function OfficeSection({ office }: OfficeSectionProps) {
       </span>
 
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
-        <div className="min-w-0 w-full lg:mt-10">
+        <div className="relative z-0 min-w-0 w-full lg:mt-10">
           <OfficeMap office={office} />
         </div>
         <div className="min-w-0 lg:pt-9">
