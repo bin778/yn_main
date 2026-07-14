@@ -72,17 +72,19 @@ export default function ContactInquiryForm() {
       });
 
       const data = (await response.json()) as InquiryResponse;
-      alert(data.msg);
       if (data.result === '1') {
         trackGaEvent(GA_EVENTS.GENERATE_LEAD, {
           form_name: INQUIRY_FORM_NAME,
           link_source: GA_SOURCES.CONTACT_FORM,
           inflow_url: inflowUrl,
         });
+        alert(data.msg);
         setName('');
         setTel('');
         setContent('');
         setAgreed(false);
+      } else {
+        alert(data.msg);
       }
     } catch {
       alert('요청 중 오류가 발생했습니다. 다시 시도해주세요.');

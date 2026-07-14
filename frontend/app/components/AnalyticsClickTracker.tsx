@@ -4,13 +4,14 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 import { ADMIN_PATH_PREFIX } from '@/app/constants/analyticsEvents';
+import { isAnalyticsConfigured } from '@/app/lib/analyticsConfig';
 import { classifyAnchorClick, trackGaEvent } from '@/app/lib/trackGaEvent';
 
 export default function AnalyticsClickTracker() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) return;
+    if (!isAnalyticsConfigured()) return;
     if (pathname.startsWith(ADMIN_PATH_PREFIX)) return;
 
     const handleClick = (event: MouseEvent) => {

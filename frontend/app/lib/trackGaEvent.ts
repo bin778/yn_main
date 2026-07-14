@@ -7,7 +7,6 @@ import {
   KAKAO_CHANNEL_HOST,
 } from '@/app/constants/analyticsEvents';
 import { getGaMeasurementId, isAnalyticsConfigured } from '@/app/lib/analyticsConfig';
-import { isAnalyticsGranted } from '@/app/lib/analyticsConsent';
 
 type GaEventParams = Record<string, string | number | boolean>;
 
@@ -18,10 +17,10 @@ declare global {
   }
 }
 
-/** GA4(gtag) + GTM(dataLayer)에 동일 이벤트 전달. 동의·설정이 있을 때만. */
+/** GA4(gtag) + GTM(dataLayer)에 동일 이벤트 전달 */
 export function trackGaEvent(eventName: string, params?: GaEventParams): void {
   if (typeof window === 'undefined') return;
-  if (!isAnalyticsConfigured() || !isAnalyticsGranted()) return;
+  if (!isAnalyticsConfigured()) return;
 
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({

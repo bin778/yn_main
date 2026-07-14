@@ -155,9 +155,9 @@ yn_main/
 
 ## Google Analytics 4 · Google Tag Manager
 
-공개 페이지에만 적용. `/admin`은 스크립트·이벤트·동의 배너 모두 제외.
+공개 페이지에만 적용. `/admin`은 스크립트·이벤트 제외.
 
-**동의 → Consent Mode v2 → GA/GTM 로드** 순서. 동의 전 Google 요청 없음. 광고·리마케팅용 `ad_*` storage는 항상 `denied` (`gtagConsent.ts`).
+**접속 즉시** GA4(gtag)·GTM을 로드합니다. 별도 동의 배너·Consent Mode 거부 기본값은 사용하지 않습니다. 광고·리마케팅용 신호는 GA4 설정에서 비활성화합니다 (`gtagConsent.ts`의 `GTAG_CONFIG_OPTIONS`).
 
 | 이벤트          | 트리거                         | 주요 파라미터                                                        |
 | --------------- | ------------------------------ | -------------------------------------------------------------------- |
@@ -167,13 +167,13 @@ yn_main/
 | `kakao_click`   | `pf.kakao.com` 링크 클릭       | `link_source` 등                                                     |
 | `file_download` | `yeoon_brochure.pdf` 링크 클릭 | `link_source` 등                                                     |
 
-`trackGaEvent`는 동의 후 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
+`trackGaEvent`는 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
 
 **GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `generate_lead`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계).
 
 **GA4 콘솔 권장** — `generate_lead`, `phone_click`, `kakao_click`, `file_download`를 키 이벤트로 등록. `inflow_url` 맞춤 측정기준 등록. Google 신호·데이터 공유는 최소화.
 
-주요 파일: `AnalyticsConsentDefaults`, `AnalyticsProvider`, `AnalyticsConsentBanner`, `GoogleAnalyticsLoader`, `GoogleTagManagerLoader`, `lib/analyticsConfig.ts`, `lib/analyticsConsent.ts`, `lib/trackGaEvent.ts`.
+주요 파일: `AnalyticsProvider`, `GoogleAnalyticsLoader`, `GoogleTagManagerLoader`, `lib/analyticsConfig.ts`, `lib/trackGaEvent.ts`.
 
 ## 성능 최적화
 

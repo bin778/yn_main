@@ -4,13 +4,20 @@ import Script from 'next/script';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { GTAG_CONSENT_ANALYTICS_GRANTED, GTAG_CONFIG_OPTIONS } from '@/app/constants/gtagConsent';
+import { GTAG_CONFIG_OPTIONS } from '@/app/constants/gtagConsent';
+import { getGaMeasurementId } from '@/app/lib/analyticsConfig';
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+declare global {
+  interface Window {
+    gtag?: (command: string, ...args: unknown[]) => void;
+    dataLayer?: unknown[];
+  }
+}
 
 function sendPageView(pathname: string): void {
-  if (!GA_MEASUREMENT_ID || typeof window.gtag !== 'function') return;
-  window.gtag('config', GA_MEASUREMENT_ID, {
+  const measurementId = getGaMeasurementId();
+  if (!measurementId || typeof window.gtag !== 'function') return;
+  window.gtag('config', measurementId, {
     ...GTAG_CONFIG_OPTIONS,
     page_path: pathname,
   });
@@ -18,26 +25,25 @@ function sendPageView(pathname: string): void {
 
 export default function GoogleAnalyticsLoader() {
   const pathname = usePathname();
+  const measurementId = getGaMeasurementId();
 
   useEffect(() => {
     sendPageView(pathname);
   }, [pathname]);
 
-  if (!GA_MEASUREMENT_ID) return null;
+  if (!measurementId) return null;
 
   const configJson = JSON.stringify(GTAG_CONFIG_OPTIONS);
-  const consentGrantedJson = JSON.stringify(GTAG_CONSENT_ANALYTICS_GRANTED);
 
   return (
     <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
+      <Script src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="afterInteractive" />
       <Script id="gtag-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('consent', 'update', ${consentGrantedJson});
-          gtag('config', '${GA_MEASUREMENT_ID}', ${configJson});
+          gtag('config', '${measurementId}', ${configJson});
         `}
       </Script>
     </>
