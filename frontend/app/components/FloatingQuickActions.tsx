@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { useIsAnalyticsConsentBannerVisible } from '@/app/components/AnalyticsProvider';
@@ -8,7 +9,7 @@ import { GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 const QUICK_ACTIONS = [
   {
     href: 'tel:02-318-2981',
-    label: '상담전화',
+    label: '24시 상담',
     kind: 'anchor' as const,
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-[1.8]">
@@ -38,13 +39,13 @@ const QUICK_ACTIONS = [
     target: '_blank',
     rel: 'noopener noreferrer',
     icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-[1.8]">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 7.5A3.5 3.5 0 0 1 9.5 4h5A3.5 3.5 0 0 1 18 7.5v4A3.5 3.5 0 0 1 14.5 15H11l-4 3v-3.3A3.5 3.5 0 0 1 6 11.5v-4Z"
-        />
-      </svg>
+      <Image
+        src="/img/kakao.webp"
+        alt=""
+        width={32}
+        height={32}
+        className="h-6 w-6 rounded-[4px] object-contain md:h-8 md:w-8 md:rounded-[5px]"
+      />
     ),
   },
 ];
@@ -62,11 +63,11 @@ export default function FloatingQuickActions() {
     <div
       className={`fixed right-3 z-[100] flex flex-col items-center transition-[bottom] duration-300 ease-out md:right-10 ${positionClass}`}
     >
-      <div className="flex w-[60px] md:w-[80px] flex-col items-center rounded-[999px] bg-[#023373] px-2 py-2 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:px-4 md:py-3">
+      <div className="flex w-[60px] md:w-[80px] flex-col items-center rounded-[999px] bg-[#023373] px-1 py-1 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:px-3 md:py-3">
         {QUICK_ACTIONS.map((action, index) => {
           const content = (
             <>
-              <span className="flex h-7 items-center justify-center md:h-8 [&_svg]:h-6 [&_svg]:w-6 md:[&_svg]:h-8 md:[&_svg]:w-8">
+              <span className="flex h-7 items-center justify-center md:h-8 [&_svg]:h-6 [&_svg]:w-6 md:[&_svg]:h-8 md:[&_svg]:w-8 [&_img]:h-6 [&_img]:w-6 md:[&_img]:h-8 md:[&_img]:w-8">
                 {action.icon}
               </span>
               <span className="mt-1.5 text-[11px] font-semibold leading-tight md:mt-2 md:text-[13px]">
