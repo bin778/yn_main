@@ -159,19 +159,19 @@ yn_main/
 
 **접속 즉시** GA4(gtag)·GTM을 로드합니다. 별도 동의 배너·Consent Mode 거부 기본값은 사용하지 않습니다. 광고·리마케팅용 신호는 GA4 설정에서 비활성화합니다 (`gtagConsent.ts`의 `GTAG_CONFIG_OPTIONS`).
 
-| 이벤트          | 트리거                         | 주요 파라미터                                                        |
-| --------------- | ------------------------------ | -------------------------------------------------------------------- |
-| `page_view`     | 공개 페이지 방문               | `page_path` (GTM dataLayer)                                          |
-| `generate_lead` | `/contact/` 상담 폼 API 성공   | `form_name`, `link_source`, `inflow_url` (`contact` \| `contact-ad`) |
-| `phone_click`   | `tel:` 링크 클릭               | `link_source` 등                                                     |
-| `kakao_click`   | `pf.kakao.com` 링크 클릭       | `link_source` 등                                                     |
-| `file_download` | `yeoon_brochure.pdf` 링크 클릭 | `link_source` 등                                                     |
+| 이벤트              | 트리거                         | 주요 파라미터                                                        |
+| ------------------- | ------------------------------ | -------------------------------------------------------------------- |
+| `page_view`         | 공개 페이지 방문               | `page_path` (GTM dataLayer)                                          |
+| `home_lead_success` | `/contact/` 상담 폼 API 성공   | `form_name`, `link_source`, `inflow_url` (`contact` \| `contact-ad`) |
+| `home_phone_click`  | `tel:` 링크 클릭               | `link_source` 등                                                     |
+| `home_kakao_click`  | `pf.kakao.com` 링크 클릭       | `link_source` 등                                                     |
+| `file_download`     | `yeoon_brochure.pdf` 링크 클릭 | `link_source` 등                                                     |
 
 `trackGaEvent`는 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
 
-**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `generate_lead`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계).
+**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `home_lead_success`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계).
 
-**GA4 콘솔 권장** — `generate_lead`, `phone_click`, `kakao_click`, `file_download`를 키 이벤트로 등록. `inflow_url` 맞춤 측정기준 등록. Google 신호·데이터 공유는 최소화.
+**GA4 콘솔 권장** — `home_lead_success`, `home_phone_click`, `home_kakao_click`, `file_download`를 키 이벤트로 등록. `inflow_url` 맞춤 측정기준 등록. Google 신호·데이터 공유는 최소화.
 
 주요 파일: `AnalyticsProvider`, `GoogleAnalyticsLoader`, `GoogleTagManagerLoader`, `lib/analyticsConfig.ts`, `lib/trackGaEvent.ts`.
 

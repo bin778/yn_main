@@ -1,9 +1,9 @@
 export const ADMIN_PATH_PREFIX = '/admin';
 
 export const GA_EVENTS = {
-  GENERATE_LEAD: 'generate_lead',
-  PHONE_CLICK: 'phone_click',
-  KAKAO_CLICK: 'kakao_click',
+  GENERATE_LEAD: 'home_lead_success',
+  PHONE_CLICK: 'home_phone_click',
+  KAKAO_CLICK: 'home_kakao_click',
   FILE_DOWNLOAD: 'file_download',
 } as const;
 
