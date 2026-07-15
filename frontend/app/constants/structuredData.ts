@@ -8,7 +8,7 @@ export const LEGAL_SERVICE_SCHEMA: Record<string, unknown> = {
   'telephone': '02-318-2981',
   'address': {
     '@type': 'PostalAddress',
-    'streetAddress': '남대문로10길 28 우석빌딩 9층 903호',
+    'streetAddress': '남대문로10길 28 우석빌딩 10층 1003호',
     'addressLocality': '중구',
     'addressRegion': '서울특별시',
     'postalCode': '04536',
