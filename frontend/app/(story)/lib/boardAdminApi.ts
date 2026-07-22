@@ -27,8 +27,25 @@ const EMPTY_ME: BoardAdminMe = {
   delete_href: null,
 };
 
+const HTML_BLOCK_ERROR =
+  '죄송합니다. 부적절한 단어 및 스팸성 문구가 포함되어 저장이 제한되었습니다. 내용을 다시 확인해 주세요.';
+
 async function parseJson<T>(res: Response): Promise<T> {
-  const data = (await res.json()) as T & { error?: string };
+  const contentType = res.headers.get('content-type') ?? '';
+  const raw = await res.text();
+  const looksLikeHtml = contentType.includes('text/html') || /^\s*</.test(raw);
+
+  if (looksLikeHtml) {
+    throw new Error(HTML_BLOCK_ERROR);
+  }
+
+  let data: T & { error?: string };
+  try {
+    data = JSON.parse(raw) as T & { error?: string };
+  } catch {
+    throw new Error('서버 응답을 해석하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+  }
+
   if (!res.ok) {
     throw new Error(typeof data.error === 'string' ? data.error : '요청에 실패했습니다.');
   }

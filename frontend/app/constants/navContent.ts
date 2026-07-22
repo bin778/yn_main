@@ -21,7 +21,6 @@ export const INDECENT_ASSAULT_CONSULTATION_HREF = 'https://www.yeoon.co.kr/crimi
 export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [
   { href: DRUNK_CONSULTATION_HREF, label: '음주운전' },
   { href: INDECENT_ASSAULT_CONSULTATION_HREF, label: '강제추행' },
-  { label: '카메라등이용촬영죄' },
 ];
 
 export const CONSULTATION_NAV_LABEL = '형사 전문 센터';
