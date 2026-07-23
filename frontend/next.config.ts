@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
       // Next.js [bo_table]/[wr_id] 라우트보다 먼저 — criminal 게시판 slug와 충돌 방지
       beforeFiles: [
         { source: '/criminal/api/:path*', destination: `${CAFE24}/criminal/api/:path*` },
+        { source: '/criminal/admin', destination: `${CAFE24}/criminal/admin/` },
+        { source: '/criminal/admin/', destination: `${CAFE24}/criminal/admin/` },
+        { source: '/criminal/admin/:path*', destination: `${CAFE24}/criminal/admin/:path*` },
         { source: '/criminal/drunk-driving', destination: `${CAFE24}/criminal/drunk-driving/` },
         { source: '/criminal/drunk-driving/', destination: `${CAFE24}/criminal/drunk-driving/` },
         { source: '/criminal/drunk-driving/:path*', destination: `${CAFE24}/criminal/drunk-driving/:path*` },
