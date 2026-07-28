@@ -12,7 +12,7 @@ import {
   INQUIRY_STUB_MESSAGE,
   INQUIRY_VALIDATION_MESSAGES,
 } from '@/app/constants/contactContent';
-import { getInquiryInflowUrl } from '@/app/lib/inquiryInflow';
+import { getInquiryAttribution } from '@/app/lib/inquiryInflow';
 import { validateInquiryFields } from '@/app/lib/inquiryValidation';
 import { trackGaEvent } from '@/app/lib/trackGaEvent';
 
@@ -53,7 +53,8 @@ export default function ContactInquiryForm() {
     }
 
     const { name: validName, tel: validTel, content: validContent } = validation.values;
-    const inflowUrl = getInquiryInflowUrl();
+    const attribution = getInquiryAttribution();
+    const inflowUrl = attribution.inflowUrl;
 
     setSubmitting(true);
     try {
@@ -64,6 +65,9 @@ export default function ContactInquiryForm() {
         c_inflow: getInflowLabel(),
         c_inflowurl: inflowUrl,
       });
+      if (attribution.gclid !== '') body.set('gclid', attribution.gclid);
+      if (attribution.utmSource !== '') body.set('utm_source', attribution.utmSource);
+      if (attribution.utmCampaign !== '') body.set('utm_campaign', attribution.utmCampaign);
 
       const response = await fetch(INQUIRY_API_URL, {
         method: 'POST',

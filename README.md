@@ -169,7 +169,7 @@ yn_main/
 
 `trackGaEvent`는 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
 
-**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `home_lead_success`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계).
+**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `home_lead_success`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계). 상담 폼은 first-touch로 `gclid`·`utm_source`·`utm_campaign`을 DB에 저장합니다(코드에 `AW-` 전환 태그는 넣지 않음).
 
 **GA4 콘솔 권장** — `home_lead_success`, `home_phone_click`, `home_kakao_click`, `file_download`를 키 이벤트로 등록. `inflow_url` 맞춤 측정기준 등록. Google 신호·데이터 공유는 최소화.
 
@@ -227,7 +227,7 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 - **POST** `/api/submit_inquiry.php`
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **필드**: `c_name`, `c_tel`, `c_content` (필수), `c_inflow` (선택), `c_inflowurl` (선택: `contact` | `contact-ad`)
+- **필드**: `c_name`, `c_tel`, `c_content` (필수), `c_inflow` (선택), `c_inflowurl` (선택: `contact` | `contact-ad`), `utm_source`·`utm_campaign`·`gclid` (선택, first-touch URL 파라미터)
 - **검증**: 성함 한글 2~10자 · 연락처 `010`+8자리 · 문의 5~500자
 - **응답**: `{ "result": "1"|"0", "msg": "..." }`
 - 차단 IP·1시간 3회 도배: 사용자에게는 성공처럼 응답, DB INSERT 없음

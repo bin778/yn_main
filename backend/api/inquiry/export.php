@@ -25,7 +25,7 @@ if ($auth === null) {
 try {
     $sql = "SELECT idx, c_date, c_name, c_tel,
                 c_inflowurl, c_inflow, c_state, c_state2,
-                block, userip, utm_source, utm_campaign
+                block, userip, utm_source, utm_campaign, gclid
             FROM user_inquiry"
         . $where_sql
         . " ORDER BY idx DESC
@@ -50,7 +50,7 @@ try {
     // BOM: 엑셀 한글 깨짐 방지
     fwrite($output, "\xEF\xBB\xBF");
 
-    fputcsv($output, ['NO', '접수일', '이름', '연락처', '상태', '경로', '진행상태', '유입채널', '유입광고', 'IP', '차단여부']);
+    fputcsv($output, ['NO', '접수일', '이름', '연락처', '상태', '경로', '진행상태', '유입채널', '유입광고', 'GCLID', 'IP', '차단여부']);
 
     foreach ($rows as $row) {
         fputcsv($output, [
@@ -65,6 +65,7 @@ try {
             $row['c_state2'],
             $row['utm_source'],
             $row['utm_campaign'],
+            $row['gclid'],
             $row['userip'],
             ($row['block'] === '1' || $row['block'] === 1) ? 'Y' : 'N',
         ]);

@@ -38,6 +38,8 @@ const DETAIL_LABELS: Record<string, string> = {
   c_option4: '옵션4',
   utm_source: 'UTM Source',
   utm_campaign: 'UTM Campaign',
+  gclid: 'GCLID',
+  gclid_converted_at: 'GCLID 전환일시',
   userip: 'IP 주소',
 };
 

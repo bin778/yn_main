@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS user_inquiry (
     c_option4 varchar(45) DEFAULT NULL,
     utm_source text DEFAULT NULL,
     utm_campaign text DEFAULT NULL,
+    gclid varchar(255) DEFAULT NULL,
+    gclid_converted_at datetime DEFAULT NULL,
     c_email varchar(100) DEFAULT NULL,
     userip varchar(45) DEFAULT NULL,
     block varchar(45) DEFAULT '0',

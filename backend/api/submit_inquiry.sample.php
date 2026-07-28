@@ -46,6 +46,8 @@ const ALIMTALK_INFLOW_URL = 'contact';
 const ALIMTALK_INFLOW_URL_GOOGLE = 'contact-ad';
 const ALIMTALK_DEFAULT_UTM_SOURCE = 'main';
 const ALIMTALK_DEFAULT_UTM_CAMPAIGN = '직접문의';
+const GCLID_MAX_LENGTH = 255;
+const UTM_MAX_LENGTH = 200;
 
 /**
  * @return list<string>
@@ -62,6 +64,35 @@ function resolve_inflow_url($raw)
         return $value;
     }
     return ALIMTALK_INFLOW_URL;
+}
+
+function resolve_gclid($raw)
+{
+    $value = trim((string) $raw);
+    if ($value === '') {
+        return '';
+    }
+
+    // Google gclid: 영문·숫자·하이픈·밑줄·점
+    if (!preg_match('/^[A-Za-z0-9._-]{1,' . GCLID_MAX_LENGTH . '}$/', $value)) {
+        return '';
+    }
+
+    return $value;
+}
+
+function resolve_utm($raw, $default)
+{
+    $value = sanitize_input($raw);
+    if ($value === '') {
+        return sanitize_input($default);
+    }
+
+    if (mb_strlen($value, 'UTF-8') > UTM_MAX_LENGTH) {
+        return mb_substr($value, 0, UTM_MAX_LENGTH, 'UTF-8');
+    }
+
+    return $value;
 }
 
 /**
@@ -238,8 +269,9 @@ $safe_inflow = sanitize_input($raw_inflow);
 $inflowurl = resolve_inflow_url($_POST['c_inflowurl'] ?? ALIMTALK_INFLOW_URL);
 $raw_option = trim((string) ($_POST['c_option'] ?? ''));
 $case_keyword = $raw_option !== '' ? sanitize_input($raw_option) : $safe_content;
-$utm_source = sanitize_input($_POST['utm_source'] ?? ALIMTALK_DEFAULT_UTM_SOURCE);
-$utm_campaign = sanitize_input($_POST['utm_campaign'] ?? ALIMTALK_DEFAULT_UTM_CAMPAIGN);
+$utm_source = resolve_utm($_POST['utm_source'] ?? '', ALIMTALK_DEFAULT_UTM_SOURCE);
+$utm_campaign = resolve_utm($_POST['utm_campaign'] ?? '', ALIMTALK_DEFAULT_UTM_CAMPAIGN);
+$gclid = resolve_gclid($_POST['gclid'] ?? '');
 
 $user_ip = get_client_ip();
 
@@ -281,14 +313,19 @@ try {
 
     $insert_query = 'INSERT INTO user_inquiry (
         c_date, c_name, c_tel, c_content, c_inflow,
-        c_state, c_inflowdate, c_inflowurl, userip, block
+        c_state, c_inflowdate, c_inflowurl,
+        utm_source, utm_campaign, gclid,
+        userip, block
     ) VALUES (
         NOW(), :name, :tel, :content, :inflow,
-        :state, NOW(), :inflowurl, :ip, :block
+        :state, NOW(), :inflowurl,
+        :utm_source, :utm_campaign, :gclid,
+        :ip, :block
     )';
 
     $state = '상담접수';
     $block = '0';
+    $gclid_or_null = $gclid !== '' ? $gclid : null;
 
     $stmt = $pdo->prepare($insert_query);
     $stmt->bindParam(':name', $safe_name);
@@ -297,6 +334,9 @@ try {
     $stmt->bindParam(':inflow', $safe_inflow);
     $stmt->bindParam(':state', $state);
     $stmt->bindParam(':inflowurl', $inflowurl);
+    $stmt->bindParam(':utm_source', $utm_source);
+    $stmt->bindParam(':utm_campaign', $utm_campaign);
+    $stmt->bindValue(':gclid', $gclid_or_null, $gclid_or_null === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
     $stmt->bindParam(':ip', $user_ip);
     $stmt->bindParam(':block', $block);
 

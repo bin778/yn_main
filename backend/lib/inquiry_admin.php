@@ -47,6 +47,8 @@ const INQUIRY_DETAIL_COLUMNS = [
     'c_option4',
     'utm_source',
     'utm_campaign',
+    'gclid',
+    'gclid_converted_at',
     'c_email',
     'userip',
     'block',
