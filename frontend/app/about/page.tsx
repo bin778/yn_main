@@ -19,11 +19,12 @@ import AboutPillarsSection from '@/app/components/about/AboutPillarsSection';
 import CoreValuesSection from '@/app/components/about/CoreValuesSection';
 import ExpertiseSection from '@/app/components/about/ExpertiseSection';
 import { ABOUT_PAGE_DESCRIPTION, ABOUT_PAGE_TITLE } from '@/app/constants/aboutContent';
+import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 
 export const metadata: Metadata = {
   title: ABOUT_PAGE_TITLE,
   description: ABOUT_PAGE_DESCRIPTION,
-  alternates: { canonical: '/about/' },
+  alternates: { canonical: `${SITE_ORIGIN}/about/` },
 };
 
 export default function AboutPage() {

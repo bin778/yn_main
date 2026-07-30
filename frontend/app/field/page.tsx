@@ -10,11 +10,12 @@ import FieldHero from '@/app/components/field/FieldHero';
 import FieldPracticeSection from '@/app/components/field/FieldPracticeSection';
 import FieldQuoteSection from '@/app/components/field/FieldQuoteSection';
 import { FIELD_PAGE_DESCRIPTION, FIELD_PAGE_TITLE } from '@/app/constants/fieldContent';
+import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 
 export const metadata: Metadata = {
   title: FIELD_PAGE_TITLE,
   description: FIELD_PAGE_DESCRIPTION,
-  alternates: { canonical: '/field/' },
+  alternates: { canonical: `${SITE_ORIGIN}/field/` },
 };
 
 export default function FieldPage() {

@@ -37,7 +37,7 @@ export type GallerySlide = {
   src: string;
 };
 
-export const ABOUT_PAGE_TITLE = '형사전문 법무법인 여온 | 담당 변호사 직접 진행, 변호사 재배당 없는 법무법인';
+export const ABOUT_PAGE_TITLE = '담당 변호사 직접 진행, 변호사 재배당 없는 법무법인 | 형사전문 법무법인 여온';
 export const ABOUT_PAGE_DESCRIPTION =
   '담당 변호사가 바뀌지 않습니다. 사무장 없이 변호사가 직접 진행. 월 수임건수 제한으로 의뢰인 사건에 집중합니다.';
 

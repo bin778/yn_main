@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
+import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
+
 import BoardCategoryTabs from '../components/BoardCategoryTabs';
 import BoardAdminBar from '../components/BoardAdminBar';
 import BoardListSection from '../components/BoardListSection';
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: pageTitle ?? `${label} | ${SITE_NAME}`,
     description: pageDescription ?? description,
-    alternates: { canonical: `/${getBoardPathSlug(boTable)}/` },
+    alternates: { canonical: `${SITE_ORIGIN}/${getBoardPathSlug(boTable)}/` },
   };
 }
 
