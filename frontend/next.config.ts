@@ -4,6 +4,16 @@ const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 const LEGACY_BOARD_PATH = '/board/bbs/board.php';
 const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
 const LANDING_NEW_ADMIN_LOGIN = '/landing_new/admin/admin/index.php';
+const CRIMINAL_LANDING_SLUGS = [
+  'drunk-driving',
+  'indecent-assault',
+  'indecent-assault2',
+  'interim-measure',
+  'lawyer',
+  'lawyer-cost',
+  'penalty',
+  'suspended-indictment',
+] as const;
 
 /** `www/landing/` 메인 사이트 덤프 — 광고 랜딩(`yn**.php`)과 무관 */
 const LANDING_DUMP_REDIRECTS = [
@@ -40,15 +50,11 @@ const nextConfig: NextConfig = {
         { source: '/criminal/admin', destination: `${CAFE24}/criminal/admin/` },
         { source: '/criminal/admin/', destination: `${CAFE24}/criminal/admin/` },
         { source: '/criminal/admin/:path*', destination: `${CAFE24}/criminal/admin/:path*` },
-        { source: '/criminal/drunk-driving', destination: `${CAFE24}/criminal/drunk-driving/` },
-        { source: '/criminal/drunk-driving/', destination: `${CAFE24}/criminal/drunk-driving/` },
-        { source: '/criminal/drunk-driving/:path*', destination: `${CAFE24}/criminal/drunk-driving/:path*` },
-        { source: '/criminal/indecent-assault', destination: `${CAFE24}/criminal/indecent-assault/` },
-        { source: '/criminal/indecent-assault/', destination: `${CAFE24}/criminal/indecent-assault/` },
-        { source: '/criminal/indecent-assault/:path*', destination: `${CAFE24}/criminal/indecent-assault/:path*` },
-        { source: '/criminal/indecent-assault2', destination: `${CAFE24}/criminal/indecent-assault2/` },
-        { source: '/criminal/indecent-assault2/', destination: `${CAFE24}/criminal/indecent-assault2/` },
-        { source: '/criminal/indecent-assault2/:path*', destination: `${CAFE24}/criminal/indecent-assault2/:path*` },
+        ...CRIMINAL_LANDING_SLUGS.flatMap(slug => [
+          { source: `/criminal/${slug}`, destination: `${CAFE24}/criminal/${slug}/` },
+          { source: `/criminal/${slug}/`, destination: `${CAFE24}/criminal/${slug}/` },
+          { source: `/criminal/${slug}/:path*`, destination: `${CAFE24}/criminal/${slug}/:path*` },
+        ]),
       ],
 
       // Next.js 페이지 매칭 후, 없을 때만 프록시
