@@ -1,16 +1,14 @@
-import Script from 'next/script';
-
 type BoardJsonLdProps = {
   wrId: number;
-  schema: string;
+  schema: string | Record<string, unknown>;
 };
 
-function toSafeJsonLd(schema: string): string | null {
-  const trimmed = schema.trim();
-  if (trimmed === '') return null;
-
+function toSafeJsonLd(schema: string | Record<string, unknown>): string | null {
   try {
-    return JSON.stringify(JSON.parse(trimmed));
+    const data = typeof schema === 'string' ? JSON.parse(schema) : schema;
+
+    // HTML 파서가 JSON 문자열 안의 닫는 script 태그를 실제 태그로 해석하지 못하게 한다.
+    return JSON.stringify(data).replace(/</g, '\\u003c');
   } catch {
     return null;
   }
@@ -21,11 +19,6 @@ export default function BoardJsonLd({ wrId, schema }: BoardJsonLdProps) {
   if (safeJson === null) return null;
 
   return (
-    <Script
-      id={`board-schema-${wrId}`}
-      type="application/ld+json"
-      strategy="afterInteractive"
-      dangerouslySetInnerHTML={{ __html: safeJson }}
-    />
+    <script id={`board-schema-${wrId}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJson }} />
   );
 }
