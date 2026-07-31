@@ -51,19 +51,24 @@ export const PEOPLE_IDS: readonly PersonId[] = ['1', '2', '3', '4', '5', '6', '7
 export const PERSON_DETAIL_PAGE_SEO: Partial<Record<PersonId, { pageTitle: string; pageDescription: string }>> = {
   '1': {
     pageTitle: '유영규 변호사 | 형사전문 대표변호사 | 법무법인 여온',
-    pageDescription: '대한변호사협회 형사전문변호사. 음주운전·성범죄·마약 형사사건 직접 수행.',
+    pageDescription:
+      '법무법인 여온 대표 변호사. 대한변호사협회 형사전문변호사. 음주운전·성범죄·마약 형사사건 직접 수행.',
   },
   '2': {
     pageTitle: '김환섭 변호사 | 형사·민사전문 변호사 | 법무법인 여온',
-    pageDescription: '대한변호사협회 형사·민사전문변호사. 형사사건·민사분쟁 대응 및 사건 수행.',
+    pageDescription: '법무법인 여온 변호사. 대한변호사협회 형사·민사전문변호사. 형사사건·민사분쟁 직접 수행.',
   },
   '3': {
     pageTitle: '홍기웅 변호사 | 형사사건·기업자문 변호사 | 법무법인 여온',
-    pageDescription: '서울시 공익변호사. 형사사건, 기업 자문, 교권·교육 관련 사건을 함께 검토합니다.',
+    pageDescription: '법무법인 여온 변호사. 서울시 공익변호사. 형사사건, 기업 자문, 교권·교육 관련 사건 직접 검토.',
   },
   '4': {
     pageTitle: '김선호 변호사 | 학교폭력·형사사건 변호사 | 법무법인 여온',
-    pageDescription: '서울동부교육지원청 학교폭력심의위원. 학교폭력·형사사건 상담 및 대응.',
+    pageDescription: '법무법인 여온 변호사. 서울동부교육지원청 학교폭력심의위원. 학교폭력·형사사건 상담 및 대응.',
+  },
+  '5': {
+    pageTitle: '안성포 고문 | 법무법인 여온',
+    pageDescription: '법학박사. 법무법인 여온 고문.',
   },
 };
 

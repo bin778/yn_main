@@ -14,6 +14,7 @@ import {
   getPersonDetailTitle,
   PEOPLE_IDS,
 } from '@/app/constants/peopleContent';
+import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: getPersonDetailTitle(person),
     description: getPersonDetailDescription(person),
-    alternates: { canonical: `/people/${id}/` },
+    alternates: { canonical: `${SITE_ORIGIN}/people/${id}/` },
   };
 }
 
