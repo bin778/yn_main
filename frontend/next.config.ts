@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 
 const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
-const LEGACY_BOARD_PATH = '/board/bbs/board.php';
 const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
 const LANDING_NEW_ADMIN_LOGIN = '/landing_new/admin/admin/index.php';
 const CRIMINAL_LANDING_SLUGS = [
@@ -111,33 +110,6 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
-    const legacyBoardRedirects = [
-      {
-        source: LEGACY_BOARD_PATH,
-        has: [{ type: 'query' as const, key: 'bo_table', value: 'review' }],
-        destination: '/review/',
-        permanent: true,
-      },
-      {
-        source: LEGACY_BOARD_PATH,
-        has: [{ type: 'query' as const, key: 'bo_table', value: 'success' }],
-        destination: '/success-story/',
-        permanent: true,
-      },
-      {
-        source: LEGACY_BOARD_PATH,
-        has: [{ type: 'query' as const, key: 'bo_table', value: 'column' }],
-        destination: '/column/',
-        permanent: true,
-      },
-      {
-        source: LEGACY_BOARD_PATH,
-        has: [{ type: 'query' as const, key: 'bo_table', value: 'news' }],
-        destination: '/news/',
-        permanent: true,
-      },
-    ];
-
     const legacyPeopleDetailRedirects = LEGACY_PEOPLE_DETAIL_IDS.map(id => ({
       source: '/peoples.php',
       has: [{ type: 'query' as const, key: 'p', value: id }],
@@ -146,7 +118,6 @@ const nextConfig: NextConfig = {
     }));
 
     return [
-      ...legacyBoardRedirects,
       ...LANDING_DUMP_REDIRECTS,
       ...legacyPeopleDetailRedirects,
       {
