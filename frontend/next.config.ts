@@ -24,6 +24,45 @@ const LANDING_DUMP_REDIRECTS = [
 
 const LEGACY_PEOPLE_DETAIL_IDS = ['1', '2', '3', '4', '5', '6', '7', '8'] as const;
 
+/** GSC Not Found — 깨진·오타·구버전 URL → 유효 페이지 301 */
+const LEGACY_SOFT_404_REDIRECTS = [
+  { source: '/main', destination: '/', permanent: true },
+  { source: '/main/', destination: '/', permanent: true },
+  { source: '/conatc.php', destination: '/contact/', permanent: true },
+  { source: '/backpg/:path*', destination: '/', permanent: true },
+  { source: '/success-case', destination: '/success-story/', permanent: true },
+  { source: '/success-case/', destination: '/success-story/', permanent: true },
+  { source: '/success-case/:path*', destination: '/success-story/', permanent: true },
+  { source: '/success-case-sexual-services-01', destination: '/success-story/', permanent: true },
+  { source: '/success-case-sexual-services-01/', destination: '/success-story/', permanent: true },
+  // 본문 플레이스홀더가 그대로 URL로 크롤된 경우 (`[]`는 path-to-regexp 이스케이프)
+  {
+    source: '/success-story/:wr_id/\\[여기에 상담신청 링크 삽입\\]',
+    destination: '/contact/',
+    permanent: true,
+  },
+  {
+    source: '/success-story/:wr_id/\\[여기에 상담신청 링크 삽입\\]/',
+    destination: '/contact/',
+    permanent: true,
+  },
+  {
+    source: '/board/bbs/\\[여기에 상담신청 링크 삽입\\]',
+    destination: '/contact/',
+    permanent: true,
+  },
+  {
+    source: '/board/bbs/\\[여기에 상담신청 링크 삽입\\]/',
+    destination: '/contact/',
+    permanent: true,
+  },
+  // 깨진 HTML이 경로로 파싱된 쓰레기 URL (`$`는 path-to-regexp에서 이스케이프)
+  { source: '/&', destination: '/', permanent: true },
+  { source: '/&/', destination: '/', permanent: true },
+  { source: '/\\$', destination: '/', permanent: true },
+  { source: '/\\$/', destination: '/', permanent: true },
+] as const;
+
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 /** 전역 보안 HTTP 헤더 (CSP는 GA4·카카오 등 허용 도메인 정리 후 단계적 도입) */
@@ -119,6 +158,7 @@ const nextConfig: NextConfig = {
 
     return [
       ...LANDING_DUMP_REDIRECTS,
+      ...LEGACY_SOFT_404_REDIRECTS,
       ...legacyPeopleDetailRedirects,
       {
         source: '/landing_new/admin',
