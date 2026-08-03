@@ -109,9 +109,9 @@ if ($source === null || $source === '') {
     $source = $default_source;
 }
 
-$page = isset($data->page) ? trim((string) $data->page) : CALL_LEAD_INFLOW_URL;
-$inflow_url = ($page === CALL_LEAD_INFLOW_URL_GOOGLE) ? CALL_LEAD_INFLOW_URL_GOOGLE : CALL_LEAD_INFLOW_URL;
-$utm_campaign = ($inflow_url === CALL_LEAD_INFLOW_URL_GOOGLE) ? 'google-ads' : 'main';
+// gclid가 있으면 항상 Google Ads 유입으로 기록 (프론트 page와 무관)
+$inflow_url = CALL_LEAD_INFLOW_URL_GOOGLE;
+$utm_campaign = 'google-ads';
 $user_ip = call_lead_client_ip();
 $lead_tel = '';
 

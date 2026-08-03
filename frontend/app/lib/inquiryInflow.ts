@@ -131,7 +131,7 @@ function buildAttributionFromUrl(): StoredAttribution {
 
 /**
  * 첫 방문 유입(first-touch)을 localStorage에 90일 저장.
- * URL에 새 gclid가 있으면 last-touch로 gclid만 갱신(오프라인 전환 매칭용).
+ * URL에 새 gclid가 있으면 gclid·유입을 Ads(contact-ad)로 갱신.
  */
 export function captureInquiryInflowFromUrl(): void {
   if (typeof window === 'undefined') return;
@@ -148,6 +148,9 @@ export function captureInquiryInflowFromUrl(): void {
     writeStoredAttribution({
       ...existing,
       gclid: fromUrl.gclid,
+      inflowUrl: INQUIRY_INFLOW_URL.CONTACT_GOOGLE,
+      utmSource: existing.utmSource || fromUrl.utmSource || 'google',
+      utmCampaign: fromUrl.utmCampaign || existing.utmCampaign,
       expiry: Date.now() + EXPIRY_MS,
     });
   }
@@ -171,8 +174,11 @@ export function getInquiryAttribution(): InquiryAttribution {
 
   captureInquiryInflowFromUrl();
   const stored = readStoredAttribution() ?? buildAttributionFromUrl();
+  // gclid가 있으면 상담 폼·표시 유입도 contact-ad로 통일
+  const inflowUrl =
+    stored.gclid !== '' ? INQUIRY_INFLOW_URL.CONTACT_GOOGLE : stored.inflowUrl;
   return {
-    inflowUrl: stored.inflowUrl,
+    inflowUrl,
     gclid: stored.gclid,
     utmSource: stored.utmSource,
     utmCampaign: stored.utmCampaign,
