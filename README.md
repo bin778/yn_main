@@ -139,6 +139,8 @@ yn_main/
 | 변수                            | 설명                                                                                                                      |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 API. Vercel·로컬: `/api/submit_inquiry.php` (same-origin). 카페24 단독: `https://yeoon.co.kr/api/submit_inquiry.php` |
+| `NEXT_PUBLIC_CALL_LEAD_API_URL` | 전화·카톡 gclid 리드 API. 비우면 `/api/call_lead.php` (상담 API origin 기준)                                              |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`| reCAPTCHA v3 사이트 키. 비우면 폼에서 reCAPTCHA 비활성. 서버 `$RECAPTCHA_SECRET_KEY`와 한 쌍                              |
 | `BOARD_API_URL`                 | 게시판 API (서버사이드 전용, 기본: `https://yeoon.co.kr/api/board`)                                                       |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 측정 ID (`G-`로 시작). 비우면 직접 gtag GA4 비활성화                                                                  |
 | `NEXT_PUBLIC_GTM_ID`            | GTM 컨테이너 ID (`GTM-`로 시작). 비우면 GTM 비활성화. 동의 후 로드, 이벤트는 `dataLayer`로 전달                           |
@@ -169,11 +171,27 @@ yn_main/
 
 `trackGaEvent`는 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
 
-**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `home_lead_success`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계). 상담 폼은 first-touch로 `gclid`·`utm_source`·`utm_campaign`을 DB에 저장합니다(코드에 `AW-` 전환 태그는 넣지 않음).
+**GTM 콘솔** — 맞춤 이벤트 트리거 이름 = 위 이벤트명. `home_lead_success`에서 `inflow_url`로 Ads 전환 등을 분기. 직접 gtag GA4(`NEXT_PUBLIC_GA_MEASUREMENT_ID`)를 쓰는 동안 GTM에 **동일 GA4 이벤트 태그를 중복 추가하지 마세요**(중복 집계). 상담 폼은 first-touch 유입 + gclid(90일 localStorage, URL에 새 gclid면 갱신)를 DB에 저장합니다(코드에 `AW-` 전환 태그는 넣지 않음). 전화·카톡 CTA는 gclid가 있을 때만 `call_lead.php`로 리드를 남깁니다.
 
-**GA4 콘솔 권장** — `home_lead_success`, `home_phone_click`, `home_kakao_click`, `file_download`를 키 이벤트로 등록. `inflow_url` 맞춤 측정기준 등록. Google 신호·데이터 공유는 최소화.
+### GCLID 오프라인 전환 (계약성사)
 
-주요 파일: `AnalyticsProvider`, `GoogleAnalyticsLoader`, `GoogleTagManagerLoader`, `lib/analyticsConfig.ts`, `lib/trackGaEvent.ts`.
+1. 광고 클릭 `?gclid=` → localStorage 90일 저장
+2. 상담 접수 / 전화·카톡 클릭 → DB `user_inquiry.gclid`
+3. 관리자에서 처리 상태를 **`계약성사`**로 저장 → `gclid_converted_at` 자동 기록(최초 1회)
+4. cron `backend/cron/export_gclid_conversions.php` → `api/exports/conversions.csv`
+5. Google Ads 데이터 관리자에 HTTPS CSV URL 연결 — Conversion Name = **`계약성사`** (Ads 액션명과 동일)
+
+배포: `call_lead.sample.php` → `call_lead.php`, `exports/.htaccess.sample` → `.htaccess` + `.htpasswd`, 일 1회 cron.
+
+주요 파일: `lib/inquiryInflow.ts`, `lib/callTracking.ts`, `api/call_lead.sample.php`, `cron/export_gclid_conversions.php`.
+
+### reCAPTCHA v3
+
+상담 폼 포커스/제출 시 지연 로드. 서버 `$RECAPTCHA_SECRET_KEY` 설정 시 토큰 필수·score &lt; 0.5면 `c_state2=부정클릭` 후 INSERT는 하되 알림톡 스킵. secret 비우면 검증 스킵(로컬).
+
+주요 파일: `LazyReCaptchaProvider.tsx`, `submit_inquiry.sample.php`, `app_config.sample.php`.
+
+주요 파일(분석): `AnalyticsProvider`, `GoogleAnalyticsLoader`, `GoogleTagManagerLoader`, `lib/analyticsConfig.ts`, `lib/trackGaEvent.ts`.
 
 ## 성능 최적화
 
@@ -227,10 +245,16 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 - **POST** `/api/submit_inquiry.php`
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **필드**: `c_name`, `c_tel`, `c_content` (필수), `c_inflow` (선택), `c_inflowurl` (선택: `contact` | `contact-ad`), `utm_source`·`utm_campaign`·`gclid` (선택, first-touch URL 파라미터)
-- **검증**: 성함 한글 2~10자 · 연락처 `010`+8자리 · 문의 5~500자
+- **필드**: `c_name`, `c_tel`, `c_content` (필수), `c_inflow` (선택), `c_inflowurl` (선택: `contact` | `contact-ad`), `utm_source`·`utm_campaign`·`gclid` (선택), `recaptcha_token` (서버 secret 설정 시 필수)
+- **검증**: 성함 한글 2~10자 · 연락처 `010`+8자리 · 문의 5~500자 · reCAPTCHA(설정 시)
 - **응답**: `{ "result": "1"|"0", "msg": "..." }`
-- 차단 IP·1시간 3회 도배: 사용자에게는 성공처럼 응답, DB INSERT 없음
+- 차단 IP·1시간 3회 도배: 사용자에게는 성공처럼 응답, DB INSERT 없음 (전화·카톡 CTA 리드는 카운트 제외)
+
+### 전화·카톡 CTA 리드
+
+- **POST** `/api/call_lead.php` (`application/json`)
+- **필드**: `gclid` (필수), `channel` (`call` \| `kakao`), `source`, `page`
+- gclid 없으면 저장하지 않음. `c_state` = `전화클릭` / `카톡클릭`
 
 ### 게시판 조회 (공개)
 
@@ -259,11 +283,11 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 | ------------------------------- | ------------------------------------ |
 | `GET /api/inquiry/list.php`     | 목록 (`page`, `per_page` 기본 20)    |
 | `GET /api/inquiry/get.php?idx=` | 상세                                 |
-| `PATCH /api/inquiry/update.php` | `c_state`, `block`, `c_state2`(메모) |
+| `PATCH /api/inquiry/update.php` | `c_state`, `block`, `c_state2`(메모). `계약성사`+gclid 시 `gclid_converted_at` 최초 기록 |
 
 ### CORS 허용 Origin
 
-`submit_inquiry.php`, `backend/lib/cors.php` 공통:
+`submit_inquiry.php`, `call_lead.php`, `backend/lib/cors.php` 공통:
 
 - `https://yeoon.co.kr`, `https://www.yeoon.co.kr`
 - `https://new.yeoon.co.kr` (Vercel 스테이징)
@@ -295,11 +319,14 @@ Vercel·로컬에서 `NEXT_PUBLIC_INQUIRY_API_URL=/api/submit_inquiry.php`이면
    | `config/db_conn.sample.php`     | `config/db_conn.php`     |
    | `config/app_config.sample.php`  | `config/app_config.php`  |
    | `api/submit_inquiry.sample.php` | `api/submit_inquiry.php` |
+   | `api/call_lead.sample.php`      | `api/call_lead.php`      |
+   | `api/exports/.htaccess.sample`  | `api/exports/.htaccess`  |
 
 3. `db_conn.php` — DB 접속 정보
 4. `schema.sql` — `user_inquiry` 테이블 확인
-5. `app_config.php` — Aligo 알림톡, `JWT_SECRET`, `$BOARD_FILE_DIR`
+5. `app_config.php` — Aligo 알림톡, `JWT_SECRET`, `$BOARD_FILE_DIR`, `$RECAPTCHA_SECRET_KEY`
 6. `backend/api/board/*.php`, `backend/lib/*.php`를 서버 `/api/board/`, `/lib/`에 반영
+7. (선택) `cron/export_gclid_conversions.php` 일 1회 등록, Ads 오프라인 전환 액션명 `계약성사`
 
 ## 보안
 
@@ -316,6 +343,8 @@ cd frontend && npm run build && npm run lint
 **기능 체크**
 
 - [ ] `/contact/` 상담 제출 → `result: "1"`, DB 적재
+- [ ] gclid URL 진입 후 전화 CTA → `전화클릭` 리드(gclid 있을 때만)
+- [ ] 관리자에서 `계약성사` 저장 → `gclid_converted_at` 기록
 - [ ] `/review/`, `/success-story/`, `/column/`, `/news/` 목록·상세 (첨부 글 500 없음)
 - [ ] `/success-story/criminal/` 등 소분류 목록·검색·페이지네이션, `/success-story/{wr_id}/` 상세 404 없음
 - [ ] `/column/criminal/` 등 칼럼 소분류·상세 동일 동작

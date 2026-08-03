@@ -1,4 +1,7 @@
-/* 상담 접수 내역 테이블 */
+/* 상담 접수 내역 테이블
+ * c_state 예: 상담접수 | 연락완료 | 상담종료 | 계약성사 | 전화클릭 | 카톡클릭
+ * 오프라인 전환: c_state='계약성사' + gclid + gclid_converted_at → cron CSV
+ */
 CREATE TABLE IF NOT EXISTS user_inquiry (
     idx int(11) NOT NULL AUTO_INCREMENT,
     c_date datetime DEFAULT NULL,

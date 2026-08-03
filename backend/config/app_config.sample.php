@@ -10,6 +10,12 @@ $ALIGO_TPL_CODE = '';
 $ALIGO_SENDER = '';
 $ALIGO_RECEIVERS = [];
 
+/**
+ * Google reCAPTCHA v3 secret (상담 폼). 비우면 서버 검증을 건너뜀.
+ * 프론트 NEXT_PUBLIC_RECAPTCHA_SITE_KEY 와 한 쌍으로 발급.
+ */
+$RECAPTCHA_SECRET_KEY = '';
+
 /** Board JWT admin (required for /api/board/auth/* and write_post.php) */
 $JWT_SECRET = '';
 $JWT_TTL_SECONDS = 28800;

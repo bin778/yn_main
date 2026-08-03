@@ -33,6 +33,11 @@ if (is_readable($app_config_path)) {
     $ALIGO_TPL_CODE = '';
     $ALIGO_SENDER = '';
     $ALIGO_RECEIVERS = [];
+    $RECAPTCHA_SECRET_KEY = '';
+}
+
+if (!isset($RECAPTCHA_SECRET_KEY)) {
+    $RECAPTCHA_SECRET_KEY = '';
 }
 
 const INQUIRY_CONTENT_MAX = 500;
@@ -42,12 +47,14 @@ const DUPLICATE_TEL_MSG = "이미 접수된 연락처입니다.\n회신 대기 �
 const MSG_NAME_INVALID = '올바른 성함을 입력하고, 한글 2~10자로만 입력해 주세요.';
 const MSG_TEL_INVALID = '연락처는 010으로 시작하는 11자리 숫자만 입력해 주세요.';
 const MSG_CONTENT_MIN = '문의사항은 5자 이상 입력해 주세요.';
+const MSG_RECAPTCHA_MISSING = '보안 토큰이 누락되었습니다. 페이지를 새로고침 후 다시 시도해 주세요.';
 const ALIMTALK_INFLOW_URL = 'contact';
 const ALIMTALK_INFLOW_URL_GOOGLE = 'contact-ad';
 const ALIMTALK_DEFAULT_UTM_SOURCE = 'main';
 const ALIMTALK_DEFAULT_UTM_CAMPAIGN = '직접문의';
 const GCLID_MAX_LENGTH = 255;
 const UTM_MAX_LENGTH = 200;
+const RECAPTCHA_SCORE_THRESHOLD = 0.5;
 
 /**
  * @return list<string>
@@ -93,6 +100,63 @@ function resolve_utm($raw, $default)
     }
 
     return $value;
+}
+
+/**
+ * reCAPTCHA v3 검증. secret 미설정 시 스킵.
+ *
+ * @return array{is_bot: bool, state2: string}
+ */
+function verify_recaptcha_token($token, $remote_ip)
+{
+    global $RECAPTCHA_SECRET_KEY;
+
+    $result = ['is_bot' => false, 'state2' => ''];
+    $secret = is_string($RECAPTCHA_SECRET_KEY) ? trim($RECAPTCHA_SECRET_KEY) : '';
+    if ($secret === '') {
+        return $result;
+    }
+
+    $token = trim((string) $token);
+    if ($token === '') {
+        json_response(['result' => '0', 'msg' => MSG_RECAPTCHA_MISSING]);
+    }
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        'secret' => $secret,
+        'response' => $token,
+        'remoteip' => $remote_ip,
+    ]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $verify_response = curl_exec($ch);
+    curl_close($ch);
+
+    $recaptcha_result = json_decode($verify_response === false ? '' : $verify_response);
+    if (!$recaptcha_result || !isset($recaptcha_result->success)) {
+        error_log('[reCAPTCHA] invalid response | IP: ' . $remote_ip);
+        return $result;
+    }
+
+    if (!$recaptcha_result->success) {
+        $error_codes = isset($recaptcha_result->{'error-codes'})
+            ? implode(', ', (array) $recaptcha_result->{'error-codes'})
+            : 'Unknown';
+        error_log('[reCAPTCHA System Error] Errors: ' . $error_codes . ' | IP: ' . $remote_ip);
+        return $result;
+    }
+
+    $score = isset($recaptcha_result->score) ? (float) $recaptcha_result->score : 1.0;
+    if ($score < RECAPTCHA_SCORE_THRESHOLD) {
+        error_log('[reCAPTCHA Bot] Score: ' . $score . ' | IP: ' . $remote_ip);
+        $result['is_bot'] = true;
+        $result['state2'] = '부정클릭';
+    }
+
+    return $result;
 }
 
 /**
@@ -274,6 +338,9 @@ $utm_campaign = resolve_utm($_POST['utm_campaign'] ?? '', ALIMTALK_DEFAULT_UTM_C
 $gclid = resolve_gclid($_POST['gclid'] ?? '');
 
 $user_ip = get_client_ip();
+$recaptcha = verify_recaptcha_token($_POST['recaptcha_token'] ?? '', $user_ip);
+$is_bot = $recaptcha['is_bot'];
+$state2 = $recaptcha['state2'];
 
 try {
     $block_check_query = "SELECT COUNT(*) as cnt FROM user_inquiry WHERE userip = :ip AND (block = '1' OR block = 1)";
@@ -286,7 +353,11 @@ try {
         json_response(['result' => '1', 'msg' => FAKE_SUCCESS_MSG]);
     }
 
-    $spam_check_query = "SELECT COUNT(*) as cnt FROM user_inquiry WHERE userip = :ip AND c_date >= DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+    // 전화·카톡 CTA 리드는 상담 폼 스팸 카운트에서 제외
+    $spam_check_query = "SELECT COUNT(*) as cnt FROM user_inquiry
+        WHERE userip = :ip
+        AND c_date >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+        AND (c_state IS NULL OR c_state NOT IN ('전화클릭', '카톡클릭'))";
     $spam_stmt = $pdo->prepare($spam_check_query);
     $spam_stmt->bindParam(':ip', $user_ip);
     $spam_stmt->execute();
@@ -301,7 +372,9 @@ try {
         json_response(['result' => '1', 'msg' => FAKE_SUCCESS_MSG]);
     }
 
-    $check_query = 'SELECT COUNT(*) as cnt FROM user_inquiry WHERE c_tel = :tel';
+    $check_query = "SELECT COUNT(*) as cnt FROM user_inquiry
+        WHERE c_tel = :tel AND c_tel != ''
+        AND (c_state IS NULL OR c_state NOT IN ('전화클릭', '카톡클릭'))";
     $check_stmt = $pdo->prepare($check_query);
     $check_stmt->bindParam(':tel', $safe_tel);
     $check_stmt->execute();
@@ -313,12 +386,12 @@ try {
 
     $insert_query = 'INSERT INTO user_inquiry (
         c_date, c_name, c_tel, c_content, c_inflow,
-        c_state, c_inflowdate, c_inflowurl,
+        c_state, c_state2, c_inflowdate, c_inflowurl,
         utm_source, utm_campaign, gclid,
         userip, block
     ) VALUES (
         NOW(), :name, :tel, :content, :inflow,
-        :state, NOW(), :inflowurl,
+        :state, :state2, NOW(), :inflowurl,
         :utm_source, :utm_campaign, :gclid,
         :ip, :block
     )';
@@ -333,6 +406,7 @@ try {
     $stmt->bindParam(':content', $safe_content);
     $stmt->bindParam(':inflow', $safe_inflow);
     $stmt->bindParam(':state', $state);
+    $stmt->bindParam(':state2', $state2);
     $stmt->bindParam(':inflowurl', $inflowurl);
     $stmt->bindParam(':utm_source', $utm_source);
     $stmt->bindParam(':utm_campaign', $utm_campaign);
@@ -341,7 +415,9 @@ try {
     $stmt->bindParam(':block', $block);
 
     if ($stmt->execute()) {
-        send_kakao_alimtalk($safe_name, $safe_tel, $case_keyword, $inflowurl, $utm_source, $utm_campaign);
+        if (!$is_bot) {
+            send_kakao_alimtalk($safe_name, $safe_tel, $case_keyword, $inflowurl, $utm_source, $utm_campaign);
+        }
         json_response(['result' => '1', 'msg' => FAKE_SUCCESS_MSG]);
     }
 

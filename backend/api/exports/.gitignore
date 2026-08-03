@@ -1,0 +1,4 @@
+# conversions.csv 는 cron이 생성. Git에 CSV·비밀번호 파일을 올리지 않음.
+*
+!.htaccess.sample
+!.gitignore

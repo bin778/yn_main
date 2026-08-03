@@ -1,5 +1,6 @@
 import ContactInquiryBackground from '@/app/components/contact/ContactInquiryBackground';
 import ContactInquiryForm from '@/app/components/contact/ContactInquiryForm';
+import { LazyReCaptchaProvider } from '@/app/components/contact/LazyReCaptchaProvider';
 import { CONTACT_INQUIRY } from '@/app/constants/contactContent';
 
 const headlineLines = CONTACT_INQUIRY.headline.split('\n');
@@ -30,7 +31,9 @@ export default function ContactInquirySection() {
           </div>
 
           <div className="md:flex-1">
-            <ContactInquiryForm />
+            <LazyReCaptchaProvider>
+              <ContactInquiryForm />
+            </LazyReCaptchaProvider>
           </div>
         </div>
       </div>

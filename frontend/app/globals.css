@@ -12,4 +12,9 @@
     margin: 0;
     padding: 0;
   }
+
+  /* 정책 고지는 상담 폼 문구로 대체 */
+  .grecaptcha-badge {
+    visibility: hidden;
+  }
 }

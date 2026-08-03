@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import type { FormEvent } from 'react';
+import type { FormEvent, FocusEvent } from 'react';
 import { useState } from 'react';
 
+import { useLazyReCaptcha } from '@/app/components/contact/lazyReCaptchaContext';
 import { GA_EVENTS, GA_SOURCES, INQUIRY_FORM_NAME } from '@/app/constants/analyticsEvents';
 import {
   CONTACT_INQUIRY,
@@ -11,6 +12,7 @@ import {
   INQUIRY_FIELD_LIMITS,
   INQUIRY_STUB_MESSAGE,
   INQUIRY_VALIDATION_MESSAGES,
+  RECAPTCHA_SITE_KEY,
 } from '@/app/constants/contactContent';
 import { getInquiryAttribution } from '@/app/lib/inquiryInflow';
 import { validateInquiryFields } from '@/app/lib/inquiryValidation';
@@ -20,6 +22,8 @@ type InquiryResponse = {
   result: string;
   msg: string;
 };
+
+const RECAPTCHA_ACTION = 'submit_consult';
 
 function getInflowLabel(): string {
   if (typeof window === 'undefined') return CONTACT_INQUIRY.inflowDesktop;
@@ -32,6 +36,12 @@ export default function ContactInquiryForm() {
   const [content, setContent] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { activate, executeRecaptcha } = useLazyReCaptcha();
+  const recaptchaEnabled = RECAPTCHA_SITE_KEY !== '';
+
+  const handleFieldFocus = (_event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (recaptchaEnabled) activate();
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,12 +62,25 @@ export default function ContactInquiryForm() {
       return;
     }
 
+    if (recaptchaEnabled) {
+      activate();
+      if (!executeRecaptcha) {
+        alert('보안 모듈이 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+    }
+
     const { name: validName, tel: validTel, content: validContent } = validation.values;
     const attribution = getInquiryAttribution();
     const inflowUrl = attribution.inflowUrl;
 
     setSubmitting(true);
     try {
+      let recaptchaToken = '';
+      if (recaptchaEnabled && executeRecaptcha) {
+        recaptchaToken = await executeRecaptcha(RECAPTCHA_ACTION);
+      }
+
       const body = new URLSearchParams({
         c_name: validName,
         c_tel: validTel,
@@ -68,6 +91,7 @@ export default function ContactInquiryForm() {
       if (attribution.gclid !== '') body.set('gclid', attribution.gclid);
       if (attribution.utmSource !== '') body.set('utm_source', attribution.utmSource);
       if (attribution.utmCampaign !== '') body.set('utm_campaign', attribution.utmCampaign);
+      if (recaptchaToken !== '') body.set('recaptcha_token', recaptchaToken);
 
       const response = await fetch(INQUIRY_API_URL, {
         method: 'POST',
@@ -113,6 +137,7 @@ export default function ContactInquiryForm() {
             type="text"
             value={name}
             onChange={event => setName(event.target.value)}
+            onFocus={handleFieldFocus}
             maxLength={INQUIRY_FIELD_LIMITS.name}
             required
             className={`${inputClass} mt-2`}
@@ -129,6 +154,7 @@ export default function ContactInquiryForm() {
             inputMode="numeric"
             value={tel}
             onChange={event => setTel(event.target.value.replace(/\D/g, ''))}
+            onFocus={handleFieldFocus}
             maxLength={INQUIRY_FIELD_LIMITS.tel}
             required
             placeholder="01012345678"
@@ -146,6 +172,7 @@ export default function ContactInquiryForm() {
           name="c_content"
           value={content}
           onChange={event => setContent(event.target.value)}
+          onFocus={handleFieldFocus}
           maxLength={INQUIRY_FIELD_LIMITS.content}
           required
           className={`${inputClass} mt-2 h-[200px] resize-y`}
@@ -168,6 +195,20 @@ export default function ContactInquiryForm() {
           </Link>
         </span>
       </label>
+
+      {/* {recaptchaEnabled && (
+        <p className="mt-3 text-[11px] leading-relaxed text-white/70 md:text-[12px]">
+          이 사이트는 reCAPTCHA로 보호되며 Google{' '}
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
+            개인정보처리방침
+          </a>
+          과{' '}
+          <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
+            서비스 약관
+          </a>
+          이 적용됩니다.
+        </p>
+      )} */}
 
       <div className="mt-6 flex justify-center md:justify-end">
         <button

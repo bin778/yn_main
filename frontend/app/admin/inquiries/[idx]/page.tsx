@@ -6,7 +6,13 @@ import { notFound, useParams } from 'next/navigation';
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 
-import { INQUIRY_LIST_PATH, INQUIRY_STATES, type InquiryState } from '@/app/constants/inquiryAdmin';
+import {
+  INQUIRY_LEAD_ONLY_STATES,
+  INQUIRY_LIST_PATH,
+  INQUIRY_STATES,
+  type InquiryAnyState,
+  type InquiryLeadOnlyState,
+} from '@/app/constants/inquiryAdmin';
 
 import AdminSuperGuard from '../../components/AdminSuperGuard';
 import { deleteInquiry, fetchInquiryDetail, updateInquiry, type InquiryDetail } from '../../lib/inquiryAdminApi';
@@ -45,6 +51,13 @@ const DETAIL_LABELS: Record<string, string> = {
 
 const EDITABLE_KEYS = new Set(['c_state', 'c_state2', 'block']);
 
+function isInquiryAnyState(value: string): value is InquiryAnyState {
+  return (
+    (INQUIRY_STATES as readonly string[]).includes(value) ||
+    (INQUIRY_LEAD_ONLY_STATES as readonly string[]).includes(value)
+  );
+}
+
 function formatDetailValue(key: string, value: string | number | null): string {
   if (value === null || value === '') return '-';
   if (key === 'block') return value === '1' || value === 1 ? '차단됨' : '아니오';
@@ -57,7 +70,7 @@ function InquiryDetailPanel({ idx }: InquiryDetailPanelProps) {
   const router = useRouter();
 
   const [item, setItem] = useState<InquiryDetail | null>(null);
-  const [cState, setCState] = useState<InquiryState>('상담접수');
+  const [cState, setCState] = useState<InquiryAnyState>('상담접수');
   const [cState2, setCState2] = useState('');
   const [blocked, setBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -65,6 +78,10 @@ function InquiryDetailPanel({ idx }: InquiryDetailPanelProps) {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notFoundState, setNotFoundState] = useState(false);
+
+  const stateOptions: InquiryAnyState[] = (INQUIRY_LEAD_ONLY_STATES as readonly string[]).includes(cState)
+    ? [cState as InquiryLeadOnlyState, ...INQUIRY_STATES]
+    : [...INQUIRY_STATES];
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +91,7 @@ function InquiryDetailPanel({ idx }: InquiryDetailPanelProps) {
         if (cancelled) return;
         setItem(data);
         const state = String(data.c_state ?? '상담접수');
-        setCState(INQUIRY_STATES.includes(state as InquiryState) ? (state as InquiryState) : '상담접수');
+        setCState(isInquiryAnyState(state) ? state : '상담접수');
         setCState2(String(data.c_state2 ?? ''));
         setBlocked(data.block === '1' || data.block === 1);
       })
@@ -192,15 +209,18 @@ function InquiryDetailPanel({ idx }: InquiryDetailPanelProps) {
           <select
             id="c_state"
             value={cState}
-            onChange={e => setCState(e.target.value as InquiryState)}
+            onChange={e => setCState(e.target.value as InquiryAnyState)}
             className="w-full max-w-xs border border-[#ddd] px-3 py-2 text-sm"
           >
-            {INQUIRY_STATES.map(s => (
+            {stateOptions.map(s => (
               <option key={s} value={s}>
                 {s}
               </option>
             ))}
           </select>
+          <p className="mt-1 text-xs text-[#888]">
+            gclid가 있는 건을 &quot;계약성사&quot;로 저장하면 오프라인 전환 시각이 기록됩니다.
+          </p>
         </div>
 
         <div>

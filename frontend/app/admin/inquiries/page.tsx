@@ -285,9 +285,13 @@ function TablePanel({ filter, page, onPageChange, onIpClick }: TablePanelProps) 
                             ? 'bg-blue-100 text-blue-800'
                             : item.c_state === '연락완료'
                               ? 'bg-green-100 text-green-800'
-                              : item.c_state === '상담종료'
-                                ? 'bg-gray-100 text-gray-700'
-                                : 'bg-gray-100 text-gray-600'
+                              : item.c_state === '계약성사'
+                                ? 'bg-amber-100 text-amber-900'
+                                : item.c_state === '전화클릭' || item.c_state === '카톡클릭'
+                                  ? 'bg-violet-100 text-violet-800'
+                                  : item.c_state === '상담종료'
+                                    ? 'bg-gray-100 text-gray-700'
+                                    : 'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {item.c_state ?? '-'}

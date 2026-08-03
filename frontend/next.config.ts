@@ -119,6 +119,7 @@ const nextConfig: NextConfig = {
         { source: '/api/inquiry/:path*', destination: `${CAFE24}/api/inquiry/:path*` },
         { source: '/api/submit_inquiry.php', destination: `${CAFE24}/api/submit_inquiry.php` },
         { source: '/backend/api/submit_inquiry.php', destination: `${CAFE24}/api/submit_inquiry.php` },
+        { source: '/api/call_lead.php', destination: `${CAFE24}/api/call_lead.php` },
 
         // 랜딩페이지들 (PHP 레거시)
         { source: '/landing/:path*', destination: `${CAFE24}/landing/:path*` },

@@ -189,6 +189,27 @@ function resolveInquiryApiUrl(): string {
 
 export const INQUIRY_API_URL = resolveInquiryApiUrl();
 
+function resolveCallLeadApiUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_CALL_LEAD_API_URL?.trim() ?? '';
+  if (configured !== '') return configured;
+
+  // 상담 API와 같은 origin/경로 규칙을 따름
+  if (INQUIRY_API_URL.startsWith('/')) {
+    return '/api/call_lead.php';
+  }
+  if (INQUIRY_API_URL.includes('/api/submit_inquiry.php')) {
+    return INQUIRY_API_URL.replace('/api/submit_inquiry.php', '/api/call_lead.php');
+  }
+  if (INQUIRY_API_URL.includes('/backend/api/submit_inquiry.php')) {
+    return INQUIRY_API_URL.replace('/backend/api/submit_inquiry.php', '/api/call_lead.php');
+  }
+  return INQUIRY_API_URL ? '/api/call_lead.php' : '';
+}
+
+export const CALL_LEAD_API_URL = resolveCallLeadApiUrl();
+
+export const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY?.trim() ?? '';
+
 export const INQUIRY_STUB_MESSAGE = '상담 접수 시스템을 준비 중입니다. 급한 문의는 02-318-2981로 연락해 주세요.';
 
 export const INQUIRY_FIELD_LIMITS = {

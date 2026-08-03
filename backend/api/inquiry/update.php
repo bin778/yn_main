@@ -39,6 +39,7 @@ if ($idx <= 0) {
 $updates = [];
 $params = ['idx' => $idx];
 
+$next_state = null;
 if (array_key_exists('c_state', $body)) {
     $state = trim((string) $body['c_state']);
     if (!inquiry_state_is_valid($state)) {
@@ -46,6 +47,7 @@ if (array_key_exists('c_state', $body)) {
     }
     $updates[] = 'c_state = :c_state';
     $params['c_state'] = $state;
+    $next_state = $state;
 }
 
 if (array_key_exists('block', $body)) {
@@ -67,10 +69,20 @@ if ($updates === []) {
 }
 
 try {
-    $check = $pdo->prepare('SELECT idx FROM user_inquiry WHERE idx = :idx LIMIT 1');
+    $check = $pdo->prepare('SELECT idx, gclid, gclid_converted_at FROM user_inquiry WHERE idx = :idx LIMIT 1');
     $check->execute(['idx' => $idx]);
-    if (!$check->fetch(PDO::FETCH_ASSOC)) {
+    $existing = $check->fetch(PDO::FETCH_ASSOC);
+    if (!$existing) {
         board_json_response(['error' => '문의를 찾을 수 없습니다.'], 404);
+    }
+
+    // 계약성사 + gclid 있으면 최초 1회 전환 시각 기록 (Ads 오프라인 전환 CSV용)
+    if ($next_state === INQUIRY_CONVERSION_STATE) {
+        $existing_gclid = trim((string) ($existing['gclid'] ?? ''));
+        $already_converted = !empty($existing['gclid_converted_at']);
+        if ($existing_gclid !== '' && !$already_converted) {
+            $updates[] = 'gclid_converted_at = NOW()';
+        }
     }
 
     $sql = 'UPDATE user_inquiry SET ' . implode(', ', $updates) . ' WHERE idx = :idx';

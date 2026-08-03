@@ -1,0 +1,13 @@
+# Google Ads Data Manager HTTPS 접근용 Basic Auth
+# 배포: 이 파일을 api/exports/.htaccess 로 두고 AuthUserFile·.htpasswd 경로를 서버에 맞게 설정
+#
+# .htpasswd 생성 (로컬):
+#   htpasswd -c .htpasswd google_import_user
+#
+# Google 데이터 관리자에 입력한 URL 예:
+#   https://yeoon.co.kr/api/exports/conversions.csv
+
+AuthType Basic
+AuthName "Google Ads Import"
+AuthUserFile /lawfirmonly1/www/api/exports/.htpasswd
+Require valid-user

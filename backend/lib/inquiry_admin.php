@@ -1,6 +1,7 @@
 <?php
 
-const INQUIRY_ALLOWED_STATES = ['상담접수', '연락완료', '상담종료'];
+const INQUIRY_ALLOWED_STATES = ['상담접수', '연락완료', '상담종료', '계약성사', '전화클릭', '카톡클릭'];
+const INQUIRY_CONVERSION_STATE = '계약성사';
 
 const INQUIRY_LIST_COLUMNS = [
     'idx',
