@@ -93,12 +93,12 @@ $channel_raw = isset($data->channel) ? strtolower(trim((string) $data->channel))
 if ($channel_raw === 'kakao') {
     $c_state = '카톡클릭';
     $default_source = 'Kakao_Chat';
-    $lead_name = '(카톡클릭)';
 } else {
     $c_state = '전화클릭';
     $default_source = 'Call_Now';
-    $lead_name = '(전화클릭)';
 }
+
+$lead_name = '익명';
 
 $source = isset($data->source) ? trim((string) $data->source) : $default_source;
 if ($source === '' || strlen($source) > 45) {
