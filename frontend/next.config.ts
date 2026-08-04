@@ -255,7 +255,7 @@ const nextConfig: NextConfig = {
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
         ],
       },
-      // 첨부 다운로드 API — 검색 인덱싱 제외 (404 Not Found 리포트 억제)
+      // 첨부 다운로드 API — 검색 인덱싱 제외 (부재 시 API는 410 Gone)
       {
         source: '/api/board/download_file.php',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
