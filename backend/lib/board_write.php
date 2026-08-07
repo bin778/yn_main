@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/board_schema.php';
 
-const BOARD_FILE_URL_BASE_DEFAULT = 'https://yeoon.co.kr/board/data/file';
+const BOARD_FILE_URL_BASE_DEFAULT = 'https://www.yeoon.co.kr/board/data/file';
 
 function board_file_url_base(): string
 {

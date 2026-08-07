@@ -272,6 +272,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'www.yeoon.co.kr',
+        pathname: '/board/data/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'lawfirmonly1.mycafe24.com',
         pathname: '/board/data/**',
       },

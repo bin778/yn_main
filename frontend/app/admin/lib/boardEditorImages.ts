@@ -1,4 +1,4 @@
-const BOARD_EDITOR_SITE_BASE = 'https://yeoon.co.kr';
+const BOARD_EDITOR_SITE_BASE = 'https://www.yeoon.co.kr';
 
 const EDITOR_THUMB_PATTERN =
   /^(https?:\/\/[^/]+)?(\/board\/data\/editor\/\d+\/)thumb-([^/]+)_\d+x\d+\.(jpe?g|png|gif|webp)(\?.*)?$/i;

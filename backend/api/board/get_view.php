@@ -51,7 +51,7 @@ require_once __DIR__ . '/../../lib/board_files.php';
 require_once __DIR__ . '/../../lib/board_editor_images.php';
 
 const ALLOWED_TABLES  = ['review', 'success', 'column', 'news'];
-const BOARD_FILE_BASE = 'https://yeoon.co.kr/board/data/file';
+const BOARD_FILE_BASE = 'https://www.yeoon.co.kr/board/data/file';
 
 /**
  * @param array<string, mixed> $payload

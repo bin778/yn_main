@@ -7,7 +7,7 @@ import type { BoardListResponse, BoardSearchField, BoardView } from '../types/bo
 import type { BoTable } from '../types/board';
 
 const BOARD_API_BASE =
-  typeof window !== 'undefined' ? '/api/board' : (process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board');
+  typeof window !== 'undefined' ? '/api/board' : (process.env.BOARD_API_URL ?? 'https://www.yeoon.co.kr/api/board');
 const DOWNLOAD_API = `${BOARD_API_BASE}/download_file.php`;
 const BOARD_LIST_PER_PAGE = 12;
 

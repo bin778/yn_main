@@ -29,4 +29,4 @@ $JWT_COOKIE_DOMAIN = '';
  */
 $BOARD_FILE_DIR = '';
 /** 공개 URL prefix (끝에 /file 까지) */
-$BOARD_FILE_URL_BASE = 'https://yeoon.co.kr/board/data/file';
+$BOARD_FILE_URL_BASE = 'https://www.yeoon.co.kr/board/data/file';

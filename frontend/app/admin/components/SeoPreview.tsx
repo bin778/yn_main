@@ -11,7 +11,7 @@ type SeoPreviewProps = {
   wrId?: number;
 };
 
-const SITE_ORIGIN = 'https://yeoon.co.kr';
+const SITE_ORIGIN = 'https://www.yeoon.co.kr';
 
 export default function SeoPreview({ boTable, title, slug, description, wrId }: SeoPreviewProps) {
   const pathSlug = BOARD_PATH_SLUG[boTable];

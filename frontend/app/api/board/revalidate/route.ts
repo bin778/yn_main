@@ -6,7 +6,7 @@ import { boardListCacheTag, boardViewCacheTag } from '@/app/(story)/lib/boardCac
 import { buildBoardPostHref } from '@/app/(story)/lib/boardPostPath';
 import type { BoTable } from '@/app/(story)/types/board';
 
-const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://yeoon.co.kr/api/board';
+const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://www.yeoon.co.kr/api/board';
 
 type RevalidateBody = {
   bo_table?: BoTable;
