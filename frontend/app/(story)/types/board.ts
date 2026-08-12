@@ -14,6 +14,8 @@ export type BoardListItem = {
   notice: boolean;
   thumbnail_url: string | null;
   wr_seo_slug?: string;
+  wr_7?: string;
+  wr_8?: string;
 };
 
 export type BoardListResponse = {

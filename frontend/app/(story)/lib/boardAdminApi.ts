@@ -4,6 +4,7 @@ import type { BoardPostAdmin, BoardPostPayload, BoardUploadPurpose } from '@/app
 
 const AUTH_BASE = '/api/board/auth';
 const WRITE_API = '/api/board/write_post.php';
+const BULK_API = '/api/board/bulk_posts.php';
 const GET_POST_API = '/api/board/get_post.php';
 const GET_SCHEDULED_LIST_API = '/api/board/get_scheduled_list.php';
 const UPLOAD_API = '/api/board/upload_file.php';
@@ -164,6 +165,50 @@ export async function revalidateBoardPost(boTable: BoTable, wrId: number, seoSlu
   }).catch(error => {
     console.error('게시물 캐시 갱신에 실패했습니다.', error);
   });
+}
+
+export async function revalidateBoardLists(boTable: BoTable, extraBoTables: BoTable[] = []): Promise<void> {
+  await fetch('/api/board/revalidate', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bo_table: boTable, wr_id: 0, extra_bo_tables: extraBoTables }),
+  }).catch(error => {
+    console.error('게시판 목록 캐시 갱신에 실패했습니다.', error);
+  });
+}
+
+export type BulkBoardAction = 'section' | 'move';
+
+export type BulkBoardResult = {
+  ok: boolean;
+  action: BulkBoardAction;
+  updated?: number;
+  moved?: number;
+};
+
+export async function bulkUpdateBoardPosts(
+  boTable: BoTable,
+  wrIds: number[],
+  action: BulkBoardAction,
+  options: { wr_7: string; wr_8: string; targetBoTable?: BoTable },
+): Promise<BulkBoardResult> {
+  const res = await fetch(BULK_API, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      bo_table: boTable,
+      wr_ids: wrIds,
+      action,
+      wr_7: options.wr_7,
+      wr_8: options.wr_8,
+      ...(action === 'move' && options.targetBoTable !== undefined
+        ? { target_bo_table: options.targetBoTable }
+        : {}),
+    }),
+  });
+  return parseJson<BulkBoardResult>(res);
 }
 
 export async function deleteBoardPost(boTable: BoTable, wrId: number): Promise<void> {

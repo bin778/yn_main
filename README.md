@@ -130,6 +130,7 @@ yn_main/
 - 라우팅: `[bo_table]/[wr_id]`에서 대분류 slug와 게시물 slug를 분기, `[bo_table]/[wr_id]/[sub]`가 소분류 목록 (`boardSections.ts`)
 - 구 `/success-story/real-estate/` → `/success-story/civil/real-estate/` 301
 - 이관: `php backend/scripts/migrate_board_sections.php` (`wr_7=real-estate` → `civil`/`real-estate`)
+- 관리자 로그인 시 공개 목록에서 체크박스로 일괄 분류 변경·게시판 이동 가능 (최대 50건)
 
 **게시판 커스텀 필드 (`wr_*`)**
 
@@ -280,14 +281,15 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 ### 게시판 관리 (JWT)
 
-| 엔드포인트                                    | 설명                       |
-| --------------------------------------------- | -------------------------- |
-| `POST /api/board/auth/login.php`              | 로그인                     |
-| `GET /api/board/auth/me.php`                  | 세션 확인                  |
-| `GET /api/board/get_post.php`                 | 관리자 수정 폼용 단건 조회 |
-| `POST\|PUT\|DELETE /api/board/write_post.php` | 글 CRUD                    |
-| `GET /api/board/get_scheduled_list.php`       | 예약글 목록                |
-| `POST /api/board/upload_file.php`             | 파일 업로드 (최대 10MB)    |
+| 엔드포인트                                    | 설명                                                                  |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `POST /api/board/auth/login.php`              | 로그인                                                                |
+| `GET /api/board/auth/me.php`                  | 세션 확인                                                             |
+| `GET /api/board/get_post.php`                 | 관리자 수정 폼용 단건 조회                                            |
+| `POST\|PUT\|DELETE /api/board/write_post.php` | 글 CRUD                                                               |
+| `POST /api/board/bulk_posts.php`              | 일괄 분류 변경·게시판 이동 (`action`: `section` \| `move`, 최대 50건) |
+| `GET /api/board/get_scheduled_list.php`       | 예약글 목록                                                           |
+| `POST /api/board/upload_file.php`             | 파일 업로드 (최대 10MB)                                               |
 
 ### 상담 문의 관리 (JWT, 최고관리자)
 

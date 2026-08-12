@@ -164,6 +164,8 @@ try {
             w.wr_content,
             w.wr_1,
             w.wr_2,
+            w.wr_7,
+            w.wr_8,
             w.wr_option,
             (
                 SELECT bf_file
@@ -222,6 +224,8 @@ try {
             'notice'        => $option['notice'],
             'thumbnail_url' => $thumbnail_url,
             'wr_seo_slug'   => (string) ($row['wr_2'] ?? ''),
+            'wr_7'          => (string) ($row['wr_7'] ?? ''),
+            'wr_8'          => (string) ($row['wr_8'] ?? ''),
         ];
     }, $rows);
 

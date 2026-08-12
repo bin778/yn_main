@@ -110,6 +110,20 @@ export function getBoardSubSectionLabel(boTable: BoTable, parentSlug: string, ch
   return child?.label ?? childSlug;
 }
 
+export function getBoardSectionDisplayLabel(boTable: BoTable, wr7: string, wr8: string): string | null {
+  if (!hasBoardSections(boTable)) return null;
+
+  const category = wr7 === LEGACY_REAL_ESTATE_SLUG ? LEGACY_REAL_ESTATE_PARENT : wr7;
+  const subcategory = wr7 === LEGACY_REAL_ESTATE_SLUG ? LEGACY_REAL_ESTATE_SLUG : wr8;
+
+  if (category === '') return '미분류';
+
+  const parentLabel = getBoardSectionLabel(boTable, category);
+  if (subcategory === '') return parentLabel;
+
+  return `${parentLabel} · ${getBoardSubSectionLabel(boTable, category, subcategory)}`;
+}
+
 export function buildBoardSectionListPath(
   boTable: SectionedBoTable,
   category?: string | null,

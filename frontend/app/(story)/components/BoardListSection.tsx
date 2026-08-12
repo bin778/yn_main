@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -6,9 +5,8 @@ import { getBoardPathSlug } from '../constants/boardContent';
 import { DEFAULT_BOARD_SORT } from '../constants/boardSort';
 import { buildBoardSectionListPath, hasBoardSections } from '../constants/boardSections';
 import { buildBoardListHref } from '../lib/buildBoardListHref';
-import { formatBoardAuthorLabel, formatBoardPostMetaLine } from '../lib/formatBoardAuthor';
-import { buildBoardPostHref } from '../lib/boardPostPath';
-import type { BoardListItem, BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
+import type { BoardListResponse, BoardListSort, BoardSearchField, BoTable } from '../types/board';
+import BoardListItems from './BoardListItems';
 import BoardListPagination from './BoardListPagination';
 import BoardSortSelect from './BoardSortSelect';
 
@@ -22,102 +20,6 @@ type BoardListSectionProps = {
   sectionCategory?: string | null;
   sectionSubcategory?: string | null;
 };
-
-function formatDate(datetime: string): string {
-  return datetime.slice(0, 10).replace(/-/g, '.');
-}
-
-function NoticeBadge() {
-  return (
-    <span className="inline-flex shrink-0 items-center bg-[#1a3151] px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">
-      공지
-    </span>
-  );
-}
-
-function BoardListRow({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
-  const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
-  const authorLabel = formatBoardAuthorLabel(boTable, item.wr_name);
-
-  return (
-    <li className="border-b border-[#e8e8e8] last:border-b-0">
-      <Link
-        href={href}
-        className={`group flex items-start gap-4 py-6 transition-colors md:gap-6 md:px-4 ${
-          item.notice ? 'bg-[#f5f7fa] hover:bg-[#eef1f6]' : 'hover:bg-[#f8f8f8]'
-        }`}
-      >
-        {item.thumbnail_url !== null && (
-          <div className="relative hidden h-[80px] w-[120px] shrink-0 overflow-hidden bg-[#f0f0f0] md:block">
-            <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" loading="lazy" />
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151] md:text-[18px]">
-            {item.notice ? <NoticeBadge /> : null}
-            <span className="truncate">{item.wr_subject}</span>
-          </p>
-          <div className="mt-2 flex items-center gap-3 text-[12px] text-[#999] md:text-[13px]">
-            <span>{authorLabel}</span>
-            <span aria-hidden>·</span>
-            <time dateTime={item.wr_datetime}>{formatDate(item.wr_datetime)}</time>
-            <span aria-hidden>·</span>
-            <span>조회 {item.wr_hit.toLocaleString()}</span>
-            {item.has_file && (
-              <>
-                <span aria-hidden>·</span>
-                <span aria-label="첨부파일 있음">📎</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <span
-          className="mt-1 hidden shrink-0 text-[20px] text-[#ccc] transition-colors group-hover:text-[#1a3151] md:block"
-          aria-hidden
-        >
-          →
-        </span>
-      </Link>
-    </li>
-  );
-}
-
-function BoardGridCard({ item, boTable }: { item: BoardListItem; boTable: BoTable }) {
-  const href = buildBoardPostHref(boTable, item.wr_id, item.wr_seo_slug);
-  const metaLine = formatBoardPostMetaLine(boTable, item.wr_name, item.wr_datetime, item.wr_hit, formatDate);
-
-  return (
-    <li className={`h-full border border-[#e8e8e8] ${item.notice ? 'ring-1 ring-inset ring-[#1a3151]/20' : ''}`}>
-      <Link href={href} className="group flex h-full flex-col">
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f0f0f0]">
-          {item.thumbnail_url !== null ? (
-            <img
-              src={item.thumbnail_url}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[13px] text-[#999]">이미지 없음</div>
-          )}
-        </div>
-        <div className="flex flex-1 flex-col px-4 py-4">
-          <p className="flex items-start gap-2 text-[16px] font-bold leading-snug tracking-tight text-[#121212] group-hover:text-[#1a3151]">
-            {item.notice ? <NoticeBadge /> : null}
-            <span className="line-clamp-2">{item.wr_subject}</span>
-          </p>
-          <p className="mt-auto pt-3 text-[12px] text-[#999]">{metaLine}</p>
-        </div>
-      </Link>
-    </li>
-  );
-}
-
-function EmptyState() {
-  return <div className="py-20 text-center text-[15px] text-[#999]">등록된 게시물이 없습니다.</div>;
-}
 
 function SearchToolbar({
   boTable,
@@ -234,21 +136,7 @@ export default function BoardListSection({
           총 {data.total.toLocaleString()}건 {q !== '' ? `(검색어: ${q})` : ''}
         </p>
 
-        {data.items.length === 0 ? (
-          <EmptyState />
-        ) : view === 'grid' ? (
-          <ul className="grid gap-4 border-t border-[#e8e8e8] pt-6 md:grid-cols-2 lg:grid-cols-3">
-            {data.items.map(item => (
-              <BoardGridCard key={item.wr_id} item={item} boTable={boTable} />
-            ))}
-          </ul>
-        ) : (
-          <ul className="border-t border-[#e8e8e8]">
-            {data.items.map(item => (
-              <BoardListRow key={item.wr_id} item={item} boTable={boTable} />
-            ))}
-          </ul>
-        )}
+        <BoardListItems boTable={boTable} items={data.items} view={view} />
 
         <BoardListPagination
           boTable={boTable}

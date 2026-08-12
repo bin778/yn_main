@@ -110,6 +110,7 @@ const nextConfig: NextConfig = {
         { source: '/api/board/get_post.php', destination: `${CAFE24}/api/board/get_post.php` },
         { source: '/api/board/get_scheduled_list.php', destination: `${CAFE24}/api/board/get_scheduled_list.php` },
         { source: '/api/board/write_post.php', destination: `${CAFE24}/api/board/write_post.php` },
+        { source: '/api/board/bulk_posts.php', destination: `${CAFE24}/api/board/bulk_posts.php` },
         { source: '/api/board/upload_file.php', destination: `${CAFE24}/api/board/upload_file.php` },
         { source: '/api/board/download_file.php', destination: `${CAFE24}/api/board/download_file.php` },
         { source: '/api/board/get_session.php', destination: `${CAFE24}/api/board/get_session.php` },
