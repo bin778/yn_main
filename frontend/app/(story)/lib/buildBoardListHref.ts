@@ -1,10 +1,6 @@
 import { getBoardPathSlug } from '../constants/boardContent';
 import { appendBoardSortParam } from '../constants/boardSort';
-import {
-  buildPracticeAreaListPath,
-  hasPracticeAreaCategories,
-  type PracticeAreaCategory,
-} from '../constants/practiceAreaCategories';
+import { buildBoardSectionListPath, hasBoardSections } from '../constants/boardSections';
 import type { BoardListSort, BoardSearchField, BoTable } from '../types/board';
 
 export function buildBoardListHref(
@@ -14,7 +10,8 @@ export function buildBoardListHref(
   q: string,
   sfl: BoardSearchField,
   sort: BoardListSort,
-  practiceAreaCategory?: PracticeAreaCategory | null,
+  sectionCategory?: string | null,
+  sectionSubcategory?: string | null,
 ): string {
   const searchParams = new URLSearchParams();
   if (page > 1) searchParams.set('page', String(page));
@@ -25,8 +22,8 @@ export function buildBoardListHref(
     if (sfl !== 'subject_content') searchParams.set('sfl', sfl);
   }
   const basePath =
-    hasPracticeAreaCategories(boTable) && practiceAreaCategory
-      ? buildPracticeAreaListPath(boTable, practiceAreaCategory)
+    hasBoardSections(boTable) && sectionCategory
+      ? buildBoardSectionListPath(boTable, sectionCategory, sectionSubcategory)
       : `/${getBoardPathSlug(boTable)}`;
   const query = searchParams.toString();
   return query === '' ? basePath : `${basePath}?${query}`;

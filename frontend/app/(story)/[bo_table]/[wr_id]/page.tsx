@@ -6,14 +6,16 @@ import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardJsonLd from '../../components/BoardJsonLd';
 import BoardViewSection from '../../components/BoardViewSection';
-import PracticeAreaCategoryListPage from '../../components/PracticeAreaCategoryListPage';
-import { BOARD_META, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
+import BoardSectionListPage from '../../components/BoardSectionListPage';
+import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import {
-  buildPracticeAreaListPath,
-  getPracticeAreaCategoryLabel,
-  hasPracticeAreaCategories,
-  isPracticeAreaCategorySlug,
-} from '../../constants/practiceAreaCategories';
+  buildBoardSectionListPath,
+  getBoardSectionLabel,
+  hasBoardSections,
+  isBoardSectionSlug,
+  LEGACY_REAL_ESTATE_PARENT,
+  LEGACY_REAL_ESTATE_SLUG,
+} from '../../constants/boardSections';
 import { fetchBoardView } from '../../lib/boardApi';
 import { buildBoardArticleSchema } from '../../lib/buildBoardArticleSchema';
 import { buildBoardPostHref, getBoardPostPathSegment } from '../../lib/boardPostPath';
@@ -35,14 +37,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const trimmedKey = postKey.trim();
 
-  if (hasPracticeAreaCategories(boTable) && isPracticeAreaCategorySlug(trimmedKey)) {
-    const categoryLabel = getPracticeAreaCategoryLabel(trimmedKey);
+  if (hasBoardSections(boTable) && isBoardSectionSlug(boTable, trimmedKey)) {
+    const categoryLabel = getBoardSectionLabel(boTable, trimmedKey);
     const { label, description } = BOARD_META[boTable];
 
     return {
       title: `${label} · ${categoryLabel} | ${SITE_NAME}`,
       description,
-      alternates: { canonical: buildPracticeAreaListPath(boTable, trimmedKey) },
+      alternates: { canonical: buildBoardSectionListPath(boTable, trimmedKey) },
     };
   }
 
@@ -76,11 +78,18 @@ export default async function BoardViewPage({ params, searchParams }: PageProps)
 
   const trimmedKey = postKey.trim();
 
-  if (hasPracticeAreaCategories(bo_table) && isPracticeAreaCategorySlug(trimmedKey)) {
+  if (
+    (bo_table === 'success' || bo_table === 'column') &&
+    trimmedKey === LEGACY_REAL_ESTATE_SLUG
+  ) {
+    permanentRedirect(`/${getBoardPathSlug(bo_table)}/${LEGACY_REAL_ESTATE_PARENT}/${LEGACY_REAL_ESTATE_SLUG}/`);
+  }
+
+  if (hasBoardSections(bo_table) && isBoardSectionSlug(bo_table, trimmedKey)) {
     const resolvedSearchParams = await searchParams;
 
     return (
-      <PracticeAreaCategoryListPage boTable={bo_table} category={trimmedKey} searchParams={resolvedSearchParams} />
+      <BoardSectionListPage boTable={bo_table} category={trimmedKey} searchParams={resolvedSearchParams} />
     );
   }
 

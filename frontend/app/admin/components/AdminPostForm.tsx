@@ -12,6 +12,7 @@ import { useAdminPostForm, type PublishMode } from '../hooks/useAdminPostForm';
 
 import AdminPostAttachmentSection from './admin-post-form/AdminPostAttachmentSection';
 import AdminPostFormActions from './admin-post-form/AdminPostFormActions';
+import AdminPostSectionFields from './admin-post-form/AdminPostSectionFields';
 import AdminPostPreviewModal from './admin-post-form/AdminPostPreviewModal';
 import AdminPostSeoSection from './admin-post-form/AdminPostSeoSection';
 import AdminPostThumbnailSection from './admin-post-form/AdminPostThumbnailSection';
@@ -88,6 +89,15 @@ export default function AdminPostForm({ boTable, mode, wrId, initial, onSaved, o
             </button>
           </div>
         </div>
+
+        <AdminPostSectionFields
+          boTable={boTable}
+          category={form.wr7}
+          subcategory={form.wr8}
+          loading={form.loading}
+          onCategoryChange={form.handleCategoryChange}
+          onSubcategoryChange={form.setWr8}
+        />
 
         <div>
           <label htmlFor="wr_subject" className="mb-1 flex items-center gap-1 text-sm font-medium">

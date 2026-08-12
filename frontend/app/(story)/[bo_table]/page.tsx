@@ -7,9 +7,9 @@ import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 import BoardCategoryTabs from '../components/BoardCategoryTabs';
 import BoardAdminBar from '../components/BoardAdminBar';
 import BoardListSection from '../components/BoardListSection';
-import PracticeAreaSubTabs from '../components/PracticeAreaSubTabs';
+import BoardSectionTabs from '../components/BoardSectionTabs';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
-import { hasPracticeAreaCategories } from '../constants/practiceAreaCategories';
+import { hasBoardSections } from '../constants/boardSections';
 import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import { fetchBoardList } from '../lib/boardApi';
 import type { BoardListResponse } from '../types/board';
@@ -95,7 +95,7 @@ export default async function BoardListPage({ params, searchParams }: PageProps)
       </section>
 
       <BoardCategoryTabs current={bo_table} />
-      {hasPracticeAreaCategories(bo_table) ? <PracticeAreaSubTabs boTable={bo_table} current={null} /> : null}
+      {hasBoardSections(bo_table) ? <BoardSectionTabs boTable={bo_table} category={null} /> : null}
       <BoardAdminBar boTable={bo_table} />
       <BoardListSection boTable={bo_table} data={data} q={q} sfl={sfl} sort={sort} view={viewMode} />
     </>

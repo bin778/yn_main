@@ -16,6 +16,8 @@ export function buildBoardPostPayload(
   attachmentPassword: string,
   downloadMode: AttachmentDownloadMode,
   attachmentHasPassword: boolean,
+  wr7: string,
+  wr8: string,
   options?: { scheduled?: boolean },
 ): BoardPostPayload {
   const payload: BoardPostPayload = {
@@ -28,6 +30,8 @@ export function buildBoardPostPayload(
     wr_seo_slug: seoSlug.trim(),
     wr_seo_description: seoDescription.trim(),
     wr_schema: schema.trim(),
+    wr_7: wr7.trim(),
+    wr_8: wr8.trim(),
     remove_attachment: removeAttachment,
   };
 

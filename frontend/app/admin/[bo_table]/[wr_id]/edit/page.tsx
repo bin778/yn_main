@@ -7,6 +7,8 @@ import { deleteBoardPost, fetchBoardPostAdmin } from '@/app/(story)/lib/boardAdm
 import type { BoTable } from '@/app/(story)/types/board';
 
 import AdminPostForm, { type AdminPostInitial } from '../../../components/AdminPostForm';
+import { LEGACY_REAL_ESTATE_PARENT, LEGACY_REAL_ESTATE_SLUG } from '@/app/(story)/constants/boardSections';
+
 import { getAdminListPath, getRedirectPathAfterSave, resolveAdminBoTable } from '../../../lib/adminBoard';
 
 type AdminEditFormProps = {
@@ -36,6 +38,8 @@ function AdminEditForm({ boTable, wrId }: AdminEditFormProps) {
           seoSlug: item.wr_seo_slug,
           seoDescription: item.wr_seo_description ?? '',
           schema: item.wr_schema ?? '',
+          wr_7: item.wr_7 === LEGACY_REAL_ESTATE_SLUG ? LEGACY_REAL_ESTATE_PARENT : (item.wr_7 ?? ''),
+          wr_8: item.wr_7 === LEGACY_REAL_ESTATE_SLUG ? LEGACY_REAL_ESTATE_SLUG : (item.wr_8 ?? ''),
           attachment,
         });
       })

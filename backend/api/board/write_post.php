@@ -44,6 +44,12 @@ $display_name = board_display_name($member);
 
 if ($method === 'POST') {
     $parsed = board_parse_post_body($body, $now);
+    $section = board_normalize_section_pair($bo_table, $parsed['wr_7'], $parsed['wr_8']);
+    if ($section['error'] !== null) {
+        board_json_response(['error' => $section['error']], 400);
+    }
+    $parsed['wr_7'] = $section['wr_7'];
+    $parsed['wr_8'] = $section['wr_8'];
 
     if ($parsed['wr_subject'] === '' || $parsed['wr_content'] === '') {
         board_json_response(['error' => '제목과 내용을 입력해 주세요.'], 400);
@@ -103,7 +109,9 @@ if ($method === 'POST') {
             wr_3 = :wr_3,
             wr_4 = :wr_4,
             wr_5 = :wr_5,
-            wr_6 = :wr_6";
+            wr_6 = :wr_6,
+            wr_7 = :wr_7,
+            wr_8 = :wr_8";
 
         $stmt = $pdo->prepare($insert_sql);
         $stmt->execute([
@@ -124,6 +132,8 @@ if ($method === 'POST') {
             'wr_4'        => $parsed['wr_4'],
             'wr_5'        => $parsed['wr_5'],
             'wr_6'        => $parsed['wr_6'],
+            'wr_7'        => $parsed['wr_7'],
+            'wr_8'        => $parsed['wr_8'],
         ]);
 
         $new_wr_id = (int) $pdo->lastInsertId();
@@ -170,6 +180,12 @@ if ($method === 'PUT' || $method === 'PATCH') {
     }
 
     $parsed = board_parse_post_body($body, $now);
+    $section = board_normalize_section_pair($bo_table, $parsed['wr_7'], $parsed['wr_8']);
+    if ($section['error'] !== null) {
+        board_json_response(['error' => $section['error']], 400);
+    }
+    $parsed['wr_7'] = $section['wr_7'];
+    $parsed['wr_8'] = $section['wr_8'];
 
     if ($parsed['wr_subject'] === '' || $parsed['wr_content'] === '') {
         board_json_response(['error' => '제목과 내용을 입력해 주세요.'], 400);
@@ -229,7 +245,9 @@ if ($method === 'PUT' || $method === 'PATCH') {
             wr_3 = :wr_3,
             wr_4 = :wr_4,
             wr_5 = :wr_5,
-            wr_6 = :wr_6
+            wr_6 = :wr_6,
+            wr_7 = :wr_7,
+            wr_8 = :wr_8
          WHERE wr_id = :wr_id AND wr_is_comment = 0"
     );
     $update->execute([
@@ -244,6 +262,8 @@ if ($method === 'PUT' || $method === 'PATCH') {
         'wr_4'        => $parsed['wr_4'],
         'wr_5'        => $parsed['wr_5'],
         'wr_6'        => $parsed['wr_6'],
+        'wr_7'        => $parsed['wr_7'],
+        'wr_8'        => $parsed['wr_8'],
         'wr_id'       => $wr_id,
     ]);
 

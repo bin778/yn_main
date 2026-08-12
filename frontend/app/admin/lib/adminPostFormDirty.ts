@@ -20,6 +20,8 @@ export function isPostFormDirty(initial: AdminPostInitial, current: PostFormSnap
   if (current.seoSlug !== initial.seoSlug) return true;
   if (current.seoDescription !== initial.seoDescription) return true;
   if (current.schema !== initial.schema) return true;
+  if (current.wr_7 !== initial.wr_7) return true;
+  if (current.wr_8 !== initial.wr_8) return true;
   if (current.pendingAttachment !== null) return true;
   if (current.removeAttachment) return true;
   if (current.attachmentPassword.trim() !== '') return true;

@@ -1,4 +1,5 @@
 import { ALLOWED_BO_TABLES, BOARD_PATH_SLUG } from '@/app/(story)/constants/boardContent';
+import { getBoardSections, hasBoardSections } from '@/app/(story)/constants/boardSections';
 import { getBoardPostPathSegment } from '@/app/(story)/lib/boardPostPath';
 import type { BoardListItem, BoardListResponse } from '@/app/(story)/types/board';
 import type { BoTable } from '@/app/(story)/types/board';
@@ -80,10 +81,29 @@ async function fetchBoardListPage(boTable: BoTable, page: number): Promise<Board
   }
 }
 
+function boardSectionListEntries(boTable: BoTable): MetadataRoute.Sitemap {
+  if (!hasBoardSections(boTable)) return [];
+
+  const slug = BOARD_PATH_SLUG[boTable];
+  const entries: MetadataRoute.Sitemap = [];
+
+  for (const section of getBoardSections(boTable)) {
+    entries.push(toSitemapEntry(`/${slug}/${section.slug}/`, 'weekly', 0.65));
+    for (const child of section.children) {
+      entries.push(toSitemapEntry(`/${slug}/${section.slug}/${child.slug}/`, 'weekly', 0.6));
+    }
+  }
+
+  return entries;
+}
+
 async function fetchBoardPostEntries(boTable: BoTable): Promise<MetadataRoute.Sitemap> {
   const slug = BOARD_PATH_SLUG[boTable];
   const listConfig = BOARD_LIST_CONFIG[boTable];
-  const entries: MetadataRoute.Sitemap = [toSitemapEntry(`/${slug}/`, listConfig.changeFrequency, listConfig.priority)];
+  const entries: MetadataRoute.Sitemap = [
+    toSitemapEntry(`/${slug}/`, listConfig.changeFrequency, listConfig.priority),
+    ...boardSectionListEntries(boTable),
+  ];
 
   let page = 1;
   let totalPages = 1;

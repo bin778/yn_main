@@ -10,6 +10,8 @@ export type BoardPostPayload = {
   wr_seo_slug: string;
   wr_seo_description: string;
   wr_schema: string;
+  wr_7: string;
+  wr_8: string;
   remove_attachment?: boolean;
   attachment_password?: string;
   clear_attachment_password?: boolean;
@@ -41,6 +43,8 @@ export type BoardPostAdmin = {
   wr_seo_title: string;
   wr_seo_description: string;
   wr_schema: string;
+  wr_7?: string;
+  wr_8?: string;
   files: BoardPostFile[];
 };
 

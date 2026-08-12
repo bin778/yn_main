@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/board_schema.php';
+require_once __DIR__ . '/board_categories.php';
 
 const BOARD_FILE_URL_BASE_DEFAULT = 'https://www.yeoon.co.kr/board/data/file';
 
@@ -184,6 +185,8 @@ function board_resolve_post_key(string $post_key): array
  *   wr_4: string,
  *   wr_5: string,
  *   wr_6: string,
+ *   wr_7: string,
+ *   wr_8: string,
  *   notice: bool
  * }
  */
@@ -210,6 +213,8 @@ function board_parse_post_body(array $body, string $default_datetime): array
 
     $wr_5 = trim((string) ($body['wr_schema'] ?? $body['wr_5'] ?? ''));
     $wr_6 = 'legacy_html';
+    $wr_7 = trim((string) ($body['wr_7'] ?? $body['category'] ?? ''));
+    $wr_8 = trim((string) ($body['wr_8'] ?? $body['subcategory'] ?? ''));
 
     return [
         'wr_subject'  => $wr_subject,
@@ -222,6 +227,8 @@ function board_parse_post_body(array $body, string $default_datetime): array
         'wr_4'        => $wr_4,
         'wr_5'        => $wr_5,
         'wr_6'        => $wr_6,
+        'wr_7'        => $wr_7,
+        'wr_8'        => $wr_8,
         'notice'      => $notice,
     ];
 }
@@ -247,6 +254,8 @@ function board_format_admin_post(array $row, string $bo_table): array
         'wr_seo_title'        => (string) ($row['wr_3'] ?? ''),
         'wr_seo_description'  => (string) ($row['wr_4'] ?? ''),
         'wr_schema'           => (string) ($row['wr_5'] ?? ''),
+        'wr_7'                => (string) ($row['wr_7'] ?? ''),
+        'wr_8'                => (string) ($row['wr_8'] ?? ''),
         'bo_table'            => $bo_table,
     ];
 }

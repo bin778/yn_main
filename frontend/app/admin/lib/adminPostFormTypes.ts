@@ -11,6 +11,8 @@ export type AdminPostInitial = {
   seoSlug: string;
   seoDescription: string;
   schema: string;
+  wr_7: string;
+  wr_8: string;
   attachment: BoardPostFile | null;
 };
 
@@ -23,6 +25,8 @@ export type PostFormSnapshot = {
   seoSlug: string;
   seoDescription: string;
   schema: string;
+  wr_7: string;
+  wr_8: string;
   attachment: BoardPostFile | null;
   pendingAttachment: File | null;
   removeAttachment: boolean;
@@ -41,6 +45,8 @@ export function emptyAdminPostInitial(): AdminPostInitial {
     seoSlug: '',
     seoDescription: '',
     schema: '',
+    wr_7: '',
+    wr_8: '',
     attachment: null,
   };
 }

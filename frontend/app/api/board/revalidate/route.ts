@@ -2,6 +2,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 import { getBoardPathSlug } from '@/app/(story)/constants/boardContent';
+import { getBoardSections, hasBoardSections } from '@/app/(story)/constants/boardSections';
 import { boardListCacheTag, boardViewCacheTag } from '@/app/(story)/lib/boardCache';
 import { buildBoardPostHref } from '@/app/(story)/lib/boardPostPath';
 import type { BoTable } from '@/app/(story)/types/board';
@@ -48,6 +49,16 @@ export async function POST(request: Request) {
   revalidatePath(buildBoardPostHref(boTable, wrId, seoSlug));
   revalidatePath(`/${pathSlug}/${wrId}/`);
   revalidatePath(`/${pathSlug}/`);
+  revalidatePath(`/${pathSlug}`, 'layout');
+
+  if (hasBoardSections(boTable)) {
+    for (const section of getBoardSections(boTable)) {
+      revalidatePath(`/${pathSlug}/${section.slug}/`);
+      for (const child of section.children) {
+        revalidatePath(`/${pathSlug}/${section.slug}/${child.slug}/`);
+      }
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

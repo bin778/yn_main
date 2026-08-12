@@ -41,7 +41,7 @@ $write_table = 'g5_write_' . $bo_table;
 try {
     $stmt = $pdo->prepare(
         "SELECT wr_id, wr_subject, wr_content, wr_name, wr_datetime, wr_hit, wr_file, wr_option,
-                wr_1, wr_2, wr_3, wr_4, wr_5, wr_6
+                wr_1, wr_2, wr_3, wr_4, wr_5, wr_6, wr_7, wr_8
          FROM `{$write_table}`
          WHERE wr_id = :wr_id AND wr_is_comment = 0
          LIMIT 1"

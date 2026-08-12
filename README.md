@@ -61,7 +61,7 @@ yn_main/
 ├── frontend/              # Next.js 앱
 │   ├── app/
 │   │   ├── (story)/       # 게시판 목록·상세 (review, success-story, column, news)
-│   │   │                  # 성공사례·칼럼: practiceAreaCategories 소분류 (형사·민사·가사·부동산)
+│   │   │                  # 성공사례·칼럼·여온소식: boardSections 2단 분류
 │   │   ├── admin/         # 관리자 대시보드·글쓰기/수정·예약글·상담 문의
 │   │   ├── components/    # Header, Footer, Analytics 등
 │   │   ├── constants/     # 페이지·푸터·GA 이벤트 상수
@@ -72,7 +72,7 @@ yn_main/
 │   ├── config/            # DB·Aligo·JWT (*.sample.php → 운영 파일)
 │   ├── lib/               # board_auth, board_files, jwt, pbkdf2 등
 │   ├── api/               # board/, inquiry/, submit_inquiry
-│   └── scripts/           # migrate_board_legacy.php
+│   └── scripts/           # migrate_board_legacy.php, migrate_board_sections.php
 ├── .htaccess              # 카페24 루트 Apache 리라이트·301 규칙
 └── schema.sql             # user_inquiry 테이블 DDL
 ```
@@ -89,61 +89,73 @@ yn_main/
 
 ## 페이지
 
-| 경로                        | 설명                                                                                   |
-| --------------------------- | -------------------------------------------------------------------------------------- |
-| `/`                         | 메인                                                                                   |
-| `/about/`                   | 여온의 약속                                                                            |
-| `/people/`, `/people/[id]/` | 구성원 목록·상세 (빌드 시 정적 생성)                                                   |
-| `/field/`                   | 여온이 하는 일                                                                         |
-| `/contact/`                 | 오시는 길·상담 문의                                                                    |
-| `/privacy/`                 | 개인정보처리방침                                                                       |
-| `/review/`                  | 후기 (`bo_table=review`)                                                               |
-| `/success-story/`           | 성공사례 전체 (`bo_table=success`, 미분류·분류 글 모두)                                |
-| `/success-story/{area}/`    | 성공사례 소분류 목록. `{area}`: `criminal` \| `civil` \| `family` \| `real-estate`     |
-| `/column/`                  | 칼럼 전체 (`bo_table=column`)                                                          |
-| `/column/{area}/`           | 칼럼 소분류 목록 (slug는 성공사례와 동일)                                              |
-| `/news/`                    | 여온소식                                                                               |
-| `/{slug}/[postKey]/`        | 게시물 상세 (ISR `revalidate: 60`). `postKey`는 SEO Slug(`wr_2`) 또는 글 번호(`wr_id`) |
+| 경로                                       | 설명                                                                                   |
+| ------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `/`                                        | 메인                                                                                   |
+| `/about/`                                  | 여온의 약속                                                                            |
+| `/people/`, `/people/[id]/`                | 구성원 목록·상세 (빌드 시 정적 생성)                                                   |
+| `/field/`                                  | 여온이 하는 일                                                                         |
+| `/contact/`                                | 오시는 길·상담 문의                                                                    |
+| `/privacy/`                                | 개인정보처리방침                                                                       |
+| `/review/`                                 | 후기 (`bo_table=review`)                                                               |
+| `/success-story/`                          | 성공사례 전체 (`bo_table=success`)                                                     |
+| `/success-story/{area}/`                   | 성공사례 대분류. `{area}`: `criminal` \| `civil` \| `family` \| `other`                |
+| `/success-story/{area}/{sub}/`             | 성공사례 소분류. 예: `/success-story/criminal/drunk-driving/`                          |
+| `/column/`                                 | 칼럼 전체 (`bo_table=column`)                                                          |
+| `/column/{area}/`, `/column/{area}/{sub}/` | 칼럼 분류 (성공사례와 동일 + `advisor-an` 안성포 고문 칼럼)                            |
+| `/news/`                                   | 여온소식 전체                                                                          |
+| `/news/{section}/`                         | 여온소식 분류. `{section}`: `newsletter` \| `mou` \| `appointment` \| `other`          |
+| `/{slug}/[postKey]/`                       | 게시물 상세 (ISR `revalidate: 60`). `postKey`는 SEO Slug(`wr_2`) 또는 글 번호(`wr_id`) |
 
-### 성공사례·칼럼 소분류
+### 게시판 분류
 
-성공사례(`success`)와 칼럼(`column`)은 **형사·민사·가사·부동산** 4개 소분류를 지원합니다.
+성공사례·칼럼은 2단, 여온소식은 1단 분류입니다. 관리자 글쓰기에서 분류를 선택하며 `wr_7`(대분류)·`wr_8`(소분류)에 저장됩니다.
 
-| 경로 예시                                        | 표시 대상                                      |
-| ------------------------------------------------ | ---------------------------------------------- |
-| `/success-story/`, `/column/`                    | **전체** — `wr_7`이 비어 있거나 분류된 글 모두 |
-| `/success-story/criminal/`, `/column/family/` 등 | **해당 분류만** — DB `wr_7` 값이 일치하는 글   |
+| 게시판   | 대분류 (`wr_7`)                                                         | 소분류 (`wr_8`)                                                                               |
+| -------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 성공사례 | 형사 `criminal`, 민사 `civil`, 가사 `family`, 기타 `other`              | 형사: 음주운전·성범죄·스토킹·기타 / 민사: 부동산·손해배상·기타 / 가사: 이혼·상속(유류분)·기타 |
+| 칼럼     | 성공사례와 동일 + 안성포 고문 칼럼 `advisor-an`                         | 동일. `advisor-an`·최상위 기타는 소분류 없음                                                  |
+| 여온소식 | 뉴스레터 `newsletter`, MOU&협약 `mou`, 위촉 `appointment`, 기타 `other` | 없음                                                                                          |
+| 후기     | 없음                                                                    | 없음                                                                                          |
 
-- 소분류 slug: `criminal`(형사), `civil`(민사), `family`(가사), `real-estate`(부동산)
-- 분류 저장 필드: `g5_write_success` / `g5_write_column`의 **`wr_7`**
-- 상세 URL은 변경 없음 — `/success-story/{slug}/`, `/column/{slug}/` 유지
-- 라우팅: `[bo_table]/[wr_id]`에서 소분류 slug와 게시물 slug를 분기 (`practiceAreaCategories.ts`)
-- 프론트: `PracticeAreaSubTabs`, `PracticeAreaCategoryListPage`
+| 경로 예시                                | 표시 대상                                |
+| ---------------------------------------- | ---------------------------------------- |
+| `/success-story/`, `/column/`, `/news/`  | **전체**                                 |
+| `/success-story/criminal/`               | `wr_7=criminal` (소분류 무관)            |
+| `/success-story/criminal/drunk-driving/` | `wr_7=criminal` AND `wr_8=drunk-driving` |
+| `/news/newsletter/`                      | `wr_7=newsletter`                        |
+
+- 저장 필드: `g5_write_*`의 **`wr_7`**, **`wr_8`**
+- 상세 URL은 변경 없음 — `/success-story/{slug}/`, `/column/{slug}/`, `/news/{slug}/`
+- 라우팅: `[bo_table]/[wr_id]`에서 대분류 slug와 게시물 slug를 분기, `[bo_table]/[wr_id]/[sub]`가 소분류 목록 (`boardSections.ts`)
+- 구 `/success-story/real-estate/` → `/success-story/civil/real-estate/` 301
+- 이관: `php backend/scripts/migrate_board_sections.php` (`wr_7=real-estate` → `civil`/`real-estate`)
 
 **게시판 커스텀 필드 (`wr_*`)**
 
-| 필드   | 용도                                                                                     |
-| ------ | ---------------------------------------------------------------------------------------- |
-| `wr_1` | 썸네일 URL                                                                               |
-| `wr_2` | SEO slug                                                                                 |
-| `wr_3` | SEO title                                                                                |
-| `wr_4` | SEO description                                                                          |
-| `wr_5` | JSON-LD schema                                                                           |
-| `wr_6` | 본문 형식 마커 (`legacy_html`)                                                           |
-| `wr_7` | 성공사례·칼럼 소분류 (`criminal` \| `civil` \| `family` \| `real-estate`, 비우면 미분류) |
+| 필드   | 용도                                           |
+| ------ | ---------------------------------------------- |
+| `wr_1` | 썸네일 URL                                     |
+| `wr_2` | SEO slug                                       |
+| `wr_3` | SEO title                                      |
+| `wr_4` | SEO description                                |
+| `wr_5` | JSON-LD schema                                 |
+| `wr_6` | 본문 형식 마커 (`legacy_html`)                 |
+| `wr_7` | 대분류 (성공사례·칼럼·여온소식, 비우면 미분류) |
+| `wr_8` | 소분류 (형사·민사·가사 하위, 없으면 빈 문자열) |
 
 ## 환경 변수
 
 `frontend/.env.example`을 복사해 `frontend/.env.local`을 만듭니다.
 
-| 변수                            | 설명                                                                                                                      |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_INQUIRY_API_URL`   | 상담 API. Vercel·로컬: `/api/submit_inquiry.php` (same-origin). 카페24 단독: `https://yeoon.co.kr/api/submit_inquiry.php` |
-| `NEXT_PUBLIC_CALL_LEAD_API_URL` | 전화·카톡 gclid 리드 API. 비우면 `/api/call_lead.php` (상담 API origin 기준)                                              |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`| reCAPTCHA v3 사이트 키. 비우면 폼에서 reCAPTCHA 비활성. 서버 `$RECAPTCHA_SECRET_KEY`와 한 쌍                              |
-| `BOARD_API_URL`                 | 게시판 API (서버사이드 전용, 기본: `https://yeoon.co.kr/api/board`)                                                       |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 측정 ID (`G-`로 시작). 비우면 직접 gtag GA4 비활성화                                                                  |
-| `NEXT_PUBLIC_GTM_ID`            | GTM 컨테이너 ID (`GTM-`로 시작). 비우면 GTM 비활성화. 동의 후 로드, 이벤트는 `dataLayer`로 전달                           |
+| 변수                             | 설명                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_INQUIRY_API_URL`    | 상담 API. Vercel·로컬: `/api/submit_inquiry.php` (same-origin). 카페24 단독: `https://yeoon.co.kr/api/submit_inquiry.php` |
+| `NEXT_PUBLIC_CALL_LEAD_API_URL`  | 전화·카톡 gclid 리드 API. 비우면 `/api/call_lead.php` (상담 API origin 기준)                                              |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | reCAPTCHA v3 사이트 키. 비우면 폼에서 reCAPTCHA 비활성. 서버 `$RECAPTCHA_SECRET_KEY`와 한 쌍                              |
+| `BOARD_API_URL`                  | 게시판 API (서버사이드 전용, 기본: `https://yeoon.co.kr/api/board`)                                                       |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`  | GA4 측정 ID (`G-`로 시작). 비우면 직접 gtag GA4 비활성화                                                                  |
+| `NEXT_PUBLIC_GTM_ID`             | GTM 컨테이너 ID (`GTM-`로 시작). 비우면 GTM 비활성화. 동의 후 로드, 이벤트는 `dataLayer`로 전달                           |
 
 ## SEO
 
@@ -258,11 +270,11 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 ### 게시판 조회 (공개)
 
-| 엔드포인트                         | 설명                                                                                                                                                        |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/board/get_list.php`      | 목록 (`sort`: 최신순·조회수·제목 등). `success`·`column`은 `category` 쿼리로 `wr_7` 필터 (`criminal` \| `civil` \| `family` \| `real-estate`, 생략 시 전체) |
-| `GET /api/board/get_view.php`      | 상세 + 이전/다음 + 첨부 (`wr_datetime <= NOW()` 미래 글 제외)                                                                                               |
-| `GET /api/board/download_file.php` | 첨부 다운로드 (비밀번호·JWT 검증)                                                                                                                           |
+| 엔드포인트                         | 설명                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `GET /api/board/get_list.php`      | 목록 (`sort`: 최신순·조회수·제목 등). `success`·`column`·`news`는 `category`(`wr_7`)·`subcategory`(`wr_8`) 필터 |
+| `GET /api/board/get_view.php`      | 상세 + 이전/다음 + 첨부 (`wr_datetime <= NOW()` 미래 글 제외)                                                   |
+| `GET /api/board/download_file.php` | 첨부 다운로드 (비밀번호·JWT 검증)                                                                               |
 
 허용 게시판: `review`, `success`, `column`, `news`
 
@@ -279,10 +291,10 @@ php backend/scripts/migrate_board_legacy.php --bo_table=column --all
 
 ### 상담 문의 관리 (JWT, 최고관리자)
 
-| 엔드포인트                      | 설명                                 |
-| ------------------------------- | ------------------------------------ |
-| `GET /api/inquiry/list.php`     | 목록 (`page`, `per_page` 기본 20)    |
-| `GET /api/inquiry/get.php?idx=` | 상세                                 |
+| 엔드포인트                      | 설명                                                                                     |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `GET /api/inquiry/list.php`     | 목록 (`page`, `per_page` 기본 20)                                                        |
+| `GET /api/inquiry/get.php?idx=` | 상세                                                                                     |
 | `PATCH /api/inquiry/update.php` | `c_state`, `block`, `c_state2`(메모). `계약성사`+gclid 시 `gclid_converted_at` 최초 기록 |
 
 ### CORS 허용 Origin

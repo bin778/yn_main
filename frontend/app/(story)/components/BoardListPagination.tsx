@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { buildBoardListHref } from '../lib/buildBoardListHref';
-import type { PracticeAreaCategory } from '../constants/practiceAreaCategories';
 import type { BoardListSort, BoardSearchField, BoTable } from '../types/board';
 
 const MAX_VISIBLE_PAGES = 5;
@@ -18,7 +17,8 @@ type BoardListPaginationProps = {
   sfl: BoardSearchField;
   sort: BoardListSort;
   view: 'list' | 'grid';
-  practiceAreaCategory?: PracticeAreaCategory | null;
+  sectionCategory?: string | null;
+  sectionSubcategory?: string | null;
 };
 
 function getVisiblePages(page: number, totalPages: number): number[] {
@@ -36,7 +36,8 @@ export default function BoardListPagination({
   sfl,
   sort,
   view,
-  practiceAreaCategory,
+  sectionCategory,
+  sectionSubcategory,
 }: BoardListPaginationProps) {
   const router = useRouter();
   const [input, setInput] = useState(String(page));
@@ -48,7 +49,7 @@ export default function BoardListPagination({
   }
 
   function hrefFor(targetPage: number): string {
-    return buildBoardListHref(boTable, targetPage, view, q, sfl, sort, practiceAreaCategory);
+    return buildBoardListHref(boTable, targetPage, view, q, sfl, sort, sectionCategory, sectionSubcategory);
   }
 
   function jump() {

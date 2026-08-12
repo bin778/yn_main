@@ -1,15 +1,15 @@
 import Image from 'next/image';
 
-import BoardCategoryTabs from './BoardCategoryTabs';
 import BoardAdminBar from './BoardAdminBar';
+import BoardCategoryTabs from './BoardCategoryTabs';
 import BoardListSection from './BoardListSection';
-import PracticeAreaSubTabs from './PracticeAreaSubTabs';
+import BoardSectionTabs from './BoardSectionTabs';
 import { BOARD_META } from '../constants/boardContent';
 import {
-  getPracticeAreaCategoryLabel,
-  type PracticeAreaBoTable,
-  type PracticeAreaCategory,
-} from '../constants/practiceAreaCategories';
+  getBoardSectionLabel,
+  getBoardSubSectionLabel,
+  type SectionedBoTable,
+} from '../constants/boardSections';
 import { fetchBoardList } from '../lib/boardApi';
 import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import type { BoardListResponse } from '../types/board';
@@ -22,28 +22,32 @@ const EMPTY_LIST: BoardListResponse = {
   items: [],
 };
 
-type PracticeAreaCategoryListPageProps = {
-  boTable: PracticeAreaBoTable;
-  category: PracticeAreaCategory;
+type BoardSectionListPageProps = {
+  boTable: SectionedBoTable;
+  category: string;
+  subcategory?: string | null;
   searchParams: BoardListSearchParams;
 };
 
-export default async function PracticeAreaCategoryListPage({
+export default async function BoardSectionListPage({
   boTable,
   category,
+  subcategory = null,
   searchParams,
-}: PracticeAreaCategoryListPageProps) {
+}: BoardSectionListPageProps) {
   const { page, q, viewMode, sfl, sort } = parseBoardListQuery(searchParams);
 
   let data: BoardListResponse;
   try {
-    data = await fetchBoardList(boTable, page, q, sfl, sort, category);
+    data = await fetchBoardList(boTable, page, q, sfl, sort, category, subcategory ?? undefined);
   } catch {
     data = EMPTY_LIST;
   }
 
   const { label, description, heroBg } = BOARD_META[boTable];
-  const categoryLabel = getPracticeAreaCategoryLabel(category);
+  const categoryLabel = getBoardSectionLabel(boTable, category);
+  const subcategoryLabel =
+    subcategory !== null && subcategory !== '' ? getBoardSubSectionLabel(boTable, category, subcategory) : null;
 
   return (
     <>
@@ -65,7 +69,7 @@ export default async function PracticeAreaCategoryListPage({
             >
               {label}
               <span className="mt-2 block text-[22px] font-semibold text-white/90 md:mt-3 md:text-[28px]">
-                {categoryLabel}
+                {subcategoryLabel !== null ? `${categoryLabel} · ${subcategoryLabel}` : categoryLabel}
               </span>
             </h1>
             <p className="mt-3 max-w-xl text-[15px] leading-[1.5] tracking-tight text-white/95 md:mt-4 md:text-lg md:leading-normal">
@@ -76,7 +80,7 @@ export default async function PracticeAreaCategoryListPage({
       </section>
 
       <BoardCategoryTabs current={boTable} />
-      <PracticeAreaSubTabs boTable={boTable} current={category} />
+      <BoardSectionTabs boTable={boTable} category={category} subcategory={subcategory} />
       <BoardAdminBar boTable={boTable} />
       <BoardListSection
         boTable={boTable}
@@ -85,7 +89,8 @@ export default async function PracticeAreaCategoryListPage({
         sfl={sfl}
         sort={sort}
         view={viewMode}
-        practiceAreaCategory={category}
+        sectionCategory={category}
+        sectionSubcategory={subcategory}
       />
     </>
   );

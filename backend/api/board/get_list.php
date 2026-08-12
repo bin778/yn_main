@@ -11,7 +11,9 @@
  *   per_page  int     페이지당 항목 수 (기본 12, 최대 50)
  *   q         string  검색어
  *   sfl       string  검색 구분(subject|content|subject_content|name)
- *   sort      string  정렬(datetime_desc|datetime_asc|hit_desc|hit_asc|subject_asc|subject_desc)
+ *   sort        string  정렬(datetime_desc|datetime_asc|hit_desc|hit_asc|subject_asc|subject_desc)
+ *   category    string  대분류(wr_7). success·column·news
+ *   subcategory string  소분류(wr_8)
  *
  * Response:
  *   { total, page, per_page, total_pages, items: [...] }
@@ -47,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 require_once __DIR__ . '/../../config/db_conn.php';
 require_once __DIR__ . '/../../lib/board_editor_images.php';
 require_once __DIR__ . '/../../lib/board_write.php';
+require_once __DIR__ . '/../../lib/board_categories.php';
 
 const ALLOWED_TABLES   = ['review', 'success', 'column', 'news'];
 const DEFAULT_PER_PAGE = 12;
@@ -60,9 +63,6 @@ const ALLOWED_SORTS    = [
     'subject_asc'   => 'w.wr_subject ASC, w.wr_id ASC',
     'subject_desc'  => 'w.wr_subject DESC, w.wr_id DESC',
 ];
-const SUCCESS_CATEGORIES = ['criminal', 'civil', 'family', 'real-estate'];
-const PRACTICE_AREA_TABLES = ['success', 'column'];
-
 /**
  * @param array<string, mixed> $payload
  */
@@ -101,19 +101,23 @@ $raw_sort = trim((string) ($_GET['sort'] ?? DEFAULT_SORT));
 $sort     = array_key_exists($raw_sort, ALLOWED_SORTS) ? $raw_sort : DEFAULT_SORT;
 $order_by = ALLOWED_SORTS[$sort];
 
-$raw_category = trim((string) ($_GET['category'] ?? ''));
-$category     = '';
-if (in_array($bo_table, PRACTICE_AREA_TABLES, true) && in_array($raw_category, SUCCESS_CATEGORIES, true)) {
+$raw_category    = trim((string) ($_GET['category'] ?? ''));
+$raw_subcategory = trim((string) ($_GET['subcategory'] ?? ''));
+$category        = '';
+$subcategory     = '';
+if (board_has_sections($bo_table) && board_is_section_slug($bo_table, $raw_category)) {
     $category = $raw_category;
+    if ($raw_subcategory !== '' && board_is_subsection_slug($bo_table, $category, $raw_subcategory)) {
+        $subcategory = $raw_subcategory;
+    }
 }
+$section_filter = board_section_list_filter_sql($bo_table, $category, $subcategory);
 
 // ── 총 게시물 수 조회 ─────────────────────────────────────────────────────
 
 try {
     $where_sql = "WHERE wr_is_comment = 0 AND wr_datetime <= NOW()";
-    if ($category !== '') {
-        $where_sql .= " AND wr_7 = :category";
-    }
+    $where_sql .= $section_filter['sql'];
     if ($has_q) {
         if ($sfl === 'subject') {
             $where_sql .= " AND wr_subject LIKE :q_subject";
@@ -128,8 +132,8 @@ try {
 
     $count_sql = "SELECT COUNT(*) FROM `{$table}` {$where_sql}";
     $count_stmt = $pdo->prepare($count_sql);
-    if ($category !== '') {
-        $count_stmt->bindValue(':category', $category, PDO::PARAM_STR);
+    foreach ($section_filter['params'] as $param_key => $param_value) {
+        $count_stmt->bindValue(':' . $param_key, $param_value, PDO::PARAM_STR);
     }
     if ($has_q) {
         if ($sfl === 'subject') {
@@ -178,8 +182,8 @@ try {
 
     $stmt = $pdo->prepare($list_sql);
     $stmt->bindValue(':bo_table_sub', $bo_table, PDO::PARAM_STR);
-    if ($category !== '') {
-        $stmt->bindValue(':category', $category, PDO::PARAM_STR);
+    foreach ($section_filter['params'] as $param_key => $param_value) {
+        $stmt->bindValue(':' . $param_key, $param_value, PDO::PARAM_STR);
     }
     if ($has_q) {
         if ($sfl === 'subject') {
@@ -230,6 +234,7 @@ try {
         'sfl'         => $sfl,
         'sort'        => $sort,
         'category'    => $category !== '' ? $category : null,
+        'subcategory' => $subcategory !== '' ? $subcategory : null,
         'items'       => $items,
     ]);
 } catch (PDOException $e) {

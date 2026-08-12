@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { EDITOR_CONTENT_DEBOUNCE_MS } from '../components/board-editor/constants';
 
+import { validateBoardSectionSelection } from '@/app/(story)/constants/boardSections';
 import {
   createBoardPost,
   revalidateBoardPost,
@@ -50,6 +51,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   const contentRef = useRef(initialContent);
   const contentDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [schema, setSchema] = useState(initial.schema);
+  const [wr7, setWr7] = useState(initial.wr_7);
+  const [wr8, setWr8] = useState(initial.wr_8);
   const [notice, setNotice] = useState(initial.notice);
   const [thumbnailUrl, setThumbnailUrl] = useState(initial.thumbnailUrl);
   const [seoTitle, setSeoTitle] = useState(initial.seoTitle);
@@ -104,6 +107,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         seoSlug,
         seoDescription,
         schema,
+        wr_7: wr7,
+        wr_8: wr8,
         attachment,
         pendingAttachment,
         removeAttachment,
@@ -120,6 +125,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       seoSlug,
       seoDescription,
       schema,
+      wr7,
+      wr8,
       attachment,
       pendingAttachment,
       removeAttachment,
@@ -153,6 +160,9 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
   })();
 
   function validateBeforeSubmit(): string | null {
+    const sectionError = validateBoardSectionSelection(boTable, wr7, wr8);
+    if (sectionError !== null) return sectionError;
+
     if (contentIsEmpty(contentRef.current)) {
       return '내용을 입력해 주세요.';
     }
@@ -207,6 +217,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       attachmentPassword,
       downloadMode,
       attachmentHasPassword,
+      wr7,
+      wr8,
       publishMode === 'scheduled' ? { scheduled: true } : undefined,
     );
 
@@ -306,6 +318,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         attachmentPassword,
         downloadMode,
         attachmentHasPassword,
+        wr7,
+        wr8,
       ),
     );
     setDraftRefreshKey(key => key + 1);
@@ -329,6 +343,8 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setSeoTitle(draft.wr_seo_title);
     setSeoSlug(draft.wr_seo_slug);
     setSeoDescription(draft.wr_seo_description ?? '');
+    setWr7(draft.wr_7 ?? '');
+    setWr8(draft.wr_8 ?? '');
     if (draft.wr_seo_slug !== '') setShowSlugInput(true);
     setPendingAttachment(null);
     setRemoveAttachment(false);
@@ -464,6 +480,11 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     }
   }
 
+  function handleCategoryChange(nextCategory: string) {
+    setWr7(nextCategory);
+    setWr8('');
+  }
+
   return {
     boTable,
     mode,
@@ -486,6 +507,10 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     setSeoSlug,
     seoDescription,
     setSeoDescription,
+    wr7,
+    wr8,
+    handleCategoryChange,
+    setWr8,
     showSlugInput,
     setShowSlugInput,
     attachmentPassword,
