@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const APEX_HOST = 'yeoon.co.kr';
+const WWW_HOST = 'www.yeoon.co.kr';
+const RSS_PATH = '/rss.xml';
+
 const ALLOWED_BO_TABLES = new Set(['review', 'success', 'column', 'news']);
 
 const BO_TABLE_TO_PATH: Record<string, string> = {
@@ -10,14 +14,28 @@ const BO_TABLE_TO_PATH: Record<string, string> = {
   news: 'news',
 };
 
+function requestHost(request: NextRequest): string {
+  const raw = request.headers.get('host') ?? request.nextUrl.hostname;
+  return raw.split(':')[0]?.toLowerCase() ?? '';
+}
+
 /**
- * 구 그누보드 게시판 URL → 신 Next.js 경로 301 영구 리다이렉트
+ * 1) yeoon.co.kr → www 리다이렉트 (`/rss.xml`만 예외 — 네이버 RSS 등록용)
+ * 2) 구 그누보드 게시판 URL → 신 Next.js 경로 301
  *
  * /board/bbs/board.php?bo_table=review&wr_id=44  →  /review/44/
  * /board/bbs/board.php?bo_table=success           →  /success-story/
  */
 export function proxy(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
+  const host = requestHost(request);
+  const { pathname, searchParams } = request.nextUrl;
+
+  if (host === APEX_HOST && pathname !== RSS_PATH) {
+    const url = request.nextUrl.clone();
+    url.hostname = WWW_HOST;
+    url.protocol = 'https:';
+    return NextResponse.redirect(url, 301);
+  }
 
   const boTable = searchParams.get('bo_table');
   const wrId = searchParams.get('wr_id');
@@ -33,5 +51,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/board/bbs/board.php', '/board/bbs/board.php/'],
+  matcher: [
+    /*
+     * 정적 에셋·Next 내부 경로 제외. /rss.xml 포함해야 apex에서 예외 처리 가능.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|woff2?)$).*)',
+  ],
 };

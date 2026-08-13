@@ -7,6 +7,8 @@ const BOARD_API_BASE = process.env.BOARD_API_URL ?? `${SITE_ORIGIN}/api/board`;
 const RSS_PER_BOARD = 20;
 const RSS_MAX_ITEMS = 50;
 const RSS_PATH = '/rss.xml';
+/** 네이버 서치어드바이저 등록용 — www 없이 apex 고정 */
+const RSS_PUBLIC_ORIGIN = 'https://yeoon.co.kr';
 
 type RssItem = {
   title: string;
@@ -85,7 +87,7 @@ async function collectRssItems(): Promise<RssItem[]> {
 
 export async function buildRssXml(): Promise<string> {
   const items = await collectRssItems();
-  const selfUrl = `${SITE_ORIGIN}${RSS_PATH}`;
+  const selfUrl = `${RSS_PUBLIC_ORIGIN}${RSS_PATH}`;
   const lastBuild = items[0]?.pubDate ?? new Date();
 
   const itemXml = items
@@ -105,7 +107,7 @@ export async function buildRssXml(): Promise<string> {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${escapeXml(SITE_NAME)}</title>
-    <link>${escapeXml(`${SITE_ORIGIN}/`)}</link>
+    <link>${escapeXml(`${RSS_PUBLIC_ORIGIN}/`)}</link>
     <description>${escapeXml('법무법인 여온 여온소식·성공사례·칼럼·후기 최신글')}</description>
     <language>ko</language>
     <lastBuildDate>${toRfc822(lastBuild)}</lastBuildDate>
@@ -116,4 +118,4 @@ ${itemXml}
 `;
 }
 
-export const RSS_FEED_URL = `${SITE_ORIGIN}${RSS_PATH}`;
+export const RSS_FEED_URL = `${RSS_PUBLIC_ORIGIN}${RSS_PATH}`;

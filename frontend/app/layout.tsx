@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     '음주운전, 성범죄, 강제추행, 마약 형사사건 전담. 담당 변호사가 상담부터 재판까지 직접 밀착 진행합니다. 02-318-2981',
   alternates: {
     types: {
-      'application/rss+xml': `${SITE_ORIGIN}/rss.xml`,
+      'application/rss+xml': 'https://yeoon.co.kr/rss.xml',
     },
   },
   verification: {
