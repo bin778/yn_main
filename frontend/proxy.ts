@@ -19,9 +19,13 @@ function requestHost(request: NextRequest): string {
   return raw.split(':')[0]?.toLowerCase() ?? '';
 }
 
+function isLegacyBoardPhpPath(pathname: string): boolean {
+  return pathname === '/board/bbs/board.php' || pathname === '/board/bbs/board.php/';
+}
+
 /**
  * 1) yeoon.co.kr → www 리다이렉트 (`/rss.xml`만 예외 — 네이버 RSS 등록용)
- * 2) 구 그누보드 게시판 URL → 신 Next.js 경로 301
+ * 2) 구 그누보드 board.php → 신 Next.js 경로 301
  *
  * /board/bbs/board.php?bo_table=review&wr_id=44  →  /review/44/
  * /board/bbs/board.php?bo_table=success           →  /success-story/
@@ -35,6 +39,10 @@ export function proxy(request: NextRequest) {
     url.hostname = WWW_HOST;
     url.protocol = 'https:';
     return NextResponse.redirect(url, 301);
+  }
+
+  if (!isLegacyBoardPhpPath(pathname)) {
+    return NextResponse.next();
   }
 
   const boTable = searchParams.get('bo_table');
@@ -54,6 +62,7 @@ export const config = {
   matcher: [
     /*
      * 정적 에셋·Next 내부 경로 제외. /rss.xml 포함해야 apex에서 예외 처리 가능.
+     * /api/* 는 통과만 하고, board.php 리다이렉트는 pathname 가드로 제한.
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|woff2?)$).*)',
   ],
