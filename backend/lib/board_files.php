@@ -38,6 +38,49 @@ function board_file_storage_dir(string $bo_table): string
 }
 
 /**
+ * 첨부 디스크 경로 후보 — 주 경로 + 과거 new_img 혼재 + DOCUMENT_ROOT 레거시
+ *
+ * @return string[]
+ */
+function board_attachment_path_candidates(string $bo_table, string $stored_name): array
+{
+    global $BOARD_FILE_DIR;
+
+    $base = rtrim((string) $BOARD_FILE_DIR, '/');
+    $candidates = [];
+
+    if ($base !== '') {
+        $candidates[] = $base . '/' . $bo_table . '/' . $stored_name;
+
+        if (substr($base, -8) === '/new_img') {
+            $candidates[] = substr($base, 0, -8) . '/' . $bo_table . '/' . $stored_name;
+        } else {
+            $candidates[] = $base . '/new_img/' . $bo_table . '/' . $stored_name;
+        }
+    }
+
+    $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim((string) $_SERVER['DOCUMENT_ROOT'], '/') : '';
+    if ($docRoot !== '') {
+        $candidates[] = $docRoot . '/board/data/file/' . $bo_table . '/' . $stored_name;
+        $candidates[] = $docRoot . '/board/data/file/new_img/' . $bo_table . '/' . $stored_name;
+    }
+
+    return array_values(array_unique($candidates));
+}
+
+/** @return string 존재하는 파일의 절대 경로 */
+function board_resolve_attachment_disk_path(string $bo_table, string $stored_name): string
+{
+    foreach (board_attachment_path_candidates($bo_table, $stored_name) as $path) {
+        if (is_file($path)) {
+            return $path;
+        }
+    }
+
+    throw new RuntimeException('파일이 존재하지 않습니다.');
+}
+
+/**
  * @param array<string, mixed> $file  $_FILES 항목
  */
 function board_validate_upload_file(array $file, bool $images_only): void
@@ -251,10 +294,7 @@ function board_stream_attachment_file(PDO $pdo, string $bo_table, int $wr_id, in
         throw new RuntimeException('유효하지 않은 파일입니다.');
     }
 
-    $path = board_file_storage_dir($bo_table) . '/' . $stored_name;
-    if (!is_file($path)) {
-        throw new RuntimeException('파일이 존재하지 않습니다.');
-    }
+    $path = board_resolve_attachment_disk_path($bo_table, $stored_name);
 
     $pdo->prepare(
         'UPDATE g5_board_file SET bf_download = bf_download + 1
@@ -281,9 +321,10 @@ function board_delete_stored_file(string $bo_table, string $stored_name): void
     }
 
     try {
-        $path = board_file_storage_dir($bo_table) . '/' . $stored_name;
-        if (is_file($path)) {
-            unlink($path);
+        foreach (board_attachment_path_candidates($bo_table, $stored_name) as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
         }
     } catch (Throwable $e) {
         error_log('board_delete_stored_file: ' . $e->getMessage());

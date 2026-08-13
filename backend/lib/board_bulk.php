@@ -111,8 +111,12 @@ function board_copy_post_files(PDO $pdo, $src_table, $src_wr_id, $dst_table, $ds
         $source = (string) ($file['bf_source'] ?? 'file');
 
         if ($old_name !== '' && !preg_match('/[^a-zA-Z0-9._-]/', $old_name)) {
-            $src_path = board_file_storage_dir($src_table) . '/' . $old_name;
-            if (is_file($src_path)) {
+            try {
+                $src_path = board_resolve_attachment_disk_path($src_table, $old_name);
+            } catch (RuntimeException $e) {
+                $src_path = '';
+            }
+            if ($src_path !== '' && is_file($src_path)) {
                 $dst_dir = board_file_storage_dir($dst_table);
                 $dst_path = $dst_dir . '/' . $new_name;
                 if (is_file($dst_path)) {
