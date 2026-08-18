@@ -16,10 +16,10 @@ import {
 } from '@/app/constants/contactContent';
 import {
   CONSULT_CHAT_INFLOW,
-  CONSULT_CONTACT_STEP,
-  CONSULT_QUESTIONS,
-  CONSULT_TOTAL_STEPS,
+  answersThroughStep,
   formatConsultContent,
+  getConsultPath,
+  getConsultTotalSteps,
   type ConsultAnswers,
 } from '@/app/constants/consultFlow';
 import { getInquiryAttribution } from '@/app/lib/inquiryInflow';
@@ -50,8 +50,11 @@ export default function ConsultChatWidget() {
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentQuestion = step < CONSULT_CONTACT_STEP ? CONSULT_QUESTIONS[step] : null;
-  const progress = ((step + 1) / CONSULT_TOTAL_STEPS) * 100;
+  const consultPath = getConsultPath(answers);
+  const contactStep = consultPath.length;
+  const totalSteps = getConsultTotalSteps(answers);
+  const currentQuestion = step < contactStep ? consultPath[step] : null;
+  const progress = ((step + 1) / totalSteps) * 100;
 
   const resetChat = useCallback(() => {
     setStep(0);
@@ -84,13 +87,18 @@ export default function ConsultChatWidget() {
 
   const handleSelectOption = (option: string) => {
     if (!currentQuestion) return;
-    setAnswers(current => ({ ...current, [currentQuestion.id]: option }));
+
+    const nextAnswers: ConsultAnswers = { ...answers, [currentQuestion.id]: option };
+    const nextPath = getConsultPath(nextAnswers);
+    setAnswers(answersThroughStep(nextAnswers, nextPath, step));
     setStep(current => current + 1);
   };
 
   const handleBack = () => {
     if (step === 0) return;
-    setStep(step - 1);
+    const previousStep = step - 1;
+    setAnswers(answersThroughStep(answers, consultPath, previousStep));
+    setStep(previousStep);
   };
 
   const handleFormInteraction = () => {
@@ -238,7 +246,7 @@ export default function ConsultChatWidget() {
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <span className="text-[11px] text-gray-400 md:text-xs">
-                {step + 1}/{CONSULT_TOTAL_STEPS}
+                {step + 1}/{totalSteps}
               </span>
               <button
                 type="button"
@@ -282,7 +290,7 @@ export default function ConsultChatWidget() {
               </div>
             )}
 
-            {step === CONSULT_CONTACT_STEP && (
+            {step === contactStep && (
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 <h3 className="break-keep text-sm font-bold leading-snug text-[#023373] md:text-base">
                   입력하신 내용을 바탕으로 담당 변호사가 곧 연락드립니다.
