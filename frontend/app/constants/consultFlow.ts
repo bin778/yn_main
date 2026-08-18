@@ -9,13 +9,6 @@ export type ConsultQuestion = {
   options: string[];
 };
 
-export const CONSULT_CHAT_LAWYER_IMAGES = [
-  '/img/lawyer1.webp',
-  '/img/lawyer2.webp',
-  '/img/lawyer3.webp',
-  '/img/lawyer4.webp',
-] as const;
-
 export const CONSULT_QUESTIONS: ConsultQuestion[] = [
   {
     id: 'topic',

@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { BsChatDotsFill } from 'react-icons/bs';
 
 import { useConsultChat } from '@/app/components/consult/consultChatContext';
 import { useLazyReCaptcha } from '@/app/components/contact/lazyReCaptchaContext';
@@ -16,7 +16,6 @@ import {
 } from '@/app/constants/contactContent';
 import {
   CONSULT_CHAT_INFLOW,
-  CONSULT_CHAT_LAWYER_IMAGES,
   CONSULT_CONTACT_STEP,
   CONSULT_QUESTIONS,
   CONSULT_TOTAL_STEPS,
@@ -28,8 +27,6 @@ import { validateInquiryFields } from '@/app/lib/inquiryValidation';
 import { trackGaEvent } from '@/app/lib/trackGaEvent';
 
 const RECAPTCHA_ACTION = 'submit_consult';
-const LAUNCHER_SLIDE_MS = 2500;
-const LAUNCHER_SLIDES = [...CONSULT_CHAT_LAWYER_IMAGES, CONSULT_CHAT_LAWYER_IMAGES[0]];
 
 type InquiryResponse = {
   result: string;
@@ -52,8 +49,6 @@ export default function ConsultChatWidget() {
   const [tel, setTel] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [launcherSlide, setLauncherSlide] = useState(0);
-  const [launcherInstant, setLauncherInstant] = useState(false);
 
   const currentQuestion = step < CONSULT_CONTACT_STEP ? CONSULT_QUESTIONS[step] : null;
   const progress = ((step + 1) / CONSULT_TOTAL_STEPS) * 100;
@@ -75,20 +70,6 @@ export default function ConsultChatWidget() {
     if (recaptchaEnabled) activate();
     open();
   };
-
-  useEffect(() => {
-    if (isOpen) return;
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    const intervalId = window.setInterval(() => {
-      setLauncherInstant(false);
-      setLauncherSlide(current => current + 1);
-    }, LAUNCHER_SLIDE_MS);
-
-    return () => window.clearInterval(intervalId);
-  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -213,33 +194,12 @@ export default function ConsultChatWidget() {
           onClick={handleOpen}
           aria-label="1분 상담 시작"
           className={
-            'h-16 w-16 cursor-pointer overflow-hidden rounded-full bg-[#023373] ' +
-            'shadow-[0_10px_24px_rgba(15,23,42,0.14)] ring-2 ring-white/40 transition-transform ' +
-            'hover:scale-105 hover:ring-white/70 md:h-20 md:w-20 [--launcher-size:64px] md:[--launcher-size:80px]'
+            'flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-[#023373] ' +
+            'text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)] ring-2 ring-white/40 ' +
+            'transition-transform hover:scale-105 hover:ring-white/70 md:h-20 md:w-20'
           }
         >
-          <span
-            className={`flex w-max ${launcherInstant ? '' : 'transition-transform duration-500 ease-out'}`}
-            style={{ transform: `translateX(calc(-${launcherSlide} * var(--launcher-size)))` }}
-            onTransitionEnd={() => {
-              if (launcherSlide >= CONSULT_CHAT_LAWYER_IMAGES.length) {
-                setLauncherInstant(true);
-                setLauncherSlide(0);
-              }
-            }}
-          >
-            {LAUNCHER_SLIDES.map((imageSrc, index) => (
-              <Image
-                key={`${imageSrc}-${index}`}
-                src={imageSrc}
-                alt=""
-                width={80}
-                height={80}
-                sizes="(max-width: 768px) 64px, 80px"
-                className="h-16 w-16 shrink-0 object-cover object-[center_12%] md:h-20 md:w-20"
-              />
-            ))}
-          </span>
+          <BsChatDotsFill className="h-7 w-7 md:h-9 md:w-9" aria-hidden="true" />
         </button>
       )}
 
