@@ -2,8 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-import { GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
+import { ConsultChatProvider } from '@/app/components/consult/ConsultChatProvider';
+import ConsultChatWidget from '@/app/components/consult/ConsultChatWidget';
+import { useConsultChat } from '@/app/components/consult/consultChatContext';
+import { LazyReCaptchaProvider } from '@/app/components/contact/LazyReCaptchaProvider';
+import { ADMIN_PATH_PREFIX, GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 
 const QUICK_ACTIONS = [
   {
@@ -49,71 +54,104 @@ const QUICK_ACTIONS = [
   },
 ];
 
-export default function FloatingQuickActions() {
+function QuickActionCapsule() {
+  return (
+    <div
+      className={
+        'flex w-16 flex-col items-center rounded-[999px] bg-[#023373] px-1 py-1 text-white ' +
+        'shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:w-[80px] md:px-3 md:py-3'
+      }
+    >
+      {QUICK_ACTIONS.map((action, index) => {
+        const content = (
+          <>
+            <span className="flex h-7 items-center justify-center md:h-8 [&_img]:h-6 [&_img]:w-6 md:[&_img]:h-8 md:[&_img]:w-8 [&_svg]:h-6 [&_svg]:w-6 md:[&_svg]:h-8 md:[&_svg]:w-8">
+              {action.icon}
+            </span>
+            <span className="mt-1.5 text-[11px] font-semibold leading-tight md:mt-2 md:text-[13px]">
+              {action.label}
+            </span>
+          </>
+        );
+
+        const className = `flex w-full flex-col items-center justify-center py-3 text-center transition-opacity hover:opacity-80 md:py-4 ${
+          index > 0 ? 'border-t border-white/15' : ''
+        }`;
+
+        if (action.kind === 'link') {
+          return (
+            <Link key={action.label} href={action.href} className={className} aria-label={action.label}>
+              {content}
+            </Link>
+          );
+        }
+
+        const isTrackedAction = action.href.startsWith('tel:') || action.href.includes('pf.kakao.com');
+
+        return (
+          <a
+            key={action.label}
+            href={action.href}
+            className={className}
+            aria-label={action.label}
+            target={action.target}
+            rel={action.rel}
+            {...(isTrackedAction ? { [GA_SOURCE_ATTR]: GA_SOURCES.FLOATING_QUICK_ACTIONS } : {})}
+          >
+            {content}
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function FloatingQuickActionsBody() {
+  const { isOpen } = useConsultChat();
+
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="fixed right-3 bottom-4 z-[100] flex flex-col items-center md:right-10 md:bottom-8">
-      <div className="flex w-[60px] md:w-[80px] flex-col items-center rounded-[999px] bg-[#023373] px-1 py-1 text-white shadow-[0_12px_30px_rgba(2,51,115,0.28)] md:px-3 md:py-3">
-        {QUICK_ACTIONS.map((action, index) => {
-          const content = (
-            <>
-              <span className="flex h-7 items-center justify-center md:h-8 [&_svg]:h-6 [&_svg]:w-6 md:[&_svg]:h-8 md:[&_svg]:w-8 [&_img]:h-6 [&_img]:w-6 md:[&_img]:h-8 md:[&_img]:w-8">
-                {action.icon}
-              </span>
-              <span className="mt-1.5 text-[11px] font-semibold leading-tight md:mt-2 md:text-[13px]">
-                {action.label}
-              </span>
-            </>
-          );
+    <div className="fixed right-3 bottom-4 z-[100] flex flex-col items-center md:right-8 md:bottom-8">
+      {!isOpen && <QuickActionCapsule />}
 
-          const className = `flex w-full flex-col items-center justify-center py-3 text-center transition-opacity hover:opacity-80 md:py-4 ${
-            index > 0 ? 'border-t border-white/15' : ''
-          }`;
-
-          if (action.kind === 'link') {
-            return (
-              <Link key={action.label} href={action.href} className={className} aria-label={action.label}>
-                {content}
-              </Link>
-            );
+      <div className="relative mt-2 flex flex-col items-center gap-2 md:mt-4 md:gap-4">
+        <ConsultChatWidget />
+        <button
+          type="button"
+          className={
+            'flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-white ' +
+            'text-[#023373] shadow-[0_10px_24px_rgba(15,23,42,0.14)] transition-transform hover:scale-105 md:h-20 md:w-20'
           }
-
-          const isTrackedAction = action.href.startsWith('tel:') || action.href.includes('pf.kakao.com');
-
-          return (
-            <a
-              key={action.label}
-              href={action.href}
-              className={className}
-              aria-label={action.label}
-              target={action.target}
-              rel={action.rel}
-              {...(isTrackedAction ? { [GA_SOURCE_ATTR]: GA_SOURCES.FLOATING_QUICK_ACTIONS } : {})}
-            >
-              {content}
-            </a>
-          );
-        })}
-      </div>
-
-      <button
-        type="button"
-        className="mt-2 md:mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[#023373] shadow-[0_10px_24px_rgba(15,23,42,0.14)] transition-transform hover:scale-105 md:mt-6 md:h-16 md:w-16"
-        onClick={handleScrollTop}
-        aria-label="맨 위로 이동"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          className="h-7 w-7 fill-none stroke-current stroke-[2.2] md:h-9 md:w-9"
+          onClick={handleScrollTop}
+          aria-label="맨 위로 이동"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V5" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="m5 12 7-7 7 7" />
-        </svg>
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            className="h-8 w-8 fill-none stroke-current stroke-[2.2] md:h-10 md:w-10"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V5" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="m5 12 7-7 7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
+  );
+}
+
+export default function FloatingQuickActions() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith(ADMIN_PATH_PREFIX)) return null;
+
+  return (
+    <ConsultChatProvider>
+      <LazyReCaptchaProvider>
+        <FloatingQuickActionsBody />
+      </LazyReCaptchaProvider>
+    </ConsultChatProvider>
   );
 }
