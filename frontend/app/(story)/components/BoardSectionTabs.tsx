@@ -1,11 +1,7 @@
 import Link from 'next/link';
 
 import { BOARD_META } from '../constants/boardContent';
-import {
-  buildBoardSectionListPath,
-  getBoardSections,
-  type SectionedBoTable,
-} from '../constants/boardSections';
+import { buildBoardSectionListPath, getBoardSections, type SectionedBoTable } from '../constants/boardSections';
 
 type BoardSectionTabsProps = {
   boTable: SectionedBoTable;
@@ -40,8 +36,7 @@ export default function BoardSectionTabs({ boTable, category, subcategory = null
       ? []
       : [{ slug: null, label: '전체' }, ...children.map(child => ({ slug: child.slug, label: child.label }))];
 
-  const parentGridClass =
-    parentTabs.length <= 5 ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6';
+  const parentGridClass = `grid-cols-2 md:grid-cols-${parentTabs.length}`;
 
   return (
     <div className="mx-auto mb-6 max-w-[900px] px-4 md:px-6">
@@ -63,7 +58,7 @@ export default function BoardSectionTabs({ boTable, category, subcategory = null
       </nav>
 
       {childTabs.length > 0 && selected !== null ? (
-        <nav className="mt-2" aria-label={`${selected.label} 하위 분류 선택`}>
+        <nav className="mt-3 pt-3 border-t border-[#ddd]" aria-label={`${selected.label} 하위 분류 선택`}>
           <ul className="grid grid-cols-3 gap-2 md:grid-cols-5">
             {childTabs.map(tab => {
               const isActive = subcategory === tab.slug;

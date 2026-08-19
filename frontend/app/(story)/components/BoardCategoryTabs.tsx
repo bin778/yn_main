@@ -17,7 +17,7 @@ export default function BoardCategoryTabs({ current }: BoardCategoryTabsProps) {
             <li key={boTable}>
               <Link
                 href={`/${getBoardPathSlug(boTable)}`}
-                className={`flex h-11 items-center justify-center border text-[14px] font-medium tracking-tight transition-colors ${
+                className={`flex h-11 items-center justify-center border text-base tracking-tight transition-colors ${
                   isActive
                     ? 'border-[#1a3151] bg-[#1a3151] text-white'
                     : 'border-[#ddd] bg-white text-[#555] hover:border-[#1a3151] hover:text-[#1a3151]'

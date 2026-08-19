@@ -51,7 +51,7 @@ function SearchToolbar({
           <select
             name="sfl"
             defaultValue={sfl}
-            className="h-11 border border-[#ddd] bg-white px-2 text-[14px] text-[#121212] outline-none focus:border-[#1a3151]"
+            className="h-11 shrink-0 border border-[#ddd] bg-white px-2 text-[14px] text-[#121212] outline-none focus:border-[#1a3151]"
             aria-label="검색 구분"
           >
             <option value="subject">제목</option>
@@ -64,11 +64,11 @@ function SearchToolbar({
             name="q"
             defaultValue={q}
             placeholder="검색어를 입력하세요"
-            className="h-11 flex-1 border border-[#ddd] px-3 text-[14px] text-[#121212] outline-none focus:border-[#1a3151]"
+            className="h-11 min-w-0 flex-1 border border-[#ddd] px-2 text-[14px] text-[#121212] outline-none focus:border-[#1a3151]"
           />
           <button
             type="submit"
-            className="h-11 border border-[#1a3151] bg-[#1a3151] px-4 text-[14px] font-medium text-white"
+            className="h-11 shrink-0 whitespace-nowrap border border-[#1a3151] bg-[#1a3151] px-4 text-[14px] font-medium text-white"
           >
             검색
           </button>
