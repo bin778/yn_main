@@ -12,6 +12,13 @@ type BoardSectionTabsProps = {
 const TAB_CLASS =
   'flex min-h-11 items-center justify-center border px-2 py-2 text-center text-[13px] font-medium leading-tight tracking-tight transition-colors md:text-[14px]';
 
+const PARENT_GRID_BY_COUNT: Record<number, string> = {
+  4: 'grid-cols-2 md:grid-cols-4',
+  5: 'grid-cols-2 md:grid-cols-5',
+  6: 'grid-cols-2 md:grid-cols-6',
+  7: 'grid-cols-2 md:grid-cols-7',
+};
+
 function tabClassName(isActive: boolean): string {
   return `${TAB_CLASS} ${
     isActive
@@ -36,7 +43,7 @@ export default function BoardSectionTabs({ boTable, category, subcategory = null
       ? []
       : [{ slug: null, label: '전체' }, ...children.map(child => ({ slug: child.slug, label: child.label }))];
 
-  const parentGridClass = `grid-cols-2 md:grid-cols-${parentTabs.length}`;
+  const parentGridClass = PARENT_GRID_BY_COUNT[parentTabs.length] ?? 'grid-cols-2 md:grid-cols-5';
 
   return (
     <div className="mx-auto mb-6 max-w-[900px] px-4 md:px-6">
