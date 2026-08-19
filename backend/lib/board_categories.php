@@ -10,15 +10,37 @@ function board_section_definitions()
     $shared = array(
         'criminal' => array(
             'label'    => '형사',
-            'children' => array('drunk-driving', 'indecent-assault', 'stalking', 'other'),
+            'children' => array(
+                'drunk-driving',
+                'drugs',
+                'indecent-assault',
+                'stalking',
+                'property-crime',
+                'other',
+            ),
         ),
         'civil' => array(
             'label'    => '민사',
-            'children' => array('real-estate', 'damages', 'other'),
+            'children' => array('real-estate', 'damages', 'uncollected', 'other'),
         ),
         'family' => array(
             'label'    => '가사',
-            'children' => array('divorce', 'inheritance', 'other'),
+            'children' => array(
+                'divorce',
+                'adultery-damages',
+                'inheritance',
+                'limited-acceptance',
+                'gender-correction',
+                'other',
+            ),
+        ),
+        'admin-labor' => array(
+            'label'    => '행정/노동',
+            'children' => array('unfair-dismissal', 'administrative-suit', 'other'),
+        ),
+        'overseas-dispute' => array(
+            'label'    => '해외분쟁',
+            'children' => array(),
         ),
         'other' => array(
             'label'    => '기타',
@@ -29,14 +51,16 @@ function board_section_definitions()
     return array(
         'success' => $shared,
         'column'  => array(
-            'criminal'     => $shared['criminal'],
-            'civil'        => $shared['civil'],
-            'family'       => $shared['family'],
-            'advisor-an' => array(
+            'criminal'          => $shared['criminal'],
+            'civil'             => $shared['civil'],
+            'family'            => $shared['family'],
+            'admin-labor'       => $shared['admin-labor'],
+            'overseas-dispute'  => $shared['overseas-dispute'],
+            'advisor-an'        => array(
                 'label'    => '안성포 고문 칼럼',
                 'children' => array(),
             ),
-            'other'        => $shared['other'],
+            'other'             => $shared['other'],
         ),
         'news' => array(
             'newsletter'  => array('label' => '뉴스레터', 'children' => array()),

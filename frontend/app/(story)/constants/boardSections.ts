@@ -18,9 +18,11 @@ const SHARED_PRACTICE_SECTIONS: readonly BoardSection[] = [
     slug: 'criminal',
     label: '형사',
     children: [
-      { slug: 'drunk-driving', label: '음주운전' },
+      { slug: 'drunk-driving', label: '음주/교통사고' },
+      { slug: 'drugs', label: '마약' },
       { slug: 'indecent-assault', label: '성범죄' },
       { slug: 'stalking', label: '스토킹' },
+      { slug: 'property-crime', label: '재산범죄' },
       { slug: 'other', label: '기타' },
     ],
   },
@@ -30,6 +32,7 @@ const SHARED_PRACTICE_SECTIONS: readonly BoardSection[] = [
     children: [
       { slug: 'real-estate', label: '부동산' },
       { slug: 'damages', label: '손해배상' },
+      { slug: 'uncollected', label: '미수금' },
       { slug: 'other', label: '기타' },
     ],
   },
@@ -38,9 +41,26 @@ const SHARED_PRACTICE_SECTIONS: readonly BoardSection[] = [
     label: '가사',
     children: [
       { slug: 'divorce', label: '이혼' },
+      { slug: 'adultery-damages', label: '상간위자료' },
       { slug: 'inheritance', label: '상속(유류분)' },
+      { slug: 'limited-acceptance', label: '한정승인' },
+      { slug: 'gender-correction', label: '성별정정' },
       { slug: 'other', label: '기타' },
     ],
+  },
+  {
+    slug: 'admin-labor',
+    label: '행정/노동',
+    children: [
+      { slug: 'unfair-dismissal', label: '부당해고' },
+      { slug: 'administrative-suit', label: '행정소송' },
+      { slug: 'other', label: '기타' },
+    ],
+  },
+  {
+    slug: 'overseas-dispute',
+    label: '해외분쟁',
+    children: [],
   },
 ];
 
