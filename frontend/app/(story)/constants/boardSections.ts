@@ -58,6 +58,8 @@ const ADVISOR_AN_SECTION: BoardSection = {
 
 const NEWS_SECTIONS: readonly BoardSection[] = [
   { slug: 'newsletter', label: '뉴스레터', children: [] },
+  { slug: 'press', label: '언론보도', children: [] },
+  { slug: 'seminar', label: '세미나', children: [] },
   { slug: 'mou', label: 'MOU&협약', children: [] },
   { slug: 'appointment', label: '위촉', children: [] },
   { slug: 'other', label: '기타', children: [] },

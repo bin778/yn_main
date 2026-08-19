@@ -40,6 +40,8 @@ function board_section_definitions()
         ),
         'news' => array(
             'newsletter'  => array('label' => '뉴스레터', 'children' => array()),
+            'press'       => array('label' => '언론보도', 'children' => array()),
+            'seminar'     => array('label' => '세미나', 'children' => array()),
             'mou'         => array('label' => 'MOU&협약', 'children' => array()),
             'appointment' => array('label' => '위촉', 'children' => array()),
             'other'       => array('label' => '기타', 'children' => array()),
