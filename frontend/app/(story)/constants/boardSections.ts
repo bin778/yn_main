@@ -18,7 +18,7 @@ const SHARED_PRACTICE_SECTIONS: readonly BoardSection[] = [
     slug: 'criminal',
     label: '형사',
     children: [
-      { slug: 'drunk-driving', label: '음주/교통사고' },
+      { slug: 'drunk-driving', label: '음주운전/교통' },
       { slug: 'drugs', label: '마약' },
       { slug: 'indecent-assault', label: '성범죄' },
       { slug: 'stalking', label: '스토킹' },
