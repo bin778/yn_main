@@ -290,9 +290,9 @@ export const CONSULT_TYPING_DELAY_MS = 320;
 
 export const CONSULT_CHAT_COPY = {
   title: '내 상황 확인',
-  greeting: '안녕하세요, 법무법인 여온입니다. 상황을 짧게 확인하거나 바로 상담을 접수해 주세요.',
-  skipHint: '지금 바로 상담 연결',
-  skipCta: '지금 바로 상담 연결',
+  greeting: '안녕하세요, 법무법인 여온입니다. 상황을 짧게 확인하거나 바로 전화 상담을 받으세요.',
+  skipHint: '지금 바로 전화 상담',
+  skipCta: '지금 바로 전화 상담',
   contactTitleWithAnswers: '지금까지 알려주신 상황을 함께 전달합니다. 성함과 연락처를 남겨 주세요.',
   contactTitleWithoutAnswers: '성함과 연락처를 남겨주시면 담당 변호사가 확인 후 연락드립니다.',
   contactSubmit: '상담 신청하기',

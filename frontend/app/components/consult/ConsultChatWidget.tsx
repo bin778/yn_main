@@ -40,6 +40,7 @@ import { trackGaEvent } from '@/app/lib/trackGaEvent';
 const RECAPTCHA_ACTION = 'submit_consult';
 const AVATAR_SIZE = 36;
 const CONSULT_FALLBACK_OPTION = '그 외 기타 사안입니다.';
+const CONSULT_PHONE_HREF = 'tel:023182981';
 
 type InquiryResponse = {
   result: string;
@@ -168,14 +169,6 @@ export default function ConsultChatWidget() {
       return;
     }
     setIsTyping(true);
-  };
-
-  const handleSkipToContact = () => {
-    if (isTyping) {
-      setIsTyping(false);
-      setStep(current => current + 1);
-    }
-    setSkipToContact(true);
   };
 
   const handleBack = () => {
@@ -349,16 +342,16 @@ export default function ConsultChatWidget() {
             </div>
             <div className="flex shrink-0 items-center gap-1">
               {!showContact && (
-                <button
-                  type="button"
-                  onClick={handleSkipToContact}
+                <a
+                  href={CONSULT_PHONE_HREF}
                   className={
-                    'cursor-pointer rounded-full bg-[#023373] px-2 md:px-3 py-1 text-sm md:text-base font-bold text-white ' +
+                    'rounded-full bg-[#023373] px-2 py-1 text-sm font-bold text-white ' +
+                    'md:px-3 md:text-base ' +
                     'hover:bg-[#01285c]'
                   }
                 >
                   {CONSULT_CHAT_COPY.skipCta}
-                </button>
+                </a>
               )}
               <span className="px-1 text-xs text-gray-400">
                 {showContact ? totalSteps : step + 1}/{totalSteps}
@@ -384,13 +377,12 @@ export default function ConsultChatWidget() {
                   {CONSULT_CHAT_COPY.greeting}
                 </p>
                 {step === 0 && !showContact && !isTyping && (
-                  <button
-                    type="button"
-                    onClick={handleSkipToContact}
+                  <a
+                    href={CONSULT_PHONE_HREF}
                     className="mt-1 cursor-pointer text-[13px] md:text-sm font-semibold text-[#023373] underline"
                   >
                     {CONSULT_CHAT_COPY.skipHint}
-                  </button>
+                  </a>
                 )}
               </BotMessage>
 
