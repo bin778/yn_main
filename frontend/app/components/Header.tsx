@@ -106,7 +106,7 @@ export default function Header() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-12 lg:flex">
+          <nav className="hidden items-center gap-6 lg:flex min-[1200px]:gap-12">
             {SHOW_CONSULTATION_NAV ? (
               <div className="group relative flex h-[80px] items-center">
                 <span className={`${navLinkClass} inline-flex items-center gap-1.5`}>
