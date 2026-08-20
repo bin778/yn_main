@@ -50,7 +50,7 @@ export default function ProcessSocialSection() {
             loading="eager"
           />
         </div>
-        <nav className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center md:justify-start">
+        <nav className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {SOCIAL_LINKS.map(link => {
             const social = SOCIAL_ICON_MAP[link.label];
             const Icon = social?.icon;
@@ -58,7 +58,7 @@ export default function ProcessSocialSection() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex items-center justify-center gap-2 border border-gray-300 bg-white px-14 py-3 text-base font-semibold text-[#121212] transition-colors hover:border-[#023373] hover:text-[#023373] md:py-4 md:text-lg lg:px-28"
+                className="inline-flex w-full items-center justify-center gap-2 border border-gray-300 bg-white px-4 py-3 text-base font-semibold text-[#121212] transition-colors hover:border-[#023373] hover:text-[#023373] md:py-4 md:text-lg"
                 {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
                 {Icon && <Icon style={{ color: social.color }} className="text-xl shrink-0" aria-hidden="true" />}
