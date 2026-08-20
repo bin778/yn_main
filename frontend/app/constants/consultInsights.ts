@@ -1,4 +1,4 @@
-import { CONSULT_TOPICS, type ConsultQuestionId } from '@/app/constants/consultFlow';
+import { CONSULT_TOPICS, type ConsultQuestionId, type ConsultTopic } from '@/app/constants/consultFlow';
 
 export type ConsultInsightLawyer = {
   name: string;
@@ -43,8 +43,13 @@ const LAWYER_KIM_SUN_HO: ConsultInsightLawyer = {
 export const DEFAULT_CONSULT_LAWYER = LAWYER_YOO_YOUNG_KYU;
 
 const INSIGHT_FALLBACK_KEY = '*';
+const CONSULT_OTHER_OPTION = '그 외 기타 사안입니다.';
+type ConsultInsightOptionMessage = string | Partial<Record<ConsultTopic, string>>;
 
-const CONSULT_INSIGHT_MESSAGES: Partial<Record<ConsultQuestionId, Record<string, string>>> = {
+const DEFAULT_OTHER_OPTION_MESSAGE =
+  '복합적인 쟁점이 얽혀있는 사안이거나, 구체적인 상황 청취가 먼저 필요한 경우일 수 있습니다. 남겨주신 내용을 바탕으로 담당 변호사가 전체적인 맥락을 짚어보고 최적의 대응 방향을 안내해 드리겠습니다.';
+
+const CONSULT_INSIGHT_MESSAGES: Partial<Record<ConsultQuestionId, Record<string, ConsultInsightOptionMessage>>> = {
   topic: {
     [CONSULT_TOPICS.FAMILY]:
       '이혼·가사는 재산, 자녀, 책임 여부가 함께 얽히는 경우가 많습니다. 지금 가장 고민하시는 부분부터 차례로 확인하겠습니다.',
@@ -120,6 +125,22 @@ const CONSULT_INSIGHT_MESSAGES: Partial<Record<ConsultQuestionId, Record<string,
       '형사 처분과 별도로 직장 징계·해고 문제가 동시에 진행될 수 있습니다. 두 절차를 함께 고려한 대응 방향을 잡아 드리겠습니다.',
     '피해자와의 합의 진행이 가장 막막합니다.':
       '피해자와의 합의는 형량과 행정처분 모두에 영향을 줄 수 있습니다. 합의 가능성과 진행 방법을 함께 검토해 보겠습니다.',
+    [CONSULT_OTHER_OPTION]: {
+      [CONSULT_TOPICS.FAMILY]:
+        '이혼 시에는 재산, 양육권, 위자료 외에도 연금 분할이나 면접교섭권 등 세부적으로 조율할 사안이 많습니다. 현재 가장 신경 쓰이시는 부분을 변호사가 직접 듣고 짚어드리겠습니다.',
+      [CONSULT_TOPICS.ECONOMIC_CRIME]:
+        '단순한 피해 회복이나 방어를 넘어, 계좌 동결 해제나 공범과의 관계 등 특수한 쟁점이 얽혀있을 수 있습니다. 어떤 부분에서 가장 답답함을 느끼시는지 파악해 명쾌한 해답을 드리겠습니다.',
+      [CONSULT_TOPICS.REAL_ESTATE]:
+        '보증금이나 명도 외에도 누수 분쟁, 경매, 지역주택조합 탈퇴 등 부동산 이슈는 매우 다양합니다. 얽혀있는 권리 관계를 분석하여 가장 빠르고 안전한 해결책을 찾아드리겠습니다.',
+      [CONSULT_TOPICS.SEXUAL_ASSAULT]:
+        '합의나 무죄 주장 외에도, 직장 내 징계 방어나 디지털 성범죄 영상물 삭제 등 2차적인 조치가 시급한 상황일 수 있습니다. 의뢰인님의 상황에 맞는 다각적인 조력을 약속드립니다.',
+      [CONSULT_TOPICS.DRUG]:
+        '투약이나 소지를 넘어 밀수입, 유통, 또는 가족의 강제 입원 치료 등 사안이 훨씬 복잡할 수 있습니다. 수사망의 범위를 예측하고 그에 맞는 방어 및 선처 전략을 세워드리겠습니다.',
+      [CONSULT_TOPICS.DRUNK_DRIVING]:
+        '단순 처벌 감경을 넘어 렌터카나 법인차량 면책금 문제, 음주운전 방조 혐의 등 부수적인 문제가 발생한 상황일 수 있습니다. 꼬여있는 쟁점을 하나씩 확실하게 풀어드리겠습니다.',
+      [CONSULT_TOPICS.CORPORATE]:
+        '스타트업 동업 파기, 투자금 반환, M&A 등 기업 법무는 그 범위가 방대합니다. 현재 회사가 처한 특수한 산업군과 리스크를 고려하여 맞춤형 법률 컨설팅을 제공하겠습니다.',
+    },
   },
   status: {
     '주요 사항에 관한 논의가 마무리되었습니다.':
@@ -178,6 +199,22 @@ const CONSULT_INSIGHT_MESSAGES: Partial<Record<ConsultQuestionId, Record<string,
       '재판이 진행 중이라면 남은 기일까지 준비할 수 있는 사항을 빠르게 정리하는 것이 중요합니다. 현재 일정과 쟁점을 함께 확인하겠습니다.',
     '절차를 잘 몰라 전체적인 확인이 필요합니다.':
       '괜찮습니다. 현재 어느 단계인지부터 함께 확인하고, 앞으로 필요한 대응을 순서대로 안내해 드리겠습니다.',
+    [CONSULT_OTHER_OPTION]: {
+      [CONSULT_TOPICS.FAMILY]:
+        '단순한 의견 차이를 넘어, 조정 신청을 앞두고 계시거나 상대방의 갑작스러운 재산 처분 등 당황스러운 상황이실 수 있습니다. 정확한 현재 기점을 파악하여 다음 스텝을 안내해 드리겠습니다.',
+      [CONSULT_TOPICS.ECONOMIC_CRIME]:
+        '수사기관의 연락을 기다리고 계시거나, 상대방이 파산/회생을 신청하는 등 예상치 못한 변수가 생긴 상황일 수 있습니다. 복잡한 절차 속에서 지금 당장 해야 할 조치를 짚어드리겠습니다.',
+      [CONSULT_TOPICS.REAL_ESTATE]:
+        '내용증명을 보냈지만 반송되거나, 상대방이 적반하장으로 나오는 등 진행이 꽉 막힌 상태이실 수 있습니다. 변호사가 직접 개입하여 막힌 상황을 뚫어드리겠습니다.',
+      [CONSULT_TOPICS.SEXUAL_ASSAULT]:
+        '수사기관의 조사가 언제 시작될지 몰라 불안하시거나, 피해자 국선 변호사 선임 등 절차적인 조력을 알아보고 계신 단계일 수 있습니다. 현재 시점에서 가장 유리한 스탠스를 안내해 드리겠습니다.',
+      [CONSULT_TOPICS.DRUG]:
+        '아직 정식 입건 전이더라도 내사 중이거나 공범이 체포되어 불안감이 큰 상태이실 수 있습니다. 선제적인 자수나 조사 동행 등 가장 안전한 타이밍을 변호사가 조율해 드리겠습니다.',
+      [CONSULT_TOPICS.DRUNK_DRIVING]:
+        '측정 거부로 현행범 체포 후 풀려나셨거나, 피해자가 터무니없는 합의금을 요구하여 진행이 멈춘 상태일 수 있습니다. 혼자 고민하지 마시고 변호사를 통해 돌파구를 찾으시길 바랍니다.',
+      [CONSULT_TOPICS.CORPORATE]:
+        '내부 감사 진행 중이거나 언론 보도 대응 등 외부적인 압박이 동반된 긴급한 상황일 수 있습니다. 기업의 신뢰도와 직결되는 문제인 만큼, 신속하고 비밀스럽게 조력하겠습니다.',
+    },
   },
 };
 
@@ -210,7 +247,15 @@ export function getConsultInsight(
   const messages = CONSULT_INSIGHT_MESSAGES[questionId];
   if (!messages) return null;
 
-  const message = messages[option] ?? messages[INSIGHT_FALLBACK_KEY];
+  const entry = messages[option] ?? messages[INSIGHT_FALLBACK_KEY];
+  if (!entry) return null;
+
+  const message =
+    typeof entry === 'string'
+      ? entry
+      : topic && entry[topic as ConsultTopic]
+        ? entry[topic as ConsultTopic]
+        : DEFAULT_OTHER_OPTION_MESSAGE;
   if (!message) return null;
 
   return {

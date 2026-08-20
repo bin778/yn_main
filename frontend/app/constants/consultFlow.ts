@@ -38,6 +38,8 @@ export const CONSULT_TOPIC_QUESTION: ConsultQuestion = {
   ],
 };
 
+const CONSULT_FALLBACK_OPTION = '그 외 기타 사안입니다.';
+
 const FAMILY_PRIORITY_QUESTION: ConsultQuestion = {
   id: 'priority',
   label: '우선 고려',
@@ -47,6 +49,7 @@ const FAMILY_PRIORITY_QUESTION: ConsultQuestion = {
     '자녀의 양육권과 양육환경이 가장 중요합니다.',
     '위자료 및 법적 책임 여부를 확인하고 싶습니다.',
     '현재 상황에 대한 전반적인 검토가 필요합니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -59,6 +62,7 @@ const FAMILY_STATUS_QUESTION: ConsultQuestion = {
     '일부 사항에 대해 논의가 이루어졌습니다.',
     '의견 차이로 논의에 진전이 없는 상태입니다.',
     '아직 논의를 시작하지 않았습니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -71,6 +75,7 @@ const CORPORATE_PRIORITY_QUESTION: ConsultQuestion = {
     '인사/노무 갈등 (부당해고, 임금체불 등)',
     '경영권 방어 및 주주 간 지분 분쟁',
     '영업비밀 침해, 지식재산권, 부정경쟁',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -83,6 +88,7 @@ const CORPORATE_STATUS_QUESTION: ConsultQuestion = {
     '상대방(직원/거래처/주주 등)과 이견이 발생하여 조율 중입니다.',
     '내용증명 수발신 등 본격적인 법적 분쟁 조짐이 있습니다.',
     '이미 소송, 가처분, 고소 등이 제기되어 방어가 시급합니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -95,6 +101,7 @@ const ECONOMIC_CRIME_PRIORITY_QUESTION: ConsultQuestion = {
     '억울하게 사기 혐의를 받고 있어 무죄를 입증해야 합니다.',
     '혐의를 일부 인정하며, 원만한 합의와 선처가 필요합니다.',
     '투자/동업 분쟁으로 법적 책임 소재 파악이 필요합니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -107,6 +114,7 @@ const ECONOMIC_CRIME_STATUS_QUESTION: ConsultQuestion = {
     '고소장 접수 또는 경찰 조사가 진행 중입니다.',
     '검찰 송치 또는 재판으로 넘어간 상태입니다.',
     '상대방이 연락 두절되어 막막한 상태입니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -119,6 +127,7 @@ const REAL_ESTATE_PRIORITY_QUESTION: ConsultQuestion = {
     '세입자가 집을 비워주지 않아 명도소송이 필요합니다.',
     '매매계약 파기나 위약금 등 계약 관련 분쟁이 발생했습니다.',
     '소유권 분쟁이나 기타 법적 조언이 필요합니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -131,6 +140,7 @@ const REAL_ESTATE_STATUS_QUESTION: ConsultQuestion = {
     '내용증명 발송 등 공식적인 문제 제기를 마쳤습니다.',
     '가압류나 지급명령, 소송 등 법적 절차를 시작했습니다.',
     '상대방이 협조하지 않거나 회피하고 있습니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -143,6 +153,7 @@ const SEXUAL_ASSAULT_PRIORITY_QUESTION: ConsultQuestion = {
     '혐의를 인정하며, 피해자 합의와 최대한의 선처가 필요합니다.',
     '성범죄 피해자로서 가해자 처벌과 피해 보상을 원합니다.',
     '사안이 주변(가족/직장)에 알려지는 것을 막고 싶습니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -155,6 +166,7 @@ const SEXUAL_ASSAULT_STATUS_QUESTION: ConsultQuestion = {
     '경찰 조사를 앞두고 있거나, 방금 1차 조사를 마쳤습니다.',
     '검찰로 송치되었거나 재판을 기다리고 있는 상황입니다.',
     '피해자/가해자 측에서 연락이 오가고 있는 상황입니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -167,6 +179,7 @@ const DRUG_PRIORITY_QUESTION: ConsultQuestion = {
     '소지, 운반, 매매 등의 혐의를 받아 무거운 처벌이 예상됩니다.',
     '전혀 모르는 상태에서 연루되어 억울한 상황(무혐의 주장)입니다.',
     '자수를 고민 중이거나 수사기관의 조사 연락을 막 받았습니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -179,6 +192,7 @@ const DRUG_STATUS_QUESTION: ConsultQuestion = {
     '경찰의 연락을 받고 출석 일정을 조율 중입니다.',
     '압수수색을 받았거나 소변/모발 검사를 이미 진행했습니다.',
     '구속 수사를 받고 있거나 재판으로 넘어간 상태입니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -191,6 +205,7 @@ const DRUNK_PRIORITY_QUESTION: ConsultQuestion = {
     '면허 취소 방지 등 행정 처분 구제입니다.',
     '직장 내 징계나 해고 등 불이익을 막는 것입니다.',
     '피해자와의 합의 진행이 가장 막막합니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
@@ -203,6 +218,7 @@ const DRUNK_STATUS_QUESTION: ConsultQuestion = {
     '경찰 조사를 받았고, 검찰 송치를 기다리고 있습니다.',
     '이미 재판 일정이 잡혔거나 진행 중입니다.',
     '절차를 잘 몰라 전체적인 확인이 필요합니다.',
+    CONSULT_FALLBACK_OPTION,
   ],
 };
 
