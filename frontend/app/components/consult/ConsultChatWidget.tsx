@@ -310,7 +310,8 @@ export default function ConsultChatWidget() {
           </span>
           <span
             className={
-              'absolute inset-0 rounded-full bg-white shadow-[0_10px_24px_rgba(15,23,42,0.2)] ' + 'ring-2 ring-white/70'
+              'absolute inset-0 rounded-full bg-white shadow-[0_10px_24px_rgba(15,23,42,0.2)] ' +
+              'ring-2 ring-[#023373]'
             }
             aria-hidden="true"
           />
