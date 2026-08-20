@@ -39,6 +39,7 @@ import { trackGaEvent } from '@/app/lib/trackGaEvent';
 
 const RECAPTCHA_ACTION = 'submit_consult';
 const AVATAR_SIZE = 36;
+const CONSULT_FALLBACK_OPTION = '그 외 기타 사안입니다.';
 
 type InquiryResponse = {
   result: string;
@@ -161,6 +162,11 @@ export default function ConsultChatWidget() {
     const nextAnswers: ConsultAnswers = { ...answers, [currentQuestion.id]: option };
     const nextPath = getConsultPath(nextAnswers);
     setAnswers(answersThroughStep(nextAnswers, nextPath, step));
+    if (option === CONSULT_FALLBACK_OPTION) {
+      setSkipToContact(true);
+      setIsTyping(false);
+      return;
+    }
     setIsTyping(true);
   };
 
