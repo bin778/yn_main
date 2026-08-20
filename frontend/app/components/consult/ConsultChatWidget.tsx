@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { BsChatDotsFill } from 'react-icons/bs';
 
 import { useConsultChat } from '@/app/components/consult/consultChatContext';
 import { useLazyReCaptcha } from '@/app/components/contact/lazyReCaptchaContext';
@@ -294,14 +293,37 @@ export default function ConsultChatWidget() {
         <button
           type="button"
           onClick={handleOpen}
-          aria-label="1분 상담 시작"
+          aria-label="챗봇 상담 시작"
           className={
-            'flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-[#023373] ' +
-            'text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)] ring-2 ring-white/40 ' +
-            'transition-transform hover:scale-105 hover:ring-white/70 md:h-20 md:w-20'
+            'relative flex h-16 w-16 cursor-pointer items-center justify-center text-[#023373] ' +
+            'transition-transform hover:scale-105 ' +
+            'md:h-20 md:w-20'
           }
         >
-          <BsChatDotsFill className="h-7 w-7 md:h-9 md:w-9" aria-hidden="true" />
+          <span
+            className={
+              'absolute -top-0.5 -left-0.5 z-10 rounded-full bg-[#023373] px-2 py-1 ' +
+              'text-[11px] leading-none font-bold text-white shadow-sm md:-top-1 md:-left-1 md:px-2.5 md:text-xs'
+            }
+          >
+            챗봇
+          </span>
+          <span
+            className={
+              'absolute inset-0 rounded-full bg-white shadow-[0_10px_24px_rgba(15,23,42,0.2)] ' + 'ring-2 ring-white/70'
+            }
+            aria-hidden="true"
+          />
+          <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full">
+            <Image
+              src="/img/chatbot.webp"
+              alt=""
+              width={88}
+              height={88}
+              className="h-20 w-20 object-contain md:h-24 md:w-24"
+              aria-hidden="true"
+            />
+          </span>
         </button>
       )}
 
