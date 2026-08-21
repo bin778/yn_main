@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once __DIR__ . '/../config/db_conn.php';
 
 const CALL_LEAD_GCLID_MAX = 255;
+const CALL_LEAD_INFLOW_MAX = 45;
 const CALL_LEAD_INFLOW_URL = 'contact';
 const CALL_LEAD_INFLOW_URL_GOOGLE = 'contact-ad';
 
@@ -109,6 +110,18 @@ if ($source === null || $source === '') {
     $source = $default_source;
 }
 
+$default_inflow = $channel_raw === 'kakao' ? '카톡클릭' : '전화클릭';
+$c_inflow = isset($data->c_inflow) ? trim((string) $data->c_inflow) : '';
+$c_inflow = preg_replace('/[\x00-\x1F\x7F]/', '', $c_inflow);
+if ($c_inflow === null || $c_inflow === '') {
+    $c_inflow = $default_inflow;
+}
+if (function_exists('mb_substr')) {
+    $c_inflow = mb_substr($c_inflow, 0, CALL_LEAD_INFLOW_MAX, 'UTF-8');
+} else {
+    $c_inflow = substr($c_inflow, 0, CALL_LEAD_INFLOW_MAX);
+}
+
 // gclid가 있으면 항상 Google Ads 유입으로 기록 (프론트 page와 무관)
 $inflow_url = CALL_LEAD_INFLOW_URL_GOOGLE;
 $utm_campaign = 'google-ads';
@@ -155,10 +168,10 @@ try {
     }
 
     $query = "INSERT INTO user_inquiry (
-        c_date, c_name, c_tel, c_state, c_option,
+        c_date, c_name, c_tel, c_state, c_option, c_inflow,
         c_inflowdate, c_inflowurl, utm_source, utm_campaign, gclid, userip, c_state2, block
     ) VALUES (
-        NOW(), :name, :tel, :c_state, :source,
+        NOW(), :name, :tel, :c_state, :source, :c_inflow,
         NOW(), :inflow_url, 'google', :utm_campaign, :gclid, :ip, '', '0'
     )";
 
@@ -167,6 +180,7 @@ try {
     $stmt->bindParam(':tel', $lead_tel);
     $stmt->bindParam(':c_state', $c_state);
     $stmt->bindParam(':source', $source);
+    $stmt->bindParam(':c_inflow', $c_inflow);
     $stmt->bindParam(':inflow_url', $inflow_url);
     $stmt->bindParam(':utm_campaign', $utm_campaign);
     $stmt->bindParam(':gclid', $gclid);

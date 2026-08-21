@@ -3,6 +3,19 @@ import { getStoredGclid } from '@/app/lib/inquiryInflow';
 
 export type CallLeadChannel = 'call' | 'kakao';
 
+const CALL_INFLOW_MAX_LENGTH = 45;
+
+function resolveDeviceLabel(): 'PC' | 'Mobile' {
+  if (typeof window === 'undefined') return 'PC';
+  return window.matchMedia('(min-width: 768px)').matches ? 'PC' : 'Mobile';
+}
+
+/** 전화·카톡 클릭 유입 매체 (`c_inflow`) */
+function resolveCallInflowLabel(channel: CallLeadChannel): string {
+  const action = channel === 'kakao' ? '카톡클릭' : '전화클릭';
+  return `${action}(${resolveDeviceLabel()})`.slice(0, CALL_INFLOW_MAX_LENGTH);
+}
+
 /**
  * 전화·카톡 CTA 클릭 시 gclid를 백엔드에 남김.
  * tel:/카톡 이동과 동시에 나가므로 sendBeacon / keepalive fetch 사용.
@@ -20,6 +33,7 @@ export function trackCallLead(channel: CallLeadChannel, source: string): void {
     channel,
     page: INQUIRY_INFLOW_URL.CONTACT_GOOGLE,
     source,
+    c_inflow: resolveCallInflowLabel(channel),
   });
 
   try {
