@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 
 import { useConsultChat } from '@/app/components/consult/consultChatContext';
 import { useLazyReCaptcha } from '@/app/components/contact/lazyReCaptchaContext';
-import { CONSULT_CHAT_FORM_NAME, GA_EVENTS, GA_SOURCES } from '@/app/constants/analyticsEvents';
+import { CONSULT_CHAT_FORM_NAME, GA_EVENTS, GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 import {
   INQUIRY_API_URL,
   INQUIRY_FIELD_LIMITS,
@@ -372,6 +372,7 @@ export default function ConsultChatWidget() {
                     'md:px-3 md:text-base ' +
                     'hover:bg-[#01285c]'
                   }
+                  {...{ [GA_SOURCE_ATTR]: GA_SOURCES.CONSULT_CHAT }}
                 >
                   {CONSULT_CHAT_COPY.skipCta}
                 </a>
@@ -403,6 +404,7 @@ export default function ConsultChatWidget() {
                   <a
                     href={CONSULT_PHONE_HREF}
                     className="mt-1 cursor-pointer text-[13px] md:text-sm font-semibold text-[#023373] underline"
+                    {...{ [GA_SOURCE_ATTR]: GA_SOURCES.CONSULT_CHAT }}
                   >
                     {CONSULT_CHAT_COPY.skipHint}
                   </a>
