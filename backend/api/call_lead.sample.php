@@ -110,7 +110,7 @@ if ($source === null || $source === '') {
     $source = $default_source;
 }
 
-$default_inflow = $channel_raw === 'kakao' ? '카톡클릭' : '전화클릭';
+$default_inflow = '상담 페이지(PC)';
 $c_inflow = isset($data->c_inflow) ? trim((string) $data->c_inflow) : '';
 $c_inflow = preg_replace('/[\x00-\x1F\x7F]/', '', $c_inflow);
 if ($c_inflow === null || $c_inflow === '') {

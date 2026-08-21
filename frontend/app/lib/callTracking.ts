@@ -1,19 +1,17 @@
-import { CALL_LEAD_API_URL, INQUIRY_INFLOW_URL } from '@/app/constants/contactContent';
+import { GA_SOURCES } from '@/app/constants/analyticsEvents';
+import { CALL_LEAD_API_URL, CONTACT_INQUIRY, INQUIRY_INFLOW_URL } from '@/app/constants/contactContent';
 import { getStoredGclid } from '@/app/lib/inquiryInflow';
 
 export type CallLeadChannel = 'call' | 'kakao';
 
-const CALL_INFLOW_MAX_LENGTH = 45;
+function resolveCallInflowLabel(source: string): string {
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
 
-function resolveDeviceLabel(): 'PC' | 'Mobile' {
-  if (typeof window === 'undefined') return 'PC';
-  return window.matchMedia('(min-width: 768px)').matches ? 'PC' : 'Mobile';
-}
+  if (source === GA_SOURCES.CONSULT_CHAT) {
+    return isDesktop ? '챗봇(PC)' : '챗봇(Mobile)';
+  }
 
-/** 전화·카톡 클릭 유입 매체 (`c_inflow`) */
-function resolveCallInflowLabel(channel: CallLeadChannel): string {
-  const action = channel === 'kakao' ? '카톡클릭' : '전화클릭';
-  return `${action}(${resolveDeviceLabel()})`.slice(0, CALL_INFLOW_MAX_LENGTH);
+  return isDesktop ? CONTACT_INQUIRY.inflowDesktop : CONTACT_INQUIRY.inflowMobile;
 }
 
 /**
@@ -33,7 +31,7 @@ export function trackCallLead(channel: CallLeadChannel, source: string): void {
     channel,
     page: INQUIRY_INFLOW_URL.CONTACT_GOOGLE,
     source,
-    c_inflow: resolveCallInflowLabel(channel),
+    c_inflow: resolveCallInflowLabel(source),
   });
 
   try {
