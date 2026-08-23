@@ -21,7 +21,8 @@ export default function AnalyticsProvider({ children }: { children: ReactNode })
     <>
       {shouldLoadGtm && <GoogleTagManagerLoader />}
       {shouldLoadGa && <GoogleAnalyticsLoader />}
-      {shouldLoadAnalytics && <AnalyticsClickTracker />}
+      {/* GA/GTM 없이도 전화·카톡 gclid 리드는 남겨야 함 */}
+      {!isAdmin && <AnalyticsClickTracker />}
       {children}
     </>
   );

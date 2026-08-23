@@ -1,7 +1,18 @@
-import { CALL_LEAD_API_URL, INQUIRY_INFLOW_URL } from '@/app/constants/contactContent';
+import { GA_SOURCES } from '@/app/constants/analyticsEvents';
+import { CALL_LEAD_API_URL, CONTACT_INQUIRY, INQUIRY_INFLOW_URL } from '@/app/constants/contactContent';
 import { getStoredGclid } from '@/app/lib/inquiryInflow';
 
 export type CallLeadChannel = 'call' | 'kakao';
+
+function resolveCallInflowLabel(source: string): string {
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+
+  if (source === GA_SOURCES.CONSULT_CHAT) {
+    return isDesktop ? '챗봇(PC)' : '챗봇(Mobile)';
+  }
+
+  return isDesktop ? CONTACT_INQUIRY.inflowDesktop : CONTACT_INQUIRY.inflowMobile;
+}
 
 /**
  * 전화·카톡 CTA 클릭 시 gclid를 백엔드에 남김.
@@ -20,6 +31,7 @@ export function trackCallLead(channel: CallLeadChannel, source: string): void {
     channel,
     page: INQUIRY_INFLOW_URL.CONTACT_GOOGLE,
     source,
+    c_inflow: resolveCallInflowLabel(source),
   });
 
   try {

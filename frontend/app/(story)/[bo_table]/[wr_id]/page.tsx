@@ -78,19 +78,14 @@ export default async function BoardViewPage({ params, searchParams }: PageProps)
 
   const trimmedKey = postKey.trim();
 
-  if (
-    (bo_table === 'success' || bo_table === 'column') &&
-    trimmedKey === LEGACY_REAL_ESTATE_SLUG
-  ) {
+  if ((bo_table === 'success' || bo_table === 'column') && trimmedKey === LEGACY_REAL_ESTATE_SLUG) {
     permanentRedirect(`/${getBoardPathSlug(bo_table)}/${LEGACY_REAL_ESTATE_PARENT}/${LEGACY_REAL_ESTATE_SLUG}/`);
   }
 
   if (hasBoardSections(bo_table) && isBoardSectionSlug(bo_table, trimmedKey)) {
     const resolvedSearchParams = await searchParams;
 
-    return (
-      <BoardSectionListPage boTable={bo_table} category={trimmedKey} searchParams={resolvedSearchParams} />
-    );
+    return <BoardSectionListPage boTable={bo_table} category={trimmedKey} searchParams={resolvedSearchParams} />;
   }
 
   let post;

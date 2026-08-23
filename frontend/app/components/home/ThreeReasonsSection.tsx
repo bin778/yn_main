@@ -18,7 +18,7 @@ export default function ThreeReasonsSection() {
           {THREE_REASONS_CARDS.map(card => (
             <article key={card.title} className="overflow-hidden rounded-sm border border-gray-100 bg-white shadow-sm">
               <div className="flex min-h-[140px] items-center justify-center bg-[#f5f7fa] px-6 py-10">
-                <ReasonIcon iconId={card.iconId} className="h-12 w-12 md:h-16 md:w-16 md:h-[72px] md:w-[72px]" />
+                <ReasonIcon iconId={card.iconId} className="h-15 w-15 md:h-20 md:w-20 md:h-[80px] md:w-[80px]" />
               </div>
               <div className="px-6 py-6">
                 <h3 className="text-lg md:text-xl font-bold tracking-tight text-[#222]">{card.title}</h3>
