@@ -14,6 +14,9 @@ const CRIMINAL_LANDING_SLUGS = [
   'suspended-indictment',
 ] as const;
 
+/** 가사 랜딩 — criminal과 별도 FTP 경로 (`www/familylawcase/`) */
+const FAMILY_LAWCASE_LANDING_SLUGS = ['inheritance'] as const;
+
 /** `www/landing/` 메인 사이트 덤프 — 광고 랜딩(`yn**.php`)과 무관 */
 const LANDING_DUMP_REDIRECTS = [
   { source: '/landing/about.php', destination: '/about/', permanent: true },
@@ -92,6 +95,11 @@ const nextConfig: NextConfig = {
           { source: `/criminal/${slug}`, destination: `${CAFE24}/criminal/${slug}/` },
           { source: `/criminal/${slug}/`, destination: `${CAFE24}/criminal/${slug}/` },
           { source: `/criminal/${slug}/:path*`, destination: `${CAFE24}/criminal/${slug}/:path*` },
+        ]),
+        ...FAMILY_LAWCASE_LANDING_SLUGS.flatMap(slug => [
+          { source: `/familylawcase/${slug}`, destination: `${CAFE24}/familylawcase/${slug}/` },
+          { source: `/familylawcase/${slug}/`, destination: `${CAFE24}/familylawcase/${slug}/` },
+          { source: `/familylawcase/${slug}/:path*`, destination: `${CAFE24}/familylawcase/${slug}/:path*` },
         ]),
       ],
 

@@ -29,6 +29,7 @@ const STATIC_PAGES: readonly SitemapPageConfig[] = [
   { path: '/criminal/lawyer-cost/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/criminal/penalty/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/criminal/suspended-indictment/', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/familylawcase/inheritance/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/about/', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/field/', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/people/', changeFrequency: 'monthly', priority: 0.8 },

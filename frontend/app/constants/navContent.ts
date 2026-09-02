@@ -30,6 +30,15 @@ export const CONSULTATION_NAV_LABEL = '형사 전문 센터';
 /** 형사 전문 센터 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */
 export const SHOW_CONSULTATION_NAV = true;
 
+export const INHERITANCE_HREF = 'https://www.yeoon.co.kr/familylawcase/inheritance/';
+
+export const FAMILY_LAWCASE_SUBLINKS: readonly NavSublink[] = [{ href: INHERITANCE_HREF, label: '상속' }];
+
+export const FAMILY_LAWCASE_NAV_LABEL = '가사 전문 센터';
+
+/** 가사 전문 센터 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */
+export const SHOW_FAMILY_LAWCASE_NAV = true;
+
 export const MAIN_NAV_LINKS = [
   { href: '/about', label: '여온의 약속' },
   { href: '/people', label: '여온의 사람들' },
