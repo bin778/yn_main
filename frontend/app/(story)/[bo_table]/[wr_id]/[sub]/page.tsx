@@ -10,9 +10,10 @@ import {
   hasBoardSections,
   isBoardSubSectionSlug,
 } from '../../../constants/boardSections';
+import { BOARD_PAGE_REVALIDATE_SECONDS } from '../../../lib/boardCache';
 import type { BoardListSearchParams } from '../../../lib/parseBoardListQuery';
 
-export const revalidate = 60;
+export const revalidate = BOARD_PAGE_REVALIDATE_SECONDS;
 
 type PageProps = {
   params: Promise<{ bo_table: string; wr_id: string; sub: string }>;

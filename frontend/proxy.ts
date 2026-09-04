@@ -62,8 +62,8 @@ export const config = {
   matcher: [
     /*
      * 정적 에셋·Next 내부 경로 제외. /rss.xml 포함해야 apex에서 예외 처리 가능.
-     * /api/* 는 통과만 하고, board.php 리다이렉트는 pathname 가드로 제한.
+     * www 리다이렉트와 board.php 301만 처리하므로 이미지·폰트·스크립트는 제외한다.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|woff2?)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|avif|woff2?|css|js|map)$).*)',
   ],
 };

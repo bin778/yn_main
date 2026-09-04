@@ -10,8 +10,9 @@ import BoardListSection from '../components/BoardListSection';
 import BoardSectionTabs from '../components/BoardSectionTabs';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
 import { hasBoardSections } from '../constants/boardSections';
-import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import { fetchBoardList } from '../lib/boardApi';
+import { BOARD_PAGE_REVALIDATE_SECONDS } from '../lib/boardCache';
+import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import type { BoardListResponse } from '../types/board';
 
 const EMPTY_LIST: BoardListResponse = {
@@ -22,7 +23,7 @@ const EMPTY_LIST: BoardListResponse = {
   items: [],
 };
 
-export const revalidate = 60;
+export const revalidate = BOARD_PAGE_REVALIDATE_SECONDS;
 
 type PageProps = {
   params: Promise<{ bo_table: string }>;
