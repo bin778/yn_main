@@ -1,21 +1,21 @@
 ---
-description: Next.js + Tailwind CSS v4 프로젝트 규칙 (CSS Layer, 이미지 포맷 등)
+description: Next.js + Tailwind CSS v4 project rules (CSS Layers, image formats, etc.)
 globs: '**/*.css,**/*.tsx,**/*.ts'
 alwaysApply: false
 ---
 
-# Next.js + Tailwind CSS v4 규칙
+# Next.js + Tailwind CSS v4 Rules
 
-## Tailwind v4 CSS 작성 규칙 (가장 중요)
+## Tailwind v4 CSS Writing Rules (most important)
 
-### `globals.css`에서 커스텀 CSS는 반드시 `@layer base` 안에 작성한다.
+### Custom CSS in `globals.css` must always be written inside `@layer base`.
 
-Tailwind v4는 CSS Cascade Layers를 사용한다.
-레이어 바깥에 작성된 CSS는 명시도와 무관하게 Tailwind 유틸리티 클래스를 **항상 덮어쓴다.**
-(`px-*`, `py-*`, `gap-*`, `m-*`, `h-*` 등 spacing 클래스 전부 무력화됨)
+Tailwind v4 uses CSS Cascade Layers.
+CSS written outside a layer will **always override** Tailwind utility classes, regardless of specificity.
+(This disables all spacing classes such as `px-*`, `py-*`, `gap-*`, `m-*`, `h-*`.)
 
 ```css
-/* ❌ BAD — 레이어 바깥의 * 리셋이 모든 Tailwind spacing 유틸리티를 덮어씀 */
+/* ❌ BAD — a `*` reset outside a layer overrides every Tailwind spacing utility */
 @import 'tailwindcss';
 
 * {
@@ -24,7 +24,7 @@ Tailwind v4는 CSS Cascade Layers를 사용한다.
   box-sizing: border-box;
 }
 
-/* ✅ GOOD — @layer base 안에 넣어야 Tailwind utilities가 정상 동작 */
+/* ✅ GOOD — put it inside @layer base so Tailwind utilities work correctly */
 @import 'tailwindcss';
 
 @layer base {
@@ -39,45 +39,45 @@ Tailwind v4는 CSS Cascade Layers를 사용한다.
 }
 ```
 
-### Tailwind v4 import 문법
+### Tailwind v4 import syntax
 
 ```css
-/* ❌ BAD (v3 문법) */
+/* ❌ BAD (v3 syntax) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ GOOD (v4 문법) */
+/* ✅ GOOD (v4 syntax) */
 @import 'tailwindcss';
 ```
 
 ---
 
-## 이미지 포맷
+## Image Formats
 
-- 모든 이미지는 `.webp`만 사용한다. `.png`, `.jpg`, `.jpeg`는 금지한다.
-- Next.js `<Image>` 컴포넌트를 사용하고, `width`와 `height`를 함께 지정한다.
+- Use `.webp` only for all images. `.png`, `.jpg`, `.jpeg` are prohibited.
+- Use the Next.js `<Image>` component, and always specify both `width` and `height`.
 
 ```tsx
 // ✅ GOOD
-<Image src="/img/logo.webp" alt="로고" width={200} height={48} />
+<Image src="/img/logo.webp" alt="Logo" width={200} height={48} />
 ```
 
 ---
 
-## 반응형 브레이크포인트
+## Responsive Breakpoints
 
-- 데스크톱 전용 네비게이션: `md:flex` (768px 이상)
-- 모바일 전용 요소: `md:hidden`
-- `lg`(1024px)는 넓은 레이아웃에만 사용한다.
+- Desktop-only navigation: `md:flex` (768px and above)
+- Mobile-only elements: `md:hidden`
+- Use `lg` (1024px) only for wide layouts.
 
 ---
 
-## Tailwind 클래스 디버깅 체크리스트
+## Tailwind Class Debugging Checklist
 
-Tailwind 클래스가 적용 안 될 때 순서대로 확인한다:
+When Tailwind classes aren't applying, check in this order:
 
-1. `globals.css`의 커스텀 CSS가 `@layer base` 밖에 있지 않은지 확인
-2. `@import "tailwindcss"` 문법이 맞는지 확인 (v3의 `@tailwind` 사용 금지)
-3. 브레이크포인트(`md:`, `lg:`)가 현재 뷰포트 폭과 맞는지 확인
-4. 브라우저 강제 새로고침 (`Cmd+Shift+R`)
+1. Confirm the custom CSS in `globals.css` isn't outside `@layer base`.
+2. Confirm the `@import "tailwindcss"` syntax is correct (do not use v3's `@tailwind`).
+3. Confirm the breakpoint (`md:`, `lg:`) matches the current viewport width.
+4. Hard refresh the browser (`Cmd+Shift+R`).

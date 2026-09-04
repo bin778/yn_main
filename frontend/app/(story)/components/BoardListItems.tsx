@@ -115,6 +115,7 @@ export default function BoardListItems({ boTable, items, view }: BoardListItemsP
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
+  const [prevItems, setPrevItems] = useState(items);
   const [sectionCategory, setSectionCategory] = useState('');
   const [sectionSubcategory, setSectionSubcategory] = useState('');
   const [targetBoTable, setTargetBoTable] = useState<BoTable | ''>('');
@@ -137,9 +138,10 @@ export default function BoardListItems({ boTable, items, view }: BoardListItemsP
     };
   }, [boTable]);
 
-  useEffect(() => {
+  if (items !== prevItems) {
+    setPrevItems(items);
     setSelectedIds(new Set());
-  }, [items]);
+  }
 
   const pageIds = useMemo(() => items.map(item => item.wr_id), [items]);
   const selectedCount = selectedIds.size;

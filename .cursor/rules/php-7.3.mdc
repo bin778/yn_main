@@ -1,45 +1,45 @@
 ---
-description: 카페24 PHP 7.3 호환 문법 규칙 (backend API)
+description: Cafe24 PHP 7.3 compatible syntax rules (backend API)
 globs: backend/**/*.php
 alwaysApply: false
 ---
 
-# PHP 7.3 호환 문법
+# PHP 7.3 Compatible Syntax
 
-백엔드는 카페24 **PHP 7.3**에서 실행된다. 7.4+ / 8.x 전용 문법은 사용하지 않는다.
+The backend runs on Cafe24's **PHP 7.3**. Do not use syntax exclusive to 7.4+ / 8.x.
 
-## 금지 문법
+## Forbidden Syntax
 
-| 기능 | 최소 버전 | 대안 |
-|------|-----------|------|
-| 화살표 함수 `fn()` | 7.4 | `function () { ... }` |
-| `??=` | 7.4 | `$x = $x ?? $default` |
-| 배열 spread `[...$arr]` | 7.4 | `array_merge()` |
-| typed properties | 7.4 | 일반 프로퍼티 + PHPDoc |
-| `match` | 8.0 | `switch` |
-| nullsafe `?->` | 8.0 | null 체크 후 접근 |
-| named arguments | 8.0 | 위치 인자 |
-| union types `string\|int` | 8.0 | PHPDoc `@param` |
-| constructor promotion | 8.0 | 명시적 프로퍼티 할당 |
-| attributes `#[...]` | 8.0 | 사용 금지 |
+| Feature                   | Minimum Version | Alternative                  |
+| ------------------------- | --------------- | ---------------------------- |
+| Arrow functions `fn()`    | 7.4             | `function () { ... }`        |
+| `??=`                     | 7.4             | `$x = $x ?? $default`        |
+| Array spread `[...$arr]`  | 7.4             | `array_merge()`              |
+| Typed properties          | 7.4             | Regular properties + PHPDoc  |
+| `match`                   | 8.0             | `switch`                     |
+| Nullsafe `?->`            | 8.0             | Null check before access     |
+| Named arguments           | 8.0             | Positional arguments         |
+| Union types `string\|int` | 8.0             | PHPDoc `@param`              |
+| Constructor promotion     | 8.0             | Explicit property assignment |
+| Attributes `#[...]`       | 8.0             | Prohibited                   |
 
-## 예시
+## Example
 
 ```php
-// ❌ BAD — PHP 7.4+ (파싱 단계에서 fatal error → API 500)
+// ❌ BAD — PHP 7.4+ (fatal error at parse stage → API 500)
 $files = array_map(
     static fn (array $file): array => board_format_attachment_meta($file, $bo_table),
     $file_rows
 );
 
-// ✅ GOOD — PHP 7.3 호환
+// ✅ GOOD — PHP 7.3 compatible
 $files = array_map(function (array $file) use ($bo_table): array {
     return board_format_attachment_meta($file, $bo_table);
 }, $file_rows);
 ```
 
-## 작성·리뷰 시 확인
+## Checks During Writing / Review
 
-- `backend/**/*.php` 수정 후 `static fn`, `fn(`, `match(`, `??=`, `?->` 검색
-- 로컬 PHP 버전이 8.x여도 **7.3 기준**으로 작성한다
-- 배포 전 `php -l 파일명.php`로 문법 검사
+- After modifying `backend/**/*.php`, search for `static fn`, `fn(`, `match(`, `??=`, `?->`.
+- Write against the **7.3 baseline** even if the local PHP version is 8.x.
+- Run `php -l filename.php` for syntax checking before deployment.

@@ -1,22 +1,22 @@
 ---
-description: TypeScript·ESLint 규칙 (frontend)
+description: TypeScript / ESLint rules (frontend)
 globs: frontend/**/*.{ts,tsx}
 alwaysApply: false
 ---
 
 # TypeScript · ESLint
 
-설정: [`frontend/eslint.config.mjs`](frontend/eslint.config.mjs)
+Config: [`frontend/eslint.config.mjs`](frontend/eslint.config.mjs)
 
-## 작성·수정 후
+## After Writing / Editing
 
-- `frontend/`에서 `npm run lint` 실행. **error 0** 이어야 한다.
-- warning도 가능하면 제거한다. 새 코드에 warning을 남기지 않는다.
+- Run `npm run lint` in `frontend/`. It must result in **0 errors**.
+- Remove warnings whenever possible. Don't leave warnings in new code.
 
-## 미사용 변수·인자
+## Unused Variables / Arguments
 
-- 의도적으로 쓰지 않는 인자·변수는 **`_` 접두사** (`_mode`, `_event`).
-- `_` 접두사 없이 남겨두지 않는다. 삭제 가능하면 삭제가 우선.
+- Intentionally unused arguments/variables get a **`_` prefix** (`_mode`, `_event`).
+- Do not leave them without the `_` prefix. Prefer deleting them if deletion is possible.
 
 ```ts
 // ❌ BAD — lint error
@@ -24,37 +24,37 @@ export function save(html: string, options?: { strict: boolean }) {
   return sanitizeLegacy(html);
 }
 
-// ✅ GOOD — 호출부 호환용 미사용 인자
+// ✅ GOOD — unused argument kept for call-site compatibility
 export function save(html: string, _options?: { strict: boolean }) {
   return sanitizeLegacy(html);
 }
 
-// ✅ GOOD — 인자 불필요 시 제거
+// ✅ GOOD — remove the argument if it's unnecessary
 export function save(html: string) {
   return sanitizeLegacy(html);
 }
 ```
 
-## 타입
+## Types
 
-- `any` 사용 금지. 불가피하면 `unknown` + 좁히기.
-- 타입만 import할 때 `import type { Foo }` 사용.
+- Do not use `any`. If unavoidable, use `unknown` + narrowing.
+- Use `import type { Foo }` when importing types only.
 
 ## `react-hooks/set-state-in-effect`
 
-`useEffect` 안에서 `setState`를 **동기적으로** 호출하지 않는다. (`react-hooks/set-state-in-effect`)
+Do not call `setState` **synchronously** inside `useEffect`. (`react-hooks/set-state-in-effect`)
 
-props 변경에 state를 맞출 때는 effect 대신 **렌더 중 이전 props 비교** 패턴을 쓴다.
+When syncing state to prop changes, use the **compare-previous-props-during-render** pattern instead of an effect.
 
 ```tsx
-// ❌ BAD — effect에서 setState (cascading render, lint error)
+// ❌ BAD — setState in an effect (cascading render, lint error)
 const [input, setInput] = useState(String(page));
 
 useEffect(() => {
   setInput(String(page));
 }, [page]);
 
-// ✅ GOOD — 렌더 중 props 변경 감지 후 state 동기화
+// ✅ GOOD — detect prop changes during render and sync state
 const [input, setInput] = useState(String(page));
 const [prevPage, setPrevPage] = useState(page);
 
@@ -64,29 +64,49 @@ if (page !== prevPage) {
 }
 ```
 
-입력 중 사용자 편집을 유지해야 하면, 포커스 여부 등으로 동기화 시점을 제한한다.
-
-## 접근성 (jsx-a11y)
-
-- `role`을 붙일 때는 해당 역할에 **필수 ARIA 속성**을 함께 정의한다 (`jsx-a11y/role-has-required-aria-props`).
-  - 예: `role="option"` → `aria-selected` 필수
-- `role="listbox"`·`role="option"`은 항목 **선택** UI에만 사용한다. 외부 링크·내비게이션 목록에는 쓰지 않는다.
-- 링크 드롭다운은 시맨틱 `<ul>` + 버튼의 `aria-expanded`·`aria-controls`로 충분하다.
+The same applies when clearing derived state whenever props change, such as with lists/selections.
 
 ```tsx
-// ❌ BAD — option에 aria-selected 없음 (lint warning), 링크 목록에 listbox 부적절
+// ❌ BAD
+useEffect(() => {
+  setSelectedIds(new Set());
+}, [items]);
+
+// ✅ GOOD
+const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
+const [prevItems, setPrevItems] = useState(items);
+
+if (items !== prevItems) {
+  setPrevItems(items);
+  setSelectedIds(new Set());
+}
+```
+
+If user edits during input need to be preserved, limit the sync timing using things like focus state.
+
+Calling `setState` from callbacks of external subscriptions (fetch, events) is allowed.
+
+## Accessibility (jsx-a11y)
+
+- When adding a `role`, always define the **required ARIA attributes** for that role (`jsx-a11y/role-has-required-aria-props`).
+  - e.g. `role="option"` → `aria-selected` is required
+- `role="listbox"` / `role="option"` should only be used for item **selection** UI. Do not use them for external links or navigation lists.
+- For link dropdowns, a semantic `<ul>` + a button's `aria-expanded` / `aria-controls` is sufficient.
+
+```tsx
+// ❌ BAD — option is missing aria-selected (lint warning); listbox is inappropriate for a link list
 <ul role="listbox">
-  <li role="option"><a href="...">보통의 하루</a></li>
+  <li role="option"><a href="...">Ordinary Day</a></li>
 </ul>
 
-// ✅ GOOD — 링크 드롭다운
+// ✅ GOOD — link dropdown
 <button aria-expanded={open} aria-controls="family-site-menu">FAMILY SITE</button>
 <ul id="family-site-menu">
-  <li><a href="...">보통의 하루</a></li>
+  <li><a href="...">Ordinary Day</a></li>
 </ul>
 ```
 
-## 기타
+## Other
 
-- `console.log`는 디버그 후 제거. 남길 때는 `console.warn` / `console.error`만 허용.
-- `@ts-ignore`·`eslint-disable`은 한 줄 범위로 최소 사용, 이유를 주석으로 남긴다.
+- Remove `console.log` after debugging. If keeping one, only `console.warn` / `console.error` are allowed.
+- Keep `@ts-ignore` / `eslint-disable` to single-line scope, minimal use, and leave a comment explaining why.
