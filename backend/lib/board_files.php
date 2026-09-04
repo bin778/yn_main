@@ -44,28 +44,12 @@ function board_file_storage_dir(string $bo_table): string
  */
 function board_attachment_path_candidates(string $bo_table, string $stored_name): array
 {
-    global $BOARD_FILE_DIR;
-
-    $base = rtrim((string) $BOARD_FILE_DIR, '/');
-    $candidates = [];
-
-    if ($base !== '') {
-        $candidates[] = $base . '/' . $bo_table . '/' . $stored_name;
-
-        if (substr($base, -8) === '/new_img') {
-            $candidates[] = substr($base, 0, -8) . '/' . $bo_table . '/' . $stored_name;
-        } else {
-            $candidates[] = $base . '/new_img/' . $bo_table . '/' . $stored_name;
-        }
+    $paths = [];
+    foreach (board_stored_file_disk_entries($bo_table, $stored_name) as $entry) {
+        $paths[] = $entry['path'];
     }
 
-    $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim((string) $_SERVER['DOCUMENT_ROOT'], '/') : '';
-    if ($docRoot !== '') {
-        $candidates[] = $docRoot . '/board/data/file/' . $bo_table . '/' . $stored_name;
-        $candidates[] = $docRoot . '/board/data/file/new_img/' . $bo_table . '/' . $stored_name;
-    }
-
-    return array_values(array_unique($candidates));
+    return $paths;
 }
 
 /** @return string 존재하는 파일의 절대 경로 */
@@ -124,7 +108,7 @@ function board_image_dimensions(string $path): ?array
 
 function board_public_file_url(string $bo_table, string $stored_name): string
 {
-    return board_file_url_base() . '/' . $bo_table . '/' . rawurlencode($stored_name);
+    return board_file_url_base() . '/' . board_stored_file_public_suffix($bo_table, $stored_name);
 }
 
 /** 공개 첨부 다운로드 — 실제 저장 경로(BOARD_FILE_DIR)를 통해 스트리밍 */

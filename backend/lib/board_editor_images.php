@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/board_write.php';
+
 const BOARD_EDITOR_SITE_BASE = 'https://www.yeoon.co.kr';
 
 const BOARD_EDITOR_THUMB_PATTERN =
@@ -7,6 +9,9 @@ const BOARD_EDITOR_THUMB_PATTERN =
 
 const BOARD_EDITOR_ORIGINAL_PATTERN =
     '~^(https?://[^/]+)?(/board/data/editor/\d+/)([^/]+)\.(jpe?g|png|gif|webp)(\?.*)?$~i';
+
+const BOARD_FILE_PUBLIC_URL_PATTERN =
+    '~^(https?://[^/]+)?(/board/data/file/)(?:new_img/)?(review|success|column|news)/([^/?#]+)(\?.*)?$~i';
 
 function board_normalize_image_url(string $src): string
 {
@@ -28,6 +33,21 @@ function board_normalize_image_url(string $src): string
     }
 
     return BOARD_EDITOR_SITE_BASE . '/' . ltrim($trimmed, '/');
+}
+
+function board_resolve_legacy_board_file_url(string $absolute): ?string
+{
+    if (preg_match(BOARD_FILE_PUBLIC_URL_PATTERN, $absolute, $matches) !== 1) {
+        return null;
+    }
+
+    $host = $matches[1] !== '' ? $matches[1] : BOARD_EDITOR_SITE_BASE;
+    $prefix = $matches[2];
+    $bo_table = strtolower($matches[3]);
+    $filename = rawurldecode($matches[4]);
+    $query = isset($matches[5]) ? $matches[5] : '';
+
+    return $host . $prefix . board_stored_file_public_suffix($bo_table, $filename) . $query;
 }
 
 function board_editor_url_to_filesystem_path(string $url): ?string
@@ -114,6 +134,10 @@ function board_find_thumb_url_for_original(string $originalUrl): ?string
 function board_resolve_editor_image_url(string $src): string
 {
     $absolute = board_normalize_image_url($src);
+    $file_url = board_resolve_legacy_board_file_url($absolute);
+    if ($file_url !== null) {
+        return $file_url;
+    }
 
     if (preg_match(BOARD_EDITOR_THUMB_PATTERN, $absolute) === 1) {
         $original = board_thumb_url_to_original($absolute);
@@ -179,7 +203,8 @@ function board_resolve_post_image_url(
     }
 
     if ($thumbnail_file !== null && trim($thumbnail_file) !== '') {
-        return BOARD_EDITOR_SITE_BASE . '/board/data/file/' . $bo_table . '/' . $thumbnail_file;
+        return BOARD_EDITOR_SITE_BASE . '/board/data/file/'
+            . board_stored_file_public_suffix($bo_table, $thumbnail_file);
     }
 
     $first_image_src = board_extract_first_image_src($wr_content);

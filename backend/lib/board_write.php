@@ -16,6 +16,85 @@ function board_file_url_base(): string
     return BOARD_FILE_URL_BASE_DEFAULT;
 }
 
+function board_sanitize_stored_filename(string $stored_name): string
+{
+    return basename(str_replace('\\', '/', $stored_name));
+}
+
+/**
+ * 첨부 디스크 경로와 공개 URL suffix (new_img 혼재)
+ *
+ * @return array<int, array{path: string, suffix: string}>
+ */
+function board_stored_file_disk_entries(string $bo_table, string $stored_name): array
+{
+    global $BOARD_FILE_DIR;
+
+    $name = board_sanitize_stored_filename($stored_name);
+    $encoded = rawurlencode($name);
+    $main_suffix = $bo_table . '/' . $encoded;
+    $legacy_suffix = 'new_img/' . $bo_table . '/' . $encoded;
+    $entries = [];
+
+    $base = rtrim((string) $BOARD_FILE_DIR, '/');
+    if ($base !== '') {
+        $base_is_new_img = substr($base, -8) === '/new_img';
+        $entries[] = [
+            'path' => $base . '/' . $bo_table . '/' . $name,
+            'suffix' => $base_is_new_img ? $legacy_suffix : $main_suffix,
+        ];
+        if ($base_is_new_img) {
+            $entries[] = [
+                'path' => substr($base, 0, -8) . '/' . $bo_table . '/' . $name,
+                'suffix' => $main_suffix,
+            ];
+        } else {
+            $entries[] = [
+                'path' => $base . '/new_img/' . $bo_table . '/' . $name,
+                'suffix' => $legacy_suffix,
+            ];
+        }
+    }
+
+    $doc_root = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim((string) $_SERVER['DOCUMENT_ROOT'], '/') : '';
+    if ($doc_root !== '') {
+        $entries[] = [
+            'path' => $doc_root . '/board/data/file/' . $bo_table . '/' . $name,
+            'suffix' => $main_suffix,
+        ];
+        $entries[] = [
+            'path' => $doc_root . '/board/data/file/new_img/' . $bo_table . '/' . $name,
+            'suffix' => $legacy_suffix,
+        ];
+    }
+
+    $unique = [];
+    $seen = [];
+    foreach ($entries as $entry) {
+        if (isset($seen[$entry['path']])) {
+            continue;
+        }
+        $seen[$entry['path']] = true;
+        $unique[] = $entry;
+    }
+
+    return $unique;
+}
+
+function board_stored_file_public_suffix(string $bo_table, string $stored_name): string
+{
+    $name = board_sanitize_stored_filename($stored_name);
+    $main_suffix = $bo_table . '/' . rawurlencode($name);
+
+    foreach (board_stored_file_disk_entries($bo_table, $name) as $entry) {
+        if (is_file($entry['path'])) {
+            return $entry['suffix'];
+        }
+    }
+
+    return $main_suffix;
+}
+
 /**
  * @return array{notice: bool, html1: bool}
  */
