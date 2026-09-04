@@ -17,13 +17,12 @@ import {
   LEGACY_REAL_ESTATE_SLUG,
 } from '../../constants/boardSections';
 import { fetchBoardView } from '../../lib/boardApi';
-import { BOARD_PAGE_REVALIDATE_SECONDS } from '../../lib/boardCache';
 import { buildBoardArticleSchema } from '../../lib/buildBoardArticleSchema';
 import { buildBoardPostHref, getBoardPostPathSegment } from '../../lib/boardPostPath';
 import type { BoardListSearchParams } from '../../lib/parseBoardListQuery';
 import { resolveBoardMetaDescription } from '../../lib/boardSeo';
 
-export const revalidate = BOARD_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ bo_table: string; wr_id: string }>;

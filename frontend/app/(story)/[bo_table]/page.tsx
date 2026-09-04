@@ -11,7 +11,6 @@ import BoardSectionTabs from '../components/BoardSectionTabs';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../constants/boardContent';
 import { hasBoardSections } from '../constants/boardSections';
 import { fetchBoardList } from '../lib/boardApi';
-import { BOARD_PAGE_REVALIDATE_SECONDS } from '../lib/boardCache';
 import { parseBoardListQuery, type BoardListSearchParams } from '../lib/parseBoardListQuery';
 import type { BoardListResponse } from '../types/board';
 
@@ -23,7 +22,7 @@ const EMPTY_LIST: BoardListResponse = {
   items: [],
 };
 
-export const revalidate = BOARD_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ bo_table: string }>;
