@@ -11,7 +11,7 @@ const BOARD_EDITOR_ORIGINAL_PATTERN =
     '~^(https?://[^/]+)?(/board/data/editor/\d+/)([^/]+)\.(jpe?g|png|gif|webp)(\?.*)?$~i';
 
 const BOARD_FILE_PUBLIC_URL_PATTERN =
-    '~^(https?://[^/]+)?(/board/data/file/)(?:new_img/)?(review|success|column|news)/([^/?#]+)(\?.*)?$~i';
+    '~^(https?://[^/]+)?(/board/data/file/)(?:new_img/)*(review|success|column|news)/([^/?#]+)(\?.*)?$~i';
 
 function board_normalize_image_url(string $src): string
 {
@@ -47,7 +47,9 @@ function board_resolve_legacy_board_file_url(string $absolute): ?string
     $filename = rawurldecode($matches[4]);
     $query = isset($matches[5]) ? $matches[5] : '';
 
-    return $host . $prefix . board_stored_file_public_suffix($bo_table, $filename) . $query;
+    return $host . $prefix . board_collapse_leading_new_img(
+        board_stored_file_public_suffix($bo_table, $filename)
+    ) . $query;
 }
 
 function board_editor_url_to_filesystem_path(string $url): ?string
@@ -204,7 +206,9 @@ function board_resolve_post_image_url(
 
     if ($thumbnail_file !== null && trim($thumbnail_file) !== '') {
         return BOARD_EDITOR_SITE_BASE . '/board/data/file/'
-            . board_stored_file_public_suffix($bo_table, $thumbnail_file);
+            . board_collapse_leading_new_img(
+                board_stored_file_public_suffix($bo_table, $thumbnail_file)
+            );
     }
 
     $first_image_src = board_extract_first_image_src($wr_content);

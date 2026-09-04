@@ -4,16 +4,47 @@ require_once __DIR__ . '/board_schema.php';
 require_once __DIR__ . '/board_categories.php';
 
 const BOARD_FILE_URL_BASE_DEFAULT = 'https://www.yeoon.co.kr/board/data/file';
+const BOARD_FILE_NEW_IMG_SEGMENT = '/new_img';
+
+function board_path_ends_with_new_img(string $path): bool
+{
+    $trimmed = rtrim($path, '/');
+
+    return substr($trimmed, -strlen(BOARD_FILE_NEW_IMG_SEGMENT)) === BOARD_FILE_NEW_IMG_SEGMENT;
+}
+
+/**
+ * DIR이 .../file/new_img 인데 URL_BASE에도 /new_img를 붙이면 공개 URL이 new_img/new_img 가 된다.
+ */
+function board_strip_trailing_new_img(string $path): string
+{
+    $trimmed = rtrim($path, '/');
+    while (board_path_ends_with_new_img($trimmed)) {
+        $trimmed = substr($trimmed, 0, -strlen(BOARD_FILE_NEW_IMG_SEGMENT));
+        $trimmed = rtrim($trimmed, '/');
+    }
+
+    return $trimmed;
+}
+
+function board_collapse_leading_new_img(string $suffix): string
+{
+    $trimmed = ltrim($suffix, '/');
+    $collapsed = preg_replace('#^(?:new_img/)+#', 'new_img/', $trimmed);
+
+    return is_string($collapsed) ? $collapsed : $trimmed;
+}
 
 function board_file_url_base(): string
 {
     global $BOARD_FILE_URL_BASE;
 
+    $base = BOARD_FILE_URL_BASE_DEFAULT;
     if (!empty($BOARD_FILE_URL_BASE) && is_string($BOARD_FILE_URL_BASE)) {
-        return rtrim($BOARD_FILE_URL_BASE, '/');
+        $base = rtrim($BOARD_FILE_URL_BASE, '/');
     }
 
-    return BOARD_FILE_URL_BASE_DEFAULT;
+    return board_strip_trailing_new_img($base);
 }
 
 function board_sanitize_stored_filename(string $stored_name): string
@@ -38,14 +69,14 @@ function board_stored_file_disk_entries(string $bo_table, string $stored_name): 
 
     $base = rtrim((string) $BOARD_FILE_DIR, '/');
     if ($base !== '') {
-        $base_is_new_img = substr($base, -8) === '/new_img';
+        $base_is_new_img = board_path_ends_with_new_img($base);
         $entries[] = [
             'path' => $base . '/' . $bo_table . '/' . $name,
             'suffix' => $base_is_new_img ? $legacy_suffix : $main_suffix,
         ];
         if ($base_is_new_img) {
             $entries[] = [
-                'path' => substr($base, 0, -8) . '/' . $bo_table . '/' . $name,
+                'path' => board_strip_trailing_new_img($base) . '/' . $bo_table . '/' . $name,
                 'suffix' => $main_suffix,
             ];
         } else {

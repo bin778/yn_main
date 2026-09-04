@@ -108,7 +108,11 @@ function board_image_dimensions(string $path): ?array
 
 function board_public_file_url(string $bo_table, string $stored_name): string
 {
-    return board_file_url_base() . '/' . board_stored_file_public_suffix($bo_table, $stored_name);
+    $suffix = board_collapse_leading_new_img(
+        board_stored_file_public_suffix($bo_table, $stored_name)
+    );
+
+    return board_file_url_base() . '/' . $suffix;
 }
 
 /** 공개 첨부 다운로드 — 실제 저장 경로(BOARD_FILE_DIR)를 통해 스트리밍 */
