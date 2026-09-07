@@ -152,12 +152,14 @@ function inquiry_build_where(array $params): array
         $like     = '%' . $q . '%';
 
         if ($q_digits !== '' && strlen($q_digits) >= 4) {
-            $where[] = "(c_name LIKE :q_name OR REPLACE(c_tel, '-', '') LIKE :q_tel)";
-            $bind[':q_name'] = $like;
-            $bind[':q_tel']  = '%' . $q_digits . '%';
+            $where[] = "(c_name LIKE :q_name OR c_email LIKE :q_email OR REPLACE(c_tel, '-', '') LIKE :q_tel)";
+            $bind[':q_name']  = $like;
+            $bind[':q_email'] = $like;
+            $bind[':q_tel']   = '%' . $q_digits . '%';
         } else {
-            $where[] = 'c_name LIKE :q_name';
-            $bind[':q_name'] = $like;
+            $where[] = '(c_name LIKE :q_name OR c_email LIKE :q_email)';
+            $bind[':q_name']  = $like;
+            $bind[':q_email'] = $like;
         }
     }
 

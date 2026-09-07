@@ -31,6 +31,12 @@ function formatPhone(tel: string | null): string {
   return tel;
 }
 
+function formatContact(item: InquiryListItem): string {
+  if (item.c_tel) return formatPhone(item.c_tel);
+  if (item.c_email) return item.c_email;
+  return '-';
+}
+
 function resolveRoute(item: InquiryListItem): string {
   const url = item.c_inflowurl ?? item.c_inflow ?? '';
   return url || '-';
@@ -277,7 +283,7 @@ function TablePanel({ filter, page, onPageChange, onIpClick }: TablePanelProps) 
                         {item.c_name ?? '-'}
                       </Link>
                     </td>
-                    <td className={tdClass}>{formatPhone(item.c_tel)}</td>
+                    <td className={tdClass}>{formatContact(item)}</td>
                     <td className={tdClass}>
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-bold ${

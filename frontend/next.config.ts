@@ -101,6 +101,10 @@ const nextConfig: NextConfig = {
           { source: `/familylawcase/${slug}/`, destination: `${CAFE24}/familylawcase/${slug}/` },
           { source: `/familylawcase/${slug}/:path*`, destination: `${CAFE24}/familylawcase/${slug}/:path*` },
         ]),
+        /** 재외동포 랜딩 — Cafe24 `www/overseas-koreans/` (yn_land3 static export) */
+        { source: '/overseas-koreans', destination: `${CAFE24}/overseas-koreans/` },
+        { source: '/overseas-koreans/', destination: `${CAFE24}/overseas-koreans/` },
+        { source: '/overseas-koreans/:path*', destination: `${CAFE24}/overseas-koreans/:path*` },
       ],
 
       // Next.js 페이지 매칭 후, 없을 때만 프록시

@@ -6,6 +6,7 @@ export type InquiryListItem = {
   c_date: string | null;
   c_name: string | null;
   c_tel: string | null;
+  c_email: string | null;
   c_inflowurl: string | null;
   c_inflow: string | null;
   c_state: string | null;

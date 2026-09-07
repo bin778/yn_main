@@ -76,7 +76,7 @@ export default function AdminHub() {
                     <Link href={INQUIRY_DETAIL_PATH(item.idx)} className="block hover:bg-[#fafafa] -mx-2 px-2 py-1">
                       <div className="flex flex-wrap items-center gap-2 text-sm">
                         <span className="font-medium text-[#333]">{item.c_name ?? '-'}</span>
-                        <span className="text-[#666]">{item.c_tel ?? '-'}</span>
+                        <span className="text-[#666]">{item.c_tel || item.c_email || '-'}</span>
                         <span className="rounded bg-[#eef2f7] px-2 py-0.5 text-xs text-[#1a3151]">
                           {item.c_state ?? '-'}
                         </span>

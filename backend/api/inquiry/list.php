@@ -36,7 +36,7 @@ try {
     $count_stmt->execute($where_params);
     $total = (int) $count_stmt->fetchColumn();
 
-    $list_sql = "SELECT idx, c_date, c_name, c_tel,
+    $list_sql = "SELECT idx, c_date, c_name, c_tel, c_email,
                         c_inflowurl, c_inflow, c_state, c_state2,
                         block, userip, utm_source, utm_campaign
                 FROM user_inquiry"
