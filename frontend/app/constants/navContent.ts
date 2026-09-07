@@ -25,6 +25,9 @@ export const CONSULTATION_SUBLINKS: readonly NavSublink[] = [
   { href: STALKING_CONSULTATION_HREF, label: '스토킹' },
 ];
 
+export const OVERSEAS_KOREANS_HREF = 'https://www.yeoon.co.kr/overseas-koreans/';
+export const OVERSEAS_KOREANS_NAV_LABEL = '재외동포 센터';
+
 export const CONSULTATION_NAV_LABEL = '형사 전문 센터';
 
 /** 형사 전문 센터 드롭다운 노출 여부 — `true`로 바꾸면 헤더·푸터에 즉시 표시. */

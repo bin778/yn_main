@@ -12,6 +12,8 @@ import {
   FAMILY_LAWCASE_NAV_LABEL,
   FAMILY_LAWCASE_SUBLINKS,
   MAIN_NAV_LINKS,
+  OVERSEAS_KOREANS_HREF,
+  OVERSEAS_KOREANS_NAV_LABEL,
   STORY_NAV_HREF,
   STORY_NAV_LABEL,
   STORY_SUBLINKS,
@@ -44,7 +46,8 @@ export default function Header() {
     };
   }, [mobileOpen]);
 
-  const navLinkClass = 'font-bold text-[18px] tracking-tight text-black transition-colors hover:text-black/50';
+  const navLinkClass =
+    'font-bold min-[1200px]:text-[18px] tracking-tight text-black transition-colors hover:text-black/50';
 
   const subLinkClass =
     'block px-5 py-[15px] text-[13px] text-black hover:bg-[#1a3151] hover:text-white transition-colors';
@@ -110,7 +113,17 @@ export default function Header() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-5 lg:flex min-[1200px]:gap-10">
+          <nav className="hidden items-center gap-4 lg:flex min-[1200px]:gap-6">
+            <a
+              href={OVERSEAS_KOREANS_HREF}
+              className={navLinkClass}
+              onClick={event => {
+                event.preventDefault();
+                window.location.assign(OVERSEAS_KOREANS_HREF);
+              }}
+            >
+              {OVERSEAS_KOREANS_NAV_LABEL}
+            </a>
             {SHOW_CONSULTATION_NAV ? (
               <div className="group relative flex h-[80px] items-center">
                 <span className={`${navLinkClass} inline-flex items-center gap-1.5`}>
@@ -211,6 +224,17 @@ export default function Header() {
               </button>
             </div>
             <nav className="flex flex-1 flex-col overflow-y-auto py-2">
+              <a
+                href={OVERSEAS_KOREANS_HREF}
+                className="border-b border-gray-100 px-5 py-4 text-[14px] md:text-[16px] font-bold text-black"
+                onClick={event => {
+                  event.preventDefault();
+                  setMobileOpen(false);
+                  window.location.assign(OVERSEAS_KOREANS_HREF);
+                }}
+              >
+                {OVERSEAS_KOREANS_NAV_LABEL}
+              </a>
               {SHOW_CONSULTATION_NAV ? (
                 <div className="border-b border-gray-100">
                   <button

@@ -11,6 +11,8 @@ import {
   FAMILY_LAWCASE_NAV_LABEL,
   FAMILY_LAWCASE_SUBLINKS,
   MAIN_NAV_LINKS,
+  OVERSEAS_KOREANS_HREF,
+  OVERSEAS_KOREANS_NAV_LABEL,
   SHOW_CONSULTATION_NAV,
   SHOW_FAMILY_LAWCASE_NAV,
   STORY_NAV_LABEL,
@@ -25,6 +27,18 @@ export default function FooterMobileNav() {
   return (
     <nav className="border-b border-black/5 pb-2 md:pb-6 lg:hidden" aria-label="사이트 메뉴">
       <ul className="flex flex-col">
+        <li className="border-t border-gray-100">
+          <a
+            href={OVERSEAS_KOREANS_HREF}
+            className="block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]"
+            onClick={event => {
+              event.preventDefault();
+              window.location.assign(OVERSEAS_KOREANS_HREF);
+            }}
+          >
+            {OVERSEAS_KOREANS_NAV_LABEL}
+          </a>
+        </li>
         {SHOW_CONSULTATION_NAV ? (
           <li className="border-t border-gray-100">
             <button
