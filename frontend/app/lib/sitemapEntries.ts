@@ -10,7 +10,7 @@ import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 import type { MetadataRoute } from 'next';
 
 export { SITE_ORIGIN };
-const BOARD_API_BASE = process.env.BOARD_API_URL ?? `${SITE_ORIGIN}/api/board`;
+const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://lawfirmonly1.mycafe24.com/api/board';
 const SITEMAP_PER_PAGE = 50;
 
 type SitemapPageConfig = {

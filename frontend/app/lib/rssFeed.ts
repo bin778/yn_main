@@ -3,7 +3,7 @@ import { getBoardPostPathSegment } from '@/app/(story)/lib/boardPostPath';
 import type { BoardListItem, BoardListResponse, BoTable } from '@/app/(story)/types/board';
 import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 
-const BOARD_API_BASE = process.env.BOARD_API_URL ?? `${SITE_ORIGIN}/api/board`;
+const BOARD_API_BASE = process.env.BOARD_API_URL ?? 'https://lawfirmonly1.mycafe24.com/api/board';
 const RSS_PER_BOARD = 20;
 const RSS_MAX_ITEMS = 50;
 const RSS_PATH = '/rss.xml';

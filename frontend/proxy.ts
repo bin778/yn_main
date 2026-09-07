@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type { NextRequest, ProxyConfig } from 'next/server';
 
 const APEX_HOST = 'yeoon.co.kr';
 const WWW_HOST = 'www.yeoon.co.kr';
@@ -61,9 +61,13 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * 정적 에셋·Next 내부 경로 제외. /rss.xml 포함해야 apex에서 예외 처리 가능.
-     * www 리다이렉트와 board.php 301만 처리하므로 이미지·폰트·스크립트는 제외한다.
+     * apex 호스트는 /rss.xml을 제외한 모든 경로에서 www로 리디렉트한다.
+     * www에서는 구 그누보드 board.php 요청에서만 Proxy를 실행한다.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|avif|woff2?|css|js|map)$).*)',
+    {
+      source: '/((?!rss\\.xml$).*)',
+      has: [{ type: 'host', value: 'yeoon.co.kr' }],
+    },
+    '/board/bbs/board.php',
   ],
-};
+} satisfies ProxyConfig;

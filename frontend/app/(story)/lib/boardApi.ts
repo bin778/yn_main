@@ -6,7 +6,9 @@ import type { BoardListResponse, BoardSearchField, BoardView } from '../types/bo
 import type { BoTable } from '../types/board';
 
 const BOARD_API_BASE =
-  typeof window !== 'undefined' ? '/api/board' : (process.env.BOARD_API_URL ?? 'https://www.yeoon.co.kr/api/board');
+  typeof window !== 'undefined'
+    ? '/api/board'
+    : (process.env.BOARD_API_URL ?? 'https://lawfirmonly1.mycafe24.com/api/board');
 const DOWNLOAD_API = `${BOARD_API_BASE}/download_file.php`;
 const BOARD_LIST_PER_PAGE = 12;
 
@@ -43,7 +45,12 @@ export async function fetchBoardList(
   }
 
   const url = `${BOARD_API_BASE}/get_list.php?${searchParams.toString()}`;
-  const res = await fetch(url, { next: { tags: [boardListCacheTag(boTable as BoTable)] } });
+  const res = await fetch(url, {
+    next: {
+      revalidate: 3600,
+      tags: [boardListCacheTag(boTable as BoTable)],
+    },
+  });
   if (!res.ok) throw new Error(`게시판 목록을 불러오지 못했습니다. (${boTable})`);
   return res.json() as Promise<BoardListResponse>;
 }
@@ -56,6 +63,7 @@ export async function fetchBoardView(boTable: string, postKey: string): Promise<
   const url = `${BOARD_API_BASE}/get_view.php?${query}`;
   const res = await fetch(url, {
     next: {
+      revalidate: 3600,
       tags: [boardViewCacheTag(boTable as BoTable, isNumericPostKey(trimmed) ? Number(trimmed) : trimmed)],
     },
   });
