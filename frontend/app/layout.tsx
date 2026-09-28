@@ -6,7 +6,6 @@ import { SITE_ORIGIN } from '@/app/lib/siteOrigin';
 
 import './globals.css';
 import AnalyticsProvider from './components/AnalyticsProvider';
-import ChuseokNoticePopup from './components/ChuseokNoticePopup';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import InquiryInflowCapture from './components/InquiryInflowCapture';
@@ -43,7 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FloatingQuickActions />
           <PreFooterCta />
           <Footer />
-          <ChuseokNoticePopup />
         </AnalyticsProvider>
         <VercelMetrics />
       </body>
