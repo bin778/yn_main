@@ -66,7 +66,7 @@ yn_main/
 │   │   ├── components/    # Header, Footer, Analytics 등
 │   │   ├── constants/     # 페이지·푸터·GA 이벤트 상수
 │   │   └── lib/           # sitemap, analytics, fonts
-│   ├── public/            # 정적 에셋 (img, yeoon_brochure.pdf 등)
+│   ├── public/            # 정적 에셋 (img, pdf 등)
 │   └── scripts/           # copy-tinymce.mjs, subset-pretendard.mjs
 ├── backend/               # PHP API (카페24 FTP 업로드)
 │   ├── config/            # DB·Aligo·JWT (*.sample.php → 운영 파일)
@@ -180,7 +180,7 @@ yn_main/
 | `home_lead_success` | `/contact/` 상담 폼 API 성공   | `form_name`, `link_source`, `inflow_url` (`contact` \| `contact-ad`) |
 | `home_phone_click`  | `tel:` 링크 클릭               | `link_source` 등                                                     |
 | `home_kakao_click`  | `pf.kakao.com` 링크 클릭       | `link_source` 등                                                     |
-| `file_download`     | `yeoon_brochure.pdf` 링크 클릭 | `link_source` 등                                                     |
+| `file_download`     | `yeoon_leafleat.pdf` 링크 클릭 | `link_source` 등                                                     |
 
 `trackGaEvent`는 **dataLayer push(GTM)** 와 **gtag event(직접 GA4)** 를 함께 보냅니다.
 

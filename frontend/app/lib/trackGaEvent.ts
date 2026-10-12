@@ -1,6 +1,6 @@
-import { BROCHURE_HREF } from '@/app/constants/footerContent';
+import { DOCUMENT_HREF } from '@/app/constants/footerContent';
 import {
-  BROCHURE_FILE_NAME,
+  DOCUMENT_FILE_NAME,
   GA_EVENTS,
   GA_SOURCE_ATTR,
   GA_SOURCES,
@@ -45,8 +45,8 @@ function getLinkText(anchor: HTMLAnchorElement): string {
   return label.slice(0, 100);
 }
 
-function isBrochureHref(href: string): boolean {
-  return href.includes(BROCHURE_FILE_NAME) || href.endsWith(BROCHURE_HREF);
+function isDocumentHref(href: string): boolean {
+  return href.includes(DOCUMENT_FILE_NAME) || href.endsWith(DOCUMENT_HREF);
 }
 
 export function classifyAnchorClick(anchor: HTMLAnchorElement): { eventName: string; params: GaEventParams } | null {
@@ -70,11 +70,11 @@ export function classifyAnchorClick(anchor: HTMLAnchorElement): { eventName: str
     };
   }
 
-  if (isBrochureHref(href)) {
+  if (isDocumentHref(href)) {
     return {
       eventName: GA_EVENTS.FILE_DOWNLOAD,
       params: {
-        file_name: BROCHURE_FILE_NAME,
+        file_name: DOCUMENT_FILE_NAME,
         file_extension: 'pdf',
         link_url: href,
         link_source: linkSource,

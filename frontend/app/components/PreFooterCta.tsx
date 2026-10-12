@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import FamilySiteDropdown from '@/app/components/FamilySiteDropdown';
 import { GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 import {
-  BROCHURE_HREF,
+  DOCUMENT_HREF,
   CONTACT_HREF,
   PRE_FOOTER_BG_DESKTOP,
   PRE_FOOTER_BG_MOBILE,
@@ -35,7 +35,7 @@ export default function PreFooterCta() {
         <div className="absolute inset-0 bg-black/35" aria-hidden />
         <div className="relative z-[1] px-6 py-16 text-center text-white">
           <h2 id="pre-footer-cta-mobile-heading" className="sr-only">
-            상담 및 브로슈어 안내
+            상담 및 리플릿 안내
           </h2>
           {PRE_FOOTER_TITLE_LINES_MOBILE.map(line => (
             <p key={line} className="text-[24px] md:text-[34px] font-bold leading-[1.23] tracking-tight">
@@ -55,13 +55,13 @@ export default function PreFooterCta() {
               <span aria-hidden>→</span>
             </Link>
             <a
-              href={BROCHURE_HREF}
+              href={DOCUMENT_HREF}
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-[196px] md:w-[226px] max-w-full items-center justify-between border border-white bg-transparent px-4 py-3 font-bold text-white"
               {...{ [GA_SOURCE_ATTR]: GA_SOURCES.PRE_FOOTER_CTA }}
             >
-              브로슈어 다운로드
+              리플릿 다운로드
               <span aria-hidden>→</span>
             </a>
           </div>
@@ -100,13 +100,13 @@ export default function PreFooterCta() {
                 <span aria-hidden>→</span>
               </Link>
               <a
-                href={BROCHURE_HREF}
+                href={DOCUMENT_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full max-w-[237px] items-center justify-between border border-white bg-transparent px-4 py-3 font-bold text-white md:ml-auto"
                 {...{ [GA_SOURCE_ATTR]: GA_SOURCES.PRE_FOOTER_CTA }}
               >
-                브로슈어 다운로드
+                리플릿 다운로드
                 <span aria-hidden>→</span>
               </a>
             </div>

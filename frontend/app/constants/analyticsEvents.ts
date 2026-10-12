@@ -18,7 +18,7 @@ export const GA_SOURCES = {
   CONSULT_CHAT: 'consult_chat',
 } as const;
 
-export const BROCHURE_FILE_NAME = 'yeoon_brochure.pdf';
+export const DOCUMENT_FILE_NAME = 'yeoon_leafleat.pdf';
 export const KAKAO_CHANNEL_HOST = 'pf.kakao.com';
 export const INQUIRY_FORM_NAME = 'contact_inquiry';
 export const CONSULT_CHAT_FORM_NAME = 'consult_chat';

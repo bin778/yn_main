@@ -3,7 +3,7 @@
  */
 
 export { CONTACT_HREF } from '@/app/constants/sharedContent';
-export const BROCHURE_HREF = '/yeoon_brochure.pdf';
+export const DOCUMENT_HREF = '/yeoon_leafleat.pdf';
 
 export const FAMILY_SITES = [{ label: '보통의 하루', href: 'https://www.commonday.co.kr/' }] as const;
 
