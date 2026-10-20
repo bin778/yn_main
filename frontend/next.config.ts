@@ -88,8 +88,8 @@ const nextConfig: NextConfig = {
       // Next.js [bo_table]/[wr_id] 라우트보다 먼저 — criminal 게시판 slug와 충돌 방지
       beforeFiles: [
         /** Sydney landing and PHP API — Cafe24 `/sydney/` */
-        { source: '/sydney', destination: `${CAFE24}/sydney/` },
         { source: '/sydney/', destination: `${CAFE24}/sydney/` },
+        { source: '/sydney/:path*/', destination: `${CAFE24}/sydney/:path*/` },
         { source: '/sydney/:path*', destination: `${CAFE24}/sydney/:path*` },
         { source: '/criminal/api/:path*', destination: `${CAFE24}/criminal/api/:path*` },
         { source: '/criminal/admin', destination: `${CAFE24}/criminal/admin/` },
