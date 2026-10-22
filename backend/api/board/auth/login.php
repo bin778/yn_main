@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../../lib/bootstrap.php';
 require_once __DIR__ . '/../../../lib/board_auth.php';
 
 const BOARD_LOGIN_ACCOUNT_MAX_PER_MINUTE = 20;
+const BOARD_LOGIN_IP_MAX_PER_MINUTE = 10;
 
 board_handle_options('POST, OPTIONS');
 
@@ -16,7 +17,8 @@ if ($JWT_SECRET === '') {
     board_json_response(['error' => '서버 인증 설정이 완료되지 않았습니다.'], 500);
 }
 
-if (board_rate_limit_exceeded('login', 10)) {
+if (board_rate_limit_exceeded('login', BOARD_LOGIN_IP_MAX_PER_MINUTE)) {
+    header('Retry-After: ' . APP_RATE_LIMIT_WINDOW_SECONDS);
     board_json_response(['error' => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'], 429);
 }
 
@@ -34,6 +36,7 @@ if ($mb_id === '' || $mb_password === '') {
 }
 
 if (app_rate_limit_exceeded('login-account|' . strtolower($mb_id), BOARD_LOGIN_ACCOUNT_MAX_PER_MINUTE)) {
+    header('Retry-After: ' . APP_RATE_LIMIT_WINDOW_SECONDS);
     board_json_response(['error' => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'], 429);
 }
 

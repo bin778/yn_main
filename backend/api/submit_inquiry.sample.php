@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../lib/client_ip.php';
+require_once __DIR__ . '/../lib/rate_limit.php';
 require_once __DIR__ . '/../lib/recaptcha.php';
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -44,6 +45,7 @@ if (!isset($RECAPTCHA_SECRET_KEY)) {
 }
 
 const INQUIRY_CONTENT_MAX = 500;
+const INQUIRY_POST_MAX_PER_MINUTE = 10;
 const INQUIRY_CONTENT_MIN = 5;
 const FAKE_SUCCESS_MSG = '상담이 접수되었습니다.';
 const DUPLICATE_TEL_MSG = "이미 접수된 연락처입니다.\n회신 대기 중이거나 빠른 상담을 원하시면 02-318-2981 로 연락 부탁드립니다.";
@@ -239,6 +241,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_response(['result' => '0', 'msg' => '허용되지 않은 요청입니다.']);
 }
 
+$user_ip = get_client_ip();
+if (app_rate_limit_exceeded('inquiry-submit|' . $user_ip, INQUIRY_POST_MAX_PER_MINUTE)) {
+    http_response_code(429);
+    header('Retry-After: ' . APP_RATE_LIMIT_WINDOW_SECONDS);
+    json_response(['result' => '0', 'msg' => '요청이 너무 많습니다. 1분 후 다시 시도해 주세요.']);
+}
+
 $raw_name = trim((string) ($_POST['c_name'] ?? ''));
 $raw_tel = trim((string) ($_POST['c_tel'] ?? ''));
 $raw_content = trim((string) ($_POST['c_content'] ?? ''));
@@ -276,7 +285,6 @@ $utm_source = resolve_utm($_POST['utm_source'] ?? '', ALIMTALK_DEFAULT_UTM_SOURC
 $utm_campaign = resolve_utm($_POST['utm_campaign'] ?? '', ALIMTALK_DEFAULT_UTM_CAMPAIGN);
 $gclid = resolve_gclid($_POST['gclid'] ?? '');
 
-$user_ip = get_client_ip();
 $recaptcha = verify_recaptcha_token($_POST['recaptcha_token'] ?? '', $user_ip);
 $is_bot = $recaptcha['is_bot'];
 $state2 = $recaptcha['state2'];

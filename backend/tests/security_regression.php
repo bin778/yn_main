@@ -155,4 +155,14 @@ foreach (['valid', 'low-score'] as $scenario) {
         $scenario . ' inquiry keeps intended notification policy');
 }
 
+foreach (['rate-limited', 'rate-limited-spoofed'] as $scenario) {
+    $response = json_decode(security_fixture($scenario, 'inquiry_endpoint.php'), true);
+    security_assert($response['result'] === '0' && $response['_fixture']['status'] === 429,
+        $scenario . ' inquiry returns 429');
+    security_assert($response['_fixture']['verification_count'] === 0
+        && $response['_fixture']['prepare_count'] === 0 && $response['_fixture']['insert_count'] === 0
+        && $response['_fixture']['notification_count'] === 0,
+        $scenario . ' performs no verification, DB queries or notifications');
+}
+
 echo 'Passed ' . $assertions . " PHP security regression checks (no external network or production DB).\n";

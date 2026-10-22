@@ -352,7 +352,10 @@ Vercel·로컬에서 `NEXT_PUBLIC_INQUIRY_API_URL=/api/submit_inquiry.php`이면
 - `/admin/` robots disallow·noindex는 보안 장치가 아님 — JWT·API 권한이 실제 방어선.
 - 전달 IP는 기본적으로 신뢰하지 않습니다. 확인된 프록시의 실제 연결 IP/CIDR만
   `app_config.php`의 `$TRUSTED_PROXY_CIDRS`에 지정하세요. 미설정 시 `REMOTE_ADDR` 기준으로 제한합니다.
-- 2026-10-22 보안 수정 내용과 배포 전 확인사항: [SECURITY_FIXES.md](SECURITY_FIXES.md).
+- 로그인 POST는 IP당 60초 구간 10회·계정당 20회, 상담 접수 POST는 IP당 60초 구간 10회로 제한합니다.
+  초과 시 HTTP 429와 `Retry-After: 60`을 반환합니다. 상담 제한은 입력 검증·reCAPTCHA·DB 쿼리 전에 적용합니다.
+  Vercel 경유 요청의 방문자별 제한에는 검증된 프록시 설정 또는 Vercel에서 별도 IP 제한이 필요합니다.
+  프록시 미설정 상태의 PHP 제한은 연결 IP를 공유하는 방문자를 합산할 수 있습니다.
 
 ## 검증
 
