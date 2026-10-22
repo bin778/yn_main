@@ -67,18 +67,12 @@ const ALLOWED_ATTR = [
 function purifyLegacyHtml(html: string): string {
   const withoutScripts = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
-  const purified = DOMPurify.sanitize(withoutScripts, {
+  const root = DOMPurify.sanitize(withoutScripts, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     FORBID_ATTR: ['id', 'face', 'size', 'color'],
-  });
-
-  if (typeof document === 'undefined') {
-    return purified;
-  }
-
-  const root = document.createElement('div');
-  root.innerHTML = purified;
+    RETURN_DOM: true,
+  }) as HTMLElement;
 
   root.querySelectorAll('[style]').forEach(el => {
     const safeStyle = buildLegacySafeInlineStyle(el.getAttribute('style') ?? '');

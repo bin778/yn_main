@@ -200,7 +200,10 @@ yn_main/
 
 ### reCAPTCHA v3
 
-상담 폼 포커스/제출 시 지연 로드. 서버 `$RECAPTCHA_SECRET_KEY` 설정 시 토큰 필수·score &lt; 0.5면 `c_state2=부정클릭` 후 INSERT는 하되 알림톡 스킵. secret 비우면 검증 스킵(로컬).
+상담 폼 포커스/제출 시 지연 로드. 서버 `$RECAPTCHA_SECRET_KEY`와 프런트 site key가 필요합니다.
+검증 실패·응답 파싱 오류·설정 누락은 DB 저장과 알림톡 전에 거절합니다(403 또는 503).
+hostname 허용 목록과 action(`submit_consult`)도 검사하며, 정상 검증 후 score &lt; 0.5인 요청은
+기존대로 `c_state2=부정클릭`으로 저장하고 알림톡을 생략합니다. 로컬에서도 secret 미설정 우회는 없습니다.
 
 주요 파일: `LazyReCaptchaProvider.tsx`, `submit_inquiry.sample.php`, `app_config.sample.php`.
 
@@ -347,8 +350,24 @@ Vercel·로컬에서 `NEXT_PUBLIC_INQUIRY_API_URL=/api/submit_inquiry.php`이면
 - Aligo·DB 비밀번호는 `app_config.php`, `db_conn.php`에만 보관. 레포에 올리지 않음.
 - 노출된 API 키는 재발급·로테이션 권장.
 - `/admin/` robots disallow·noindex는 보안 장치가 아님 — JWT·API 권한이 실제 방어선.
+- 전달 IP는 기본적으로 신뢰하지 않습니다. 확인된 프록시의 실제 연결 IP/CIDR만
+  `app_config.php`의 `$TRUSTED_PROXY_CIDRS`에 지정하세요. 미설정 시 `REMOTE_ADDR` 기준으로 제한합니다.
+- 2026-10-22 보안 수정 내용과 배포 전 확인사항: [SECURITY_FIXES.md](SECURITY_FIXES.md).
 
 ## 검증
+
+PHP 보안 회귀 검사(실제 운영 DB·외부 API 호출 없음, 테스트용 PDO SQLite 및 cURL 확장 필요):
+
+```bash
+php backend/tests/security_regression.php
+```
+
+공개 게시판 HTML 정화 및 기존 서식 검사:
+
+```bash
+cd frontend
+npm run test:security
+```
 
 ```bash
 cd frontend && npm run build && npm run lint

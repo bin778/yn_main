@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../lib/client_ip.php';
+require_once __DIR__ . '/../lib/recaptcha.php';
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowed_origins = [
     'https://yeoon.co.kr',
@@ -47,14 +50,14 @@ const DUPLICATE_TEL_MSG = "이미 접수된 연락처입니다.\n회신 대기 �
 const MSG_NAME_INVALID = '올바른 성함을 입력하고, 한글 2~10자로만 입력해 주세요.';
 const MSG_TEL_INVALID = '연락처는 010으로 시작하는 11자리 숫자만 입력해 주세요.';
 const MSG_CONTENT_MIN = '문의사항은 5자 이상 입력해 주세요.';
-const MSG_RECAPTCHA_MISSING = '보안 토큰이 누락되었습니다. 페이지를 새로고침 후 다시 시도해 주세요.';
 const ALIMTALK_INFLOW_URL = 'contact';
 const ALIMTALK_INFLOW_URL_GOOGLE = 'contact-ad';
 const ALIMTALK_DEFAULT_UTM_SOURCE = 'main';
 const ALIMTALK_DEFAULT_UTM_CAMPAIGN = '직접문의';
 const GCLID_MAX_LENGTH = 255;
 const UTM_MAX_LENGTH = 200;
-const RECAPTCHA_SCORE_THRESHOLD = 0.5;
+const MSG_RECAPTCHA_INVALID = '보안 검증에 실패했습니다. 새로고침 후 다시 시도해 주세요.';
+const MSG_RECAPTCHA_UNAVAILABLE = '보안 검증 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
 
 /**
  * @return list<string>
@@ -102,61 +105,28 @@ function resolve_utm($raw, $default)
     return $value;
 }
 
-/**
- * reCAPTCHA v3 검증. secret 미설정 시 스킵.
- *
- * @return array{is_bot: bool, state2: string}
- */
+/** @return array{is_bot: bool, state2: string} */
 function verify_recaptcha_token($token, $remote_ip)
 {
-    global $RECAPTCHA_SECRET_KEY;
+    global $RECAPTCHA_SECRET_KEY, $RECAPTCHA_ALLOWED_HOSTNAMES, $RECAPTCHA_EXPECTED_ACTION;
 
-    $result = ['is_bot' => false, 'state2' => ''];
     $secret = is_string($RECAPTCHA_SECRET_KEY) ? trim($RECAPTCHA_SECRET_KEY) : '';
-    if ($secret === '') {
-        return $result;
+    $hostnames = isset($RECAPTCHA_ALLOWED_HOSTNAMES) && is_array($RECAPTCHA_ALLOWED_HOSTNAMES)
+        ? $RECAPTCHA_ALLOWED_HOSTNAMES : RECAPTCHA_DEFAULT_HOSTNAMES;
+    $action = isset($RECAPTCHA_EXPECTED_ACTION) && is_string($RECAPTCHA_EXPECTED_ACTION)
+        ? $RECAPTCHA_EXPECTED_ACTION : RECAPTCHA_DEFAULT_ACTION;
+    $result = recaptcha_verify_token(trim((string) $token), (string) $remote_ip, $secret, $hostnames, $action);
+    if (!$result['verified']) {
+        error_log('[reCAPTCHA] verification rejected: ' . $result['reason']);
+        $unavailable = $result['reason'] !== 'invalid';
+        http_response_code($unavailable ? 503 : 403);
+        json_response([
+            'result' => '0',
+            'msg' => $unavailable ? MSG_RECAPTCHA_UNAVAILABLE : MSG_RECAPTCHA_INVALID,
+        ]);
     }
 
-    $token = trim((string) $token);
-    if ($token === '') {
-        json_response(['result' => '0', 'msg' => MSG_RECAPTCHA_MISSING]);
-    }
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-        'secret' => $secret,
-        'response' => $token,
-        'remoteip' => $remote_ip,
-    ]));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    $verify_response = curl_exec($ch);
-    curl_close($ch);
-
-    $recaptcha_result = json_decode($verify_response === false ? '' : $verify_response);
-    if (!$recaptcha_result || !isset($recaptcha_result->success)) {
-        error_log('[reCAPTCHA] invalid response | IP: ' . $remote_ip);
-        return $result;
-    }
-
-    if (!$recaptcha_result->success) {
-        $error_codes = isset($recaptcha_result->{'error-codes'})
-            ? implode(', ', (array) $recaptcha_result->{'error-codes'})
-            : 'Unknown';
-        error_log('[reCAPTCHA System Error] Errors: ' . $error_codes . ' | IP: ' . $remote_ip);
-        return $result;
-    }
-
-    $score = isset($recaptcha_result->score) ? (float) $recaptcha_result->score : 1.0;
-    if ($score < RECAPTCHA_SCORE_THRESHOLD) {
-        error_log('[reCAPTCHA Bot] Score: ' . $score . ' | IP: ' . $remote_ip);
-        $result['is_bot'] = true;
-        $result['state2'] = '부정클릭';
-    }
-
-    return $result;
+    return ['is_bot' => $result['is_bot'], 'state2' => $result['is_bot'] ? '부정클릭' : ''];
 }
 
 /**
@@ -170,31 +140,7 @@ function json_response($payload)
 
 function get_client_ip()
 {
-    $ipaddress = '';
-    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    } elseif (isset($_SERVER['HTTP_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    } elseif (isset($_SERVER['HTTP_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-        $ipaddress = $_SERVER['REMOTE_ADDR'];
-    } else {
-        $ipaddress = 'UNKNOWN';
-    }
-
-    $ips = explode(',', $ipaddress);
-    $ip = trim($ips[0]);
-
-    if ($ip === '::1') {
-        $ip = '127.0.0.1';
-    }
-
-    return $ip;
+    return app_client_ip();
 }
 
 function sanitize_input($data): string
@@ -259,9 +205,6 @@ function send_kakao_alimtalk(
     }
 
     $api_url = 'https://kakaoapi.aligo.in/akv10/alimtalk/send/';
-    $host_info = parse_url($api_url);
-    $port = (strtolower($host_info['scheme']) === 'https') ? 443 : 80;
-
     $message = build_alimtalk_message($name, $phone, $case_keyword, $inflow_url, $utm_source, $utm_campaign);
 
     $variables = [
@@ -283,17 +226,13 @@ function send_kakao_alimtalk(
         $receiver_index++;
     }
 
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_PORT, $port);
-    curl_setopt($curl, CURLOPT_URL, $api_url);
-    curl_setopt($curl, CURLOPT_POST, 1);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($variables));
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    $response = app_post_form($api_url, $variables);
+    $sent = $response['body'] !== false && $response['status'] >= 200 && $response['status'] < 300;
+    if (!$sent) {
+        error_log('[Alimtalk] HTTPS request failed');
+    }
 
-    $response = curl_exec($curl);
-
-    return $response;
+    return $sent;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

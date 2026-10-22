@@ -136,6 +136,7 @@ try {
         SELECT wr_id, wr_subject, wr_2
         FROM   `{$table}`
         WHERE  wr_is_comment = 0
+        AND    wr_datetime <= NOW()
         AND    wr_num > :wr_num
         ORDER  BY wr_num ASC
         LIMIT  1
@@ -150,6 +151,7 @@ try {
         SELECT wr_id, wr_subject, wr_2
         FROM   `{$table}`
         WHERE  wr_is_comment = 0
+        AND    wr_datetime <= NOW()
         AND    wr_num < :wr_num
         ORDER  BY wr_num DESC
         LIMIT  1

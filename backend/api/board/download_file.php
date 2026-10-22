@@ -58,7 +58,8 @@ if ($wr_id <= 0) {
 try {
     $write_table = 'g5_write_' . $bo_table;
     $check = $pdo->prepare(
-        "SELECT wr_id FROM `{$write_table}` WHERE wr_id = :wr_id AND wr_is_comment = 0 LIMIT 1"
+        "SELECT wr_id FROM `{$write_table}`
+         WHERE wr_id = :wr_id AND wr_is_comment = 0 AND wr_datetime <= NOW() LIMIT 1"
     );
     $check->execute(['wr_id' => $wr_id]);
     if (!$check->fetch(PDO::FETCH_ASSOC)) {
@@ -82,6 +83,11 @@ try {
         if ($password === '') {
             header('Content-Type: application/json; charset=UTF-8');
             board_json_response(['error' => '다운로드 비밀번호를 입력해 주세요.'], 403);
+        }
+        $download_rate_key = 'download|' . $bo_table . '|' . $wr_id . '|' . $bf_no;
+        if (board_rate_limit_exceeded($download_rate_key, BOARD_ATTACHMENT_PASSWORD_MAX_PER_MINUTE)) {
+            header('Content-Type: application/json; charset=UTF-8');
+            board_json_response(['error' => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'], 429);
         }
         if (!board_verify_attachment_password($password, $stored_hash, $pdo)) {
             header('Content-Type: application/json; charset=UTF-8');

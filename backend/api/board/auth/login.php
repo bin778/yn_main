@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../../lib/cors.php';
 require_once __DIR__ . '/../../../lib/bootstrap.php';
 require_once __DIR__ . '/../../../lib/board_auth.php';
 
+const BOARD_LOGIN_ACCOUNT_MAX_PER_MINUTE = 20;
+
 board_handle_options('POST, OPTIONS');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -29,6 +31,10 @@ $mb_password = (string) ($body['mb_password'] ?? '');
 
 if ($mb_id === '' || $mb_password === '') {
     board_json_response(['error' => '아이디와 비밀번호를 입력해 주세요.'], 400);
+}
+
+if (app_rate_limit_exceeded('login-account|' . strtolower($mb_id), BOARD_LOGIN_ACCOUNT_MAX_PER_MINUTE)) {
+    board_json_response(['error' => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'], 429);
 }
 
 $member = board_verify_login($pdo, $mb_id, $mb_password);

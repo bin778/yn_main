@@ -9,6 +9,10 @@ const PBKDF2_COMPAT_HASH_ALGORITHM = 'SHA256';
 const PBKDF2_COMPAT_ITERATIONS = 12000;
 const PBKDF2_COMPAT_SALT_BYTES = 24;
 const PBKDF2_COMPAT_HASH_BYTES = 24;
+const PBKDF2_COMPAT_MAX_ITERATIONS = 1000000;
+const PBKDF2_COMPAT_MAX_SALT_LENGTH = 256;
+const PBKDF2_COMPAT_MIN_HASH_BYTES = 16;
+const PBKDF2_COMPAT_MAX_HASH_BYTES = 64;
 const G5_MYSQL_PASSWORD_LENGTH = 41;
 
 function pbkdf2_create_hash(string $password): string
@@ -31,12 +35,15 @@ function pbkdf2_create_hash(string $password): string
 function pbkdf2_validate_password(string $password, string $hash): bool
 {
     $params = explode(':', $hash);
-    if (count($params) < 4) {
+    if (count($params) !== 4 || !preg_match('/^sha(1|224|256|384|512)$/iD', $params[0])
+        || !preg_match('/^[1-9]\d{0,6}$/D', $params[1]) || (int) $params[1] > PBKDF2_COMPAT_MAX_ITERATIONS
+        || $params[2] === '' || strlen($params[2]) > PBKDF2_COMPAT_MAX_SALT_LENGTH) {
         return false;
     }
 
     $pbkdf2 = base64_decode($params[3], true);
-    if ($pbkdf2 === false) {
+    if ($pbkdf2 === false || strlen($pbkdf2) < PBKDF2_COMPAT_MIN_HASH_BYTES
+        || strlen($pbkdf2) > PBKDF2_COMPAT_MAX_HASH_BYTES) {
         return false;
     }
 

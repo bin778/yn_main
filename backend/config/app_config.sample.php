@@ -11,10 +11,15 @@ $ALIGO_SENDER = '';
 $ALIGO_RECEIVERS = [];
 
 /**
- * Google reCAPTCHA v3 secret (상담 폼). 비우면 서버 검증을 건너뜀.
+ * Google reCAPTCHA v3 secret (상담 폼). 미설정·검증 실패 시 상담 접수를 거절한다.
  * 프론트 NEXT_PUBLIC_RECAPTCHA_SITE_KEY 와 한 쌍으로 발급.
  */
 $RECAPTCHA_SECRET_KEY = '';
+$RECAPTCHA_ALLOWED_HOSTNAMES = ['yeoon.co.kr', 'www.yeoon.co.kr', 'new.yeoon.co.kr'];
+$RECAPTCHA_EXPECTED_ACTION = 'submit_consult';
+
+/** Verified proxy peer CIDRs only. Empty means forwarded client IP headers are ignored. */
+$TRUSTED_PROXY_CIDRS = [];
 
 /** Board JWT admin (required for /api/board/auth/* and write_post.php) */
 $JWT_SECRET = '';

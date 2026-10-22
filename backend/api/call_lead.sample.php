@@ -32,6 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../config/db_conn.php';
+require_once __DIR__ . '/../lib/client_ip.php';
+$app_config_path = __DIR__ . '/../config/app_config.php';
+if (is_readable($app_config_path)) {
+    require_once $app_config_path;
+}
+
 
 const CALL_LEAD_GCLID_MAX = 255;
 const CALL_LEAD_INFLOW_MAX = 45;
@@ -49,29 +55,7 @@ function call_lead_json($payload)
 
 function call_lead_client_ip()
 {
-    $ipaddress = '';
-    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    } elseif (isset($_SERVER['HTTP_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    } elseif (isset($_SERVER['HTTP_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-        $ipaddress = $_SERVER['REMOTE_ADDR'];
-    } else {
-        $ipaddress = 'UNKNOWN';
-    }
-
-    $ips = explode(',', $ipaddress);
-    $ip = trim($ips[0]);
-    if ($ip === '::1') {
-        $ip = '127.0.0.1';
-    }
-    return $ip;
+    return app_client_ip();
 }
 
 $raw = file_get_contents('php://input');

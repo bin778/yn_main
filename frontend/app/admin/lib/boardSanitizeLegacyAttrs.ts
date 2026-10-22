@@ -30,8 +30,6 @@ function normalizeHeightAttr(value: string): string | null {
 
 /** legacy HTML table·셀 레이아웃 속성 정제 (bgcolor, width, bordercolor 등) */
 export function normalizeLegacyTableAttributes(root: ParentNode): void {
-  if (typeof document === 'undefined') return;
-
   root.querySelectorAll('table, thead, tbody, tfoot, tr, th, td').forEach(el => {
     const bgcolor = el.getAttribute('bgcolor');
     if (bgcolor !== null) {

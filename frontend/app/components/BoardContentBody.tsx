@@ -1,3 +1,5 @@
+import { sanitizeLegacyBoardHtml } from '../admin/lib/sanitizeLegacyBoardHtml';
+
 type BoardContentBodyProps = {
   html: string;
   className?: string;
@@ -17,5 +19,7 @@ export default function BoardContentBody({ html, className = '', legacyLayout = 
     .filter(Boolean)
     .join(' ');
 
-  return <div className={classes} dangerouslySetInnerHTML={{ __html: html }} />;
+  const safeHtml = sanitizeLegacyBoardHtml(html);
+
+  return <div className={classes} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
 }

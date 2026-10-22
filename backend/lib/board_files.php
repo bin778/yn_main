@@ -7,6 +7,7 @@ require_once __DIR__ . '/password_verify.php';
 const BOARD_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 const BOARD_ATTACHMENT_PASSWORD_MIN = 4;
 const BOARD_ATTACHMENT_PASSWORD_MAX = 64;
+const BOARD_ATTACHMENT_PASSWORD_MAX_PER_MINUTE = 10;
 const BOARD_UPLOAD_IMAGE_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 /** @see frontend/app/admin/lib/boardAttachmentAccept.ts — 확장자 목록 동기화 */
@@ -161,8 +162,8 @@ function board_attachment_has_password(string $bf_content): bool
         return false;
     }
 
-    // PBKDF2 해시만 비밀번호로 인식 (SHA256:12000:... 형식)
-    if (preg_match('/^SHA\d+:\d+:/', $content)) {
+    // create_hash writes lowercase; malformed PBKDF2 markers must also stay protected.
+    if (preg_match('/^sha\d+:/i', $content)) {
         return true;
     }
 
