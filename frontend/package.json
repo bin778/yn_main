@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:security": "node scripts/verify-board-security.mjs",
+    "test:security": "node scripts/verify-board-security.mjs && node scripts/verify-vercel-runtime.mjs",
     "fonts:subset": "node scripts/subset-pretendard.mjs",
     "postinstall": "node scripts/copy-tinymce.mjs"
   },

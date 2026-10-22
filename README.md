@@ -362,12 +362,22 @@ PHP 보안 회귀 검사(실제 운영 DB·외부 API 호출 없음, 테스트�
 php backend/tests/security_regression.php
 ```
 
-공개 게시판 HTML 정화 및 기존 서식 검사:
+공개 게시판 HTML 정화·기존 서식 및 Vercel 런타임 모듈 로딩 검사:
 
 ```bash
 cd frontend
 npm run test:security
 ```
+
+게시글 상세의 서버 HTML 정화는 `isomorphic-dompurify` → `jsdom`을 사용합니다.
+Vercel 함수는 기본적으로 `require(ESM)`을 비활성화하므로, 설정 없이 실행하면
+`html-encoding-sniffer` → `@exodus/bytes` 로딩에서 `ERR_REQUIRE_ESM`과 HTTP 500이 발생합니다.
+`frontend/vercel.json`은 함수의 `NODE_OPTIONS=--experimental-require-module`을 지정합니다.
+Vercel Root Directory는 `frontend`여야 하며, 이 설정은 수정본을 포함한 새 배포부터 적용됩니다.
+위 검사는 Vercel의 비활성화 기본값에 배포 설정을 적용해 본문 렌더링과 XSS 차단을 함께 검증합니다.
+기존 `NODE_OPTIONS`에 별도 옵션이 필요하면 이 값에도 함께 유지하세요.
+관련 문서: [Vercel Node.js 설정](https://vercel.com/docs/functions/runtimes/node-js/advanced-node-configuration),
+[DOMPurify 래퍼의 런타임 안내](https://github.com/kkomelin/isomorphic-dompurify/issues/394).
 
 ```bash
 cd frontend && npm run build && npm run lint
