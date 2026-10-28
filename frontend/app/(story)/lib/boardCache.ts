@@ -1,5 +1,9 @@
 import type { BoTable } from '../types/board';
 
+export function boardViewsCacheTag(boTable: BoTable): string {
+  return `board-views-${boTable}`;
+}
+
 export function boardViewCacheTag(boTable: BoTable, postKey: string | number): string {
   return `board-view-${boTable}-${postKey}`;
 }

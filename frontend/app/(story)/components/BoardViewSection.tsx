@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import BoardContentBody from '@/app/components/BoardContentBody';
+import CachedBoardContentBody from '@/app/components/CachedBoardContentBody';
 import { shouldUseLegacyLayoutRendering } from '@/app/lib/boardLegacyLayout';
 
 import type { BoTable, BoardView } from '../types/board';
@@ -55,7 +55,7 @@ export default function BoardViewSection({ boTable, post }: BoardViewSectionProp
         </div>
 
         {/* 본문 — 그누보드 에디터 HTML (관리자 작성 신뢰 콘텐츠) */}
-        <BoardContentBody html={post.wr_content} legacyLayout={legacyLayout} className="mt-8" />
+        <CachedBoardContentBody html={post.wr_content} legacyLayout={legacyLayout} className="mt-8" />
 
         {/* 첨부파일 */}
         {post.files.length > 0 && (

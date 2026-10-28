@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import InquiryInflowCapture from './components/InquiryInflowCapture';
 import VercelMetrics from './components/VercelMetrics';
+import BoardCacheRefreshNotice from './components/BoardCacheRefreshNotice';
 
 const FloatingQuickActions = dynamic(() => import('./components/FloatingQuickActions'));
 const PreFooterCta = dynamic(() => import('./components/PreFooterCta'));
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </AnalyticsProvider>
         <VercelMetrics />
+        <BoardCacheRefreshNotice />
       </body>
     </html>
   );

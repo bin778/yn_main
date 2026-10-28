@@ -1,5 +1,5 @@
-import { boardListCacheTag, boardViewCacheTag } from './boardCache';
-import { isNumericPostKey } from './boardPostPath';
+import { boardListCacheTag, boardViewCacheTag, boardViewsCacheTag } from './boardCache';
+import { isNumericPostKey, normalizeBoardPostKey } from './boardPostPath';
 
 import { DEFAULT_BOARD_SORT, type BoardListSort } from '../constants/boardSort';
 import type { BoardListResponse, BoardSearchField, BoardView } from '../types/board';
@@ -11,6 +11,13 @@ const BOARD_API_BASE =
     : (process.env.BOARD_API_URL ?? 'https://lawfirmonly1.mycafe24.com/api/board');
 const DOWNLOAD_API = `${BOARD_API_BASE}/download_file.php`;
 const BOARD_LIST_PER_PAGE = 12;
+
+export class BoardPostNotFoundError extends Error {
+  constructor() {
+    super('게시물을 찾을 수 없습니다.');
+    this.name = 'BoardPostNotFoundError';
+  }
+}
 
 export async function fetchBoardList(
   boTable: string,
@@ -56,7 +63,7 @@ export async function fetchBoardList(
 }
 
 export async function fetchBoardView(boTable: string, postKey: string): Promise<BoardView> {
-  const trimmed = postKey.trim();
+  const trimmed = normalizeBoardPostKey(postKey);
   const query = isNumericPostKey(trimmed)
     ? `bo_table=${boTable}&wr_id=${trimmed}`
     : `bo_table=${boTable}&slug=${encodeURIComponent(trimmed)}`;
@@ -64,9 +71,13 @@ export async function fetchBoardView(boTable: string, postKey: string): Promise<
   const res = await fetch(url, {
     next: {
       revalidate: 3600,
-      tags: [boardViewCacheTag(boTable as BoTable, isNumericPostKey(trimmed) ? Number(trimmed) : trimmed)],
+      tags: [
+        boardViewsCacheTag(boTable as BoTable),
+        boardViewCacheTag(boTable as BoTable, isNumericPostKey(trimmed) ? Number(trimmed) : trimmed),
+      ],
     },
   });
+  if (res.status === 404) throw new BoardPostNotFoundError();
   if (!res.ok) throw new Error(`게시물을 불러오지 못했습니다. (${boTable}/${trimmed})`);
   return res.json() as Promise<BoardView>;
 }

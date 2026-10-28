@@ -359,6 +359,22 @@ Vercel·로컬에서 `NEXT_PUBLIC_INQUIRY_API_URL=/api/submit_inquiry.php`이면
 
 ## 검증
 
+### 게시글 캐시
+
+- 공개 상세는 최초 요청에서 생성하고 1시간 ISR로 재사용합니다. 검색 쿼리가 필요한 카테고리는 같은 URL의 명시적 페이지로 분리되어 있습니다. `BOARD_SECTIONS`에 분류를 추가하면 해당 카테고리 페이지도 추가해야 하며 회귀 검사가 누락을 확인합니다.
+- 공개 본문은 서버 전용 `getCachedBoardHtml`에서 원본 HTML과 정책 버전을 키로 1시간 캐시합니다. 관리자 미리보기는 동기 정제를 유지합니다. 정제 규칙·표 속성·스타일·이미지 URL 처리 정책 변경 시 `BOARD_HTML_POLICY_VERSION`을 올리세요.
+- 관리자 저장·삭제·예약 취소·이동은 인증된 갱신 API에서 해당 게시판의 목록/상세 태그를 즉시 만료시킵니다. 이동은 양쪽 게시판을 갱신합니다. 실패 안내의 재시도는 저장/삭제가 아닌 갱신만 다시 요청합니다.
+- 예약 시각에 자동 갱신하는 스케줄러는 추가하지 않았습니다. 기존과 같이 최대 1시간 캐시 지연 후 요청 시 갱신되며, ISR 만료 직후 첫 요청에는 이전 응답이 표시될 수 있습니다.
+- Next.js 16.2.6의 최초 ISR 리다이렉트 중복 `Location` 헤더는 Node instrumentation에서 동일한 값만 제거합니다. [상위 수정 PR #95913](https://github.com/vercel/next.js/pull/95913)이 포함된 버전으로 업그레이드하면 재검증 후 `redirectHeaderCompatibility`와 그 등록을 제거하세요. 다른 헤더와 쿠키는 변경하지 않습니다.
+
+```bash
+cd frontend
+npm run test:board-cache
+npm run test:board-cache:production
+```
+
+두 번째 검사는 로컬 fixture API로 운영 빌드와 서버를 실행합니다. 운영 DB/API는 변경하지 않으며, 테스트 서버의 시계만 앞당겨 1시간 만료·재생성 장애·예약 글 404·수정·삭제·이동을 확인합니다. 이 검사는 `.next`를 테스트 빌드로 갱신하므로 실제 배포 전에는 정상 환경 변수로 다시 빌드하세요.
+
 PHP 보안 회귀 검사(실제 운영 DB·외부 API 호출 없음, 테스트용 PDO SQLite 및 cURL 확장 필요):
 
 ```bash

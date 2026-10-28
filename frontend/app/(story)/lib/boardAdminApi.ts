@@ -1,4 +1,5 @@
 import type { BoTable } from '../types/board';
+import { refreshBoardCache } from '../../lib/boardCacheRefresh';
 
 import type { BoardPostAdmin, BoardPostPayload, BoardUploadPurpose } from '@/app/admin/lib/boardPostTypes';
 
@@ -156,26 +157,12 @@ export async function updateBoardPost(boTable: BoTable, wrId: number, payload: B
   await parseJson(res);
 }
 
-export async function revalidateBoardPost(boTable: BoTable, wrId: number, seoSlug = ''): Promise<void> {
-  await fetch('/api/board/revalidate', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bo_table: boTable, wr_id: wrId, wr_seo_slug: seoSlug }),
-  }).catch(error => {
-    console.error('게시물 캐시 갱신에 실패했습니다.', error);
-  });
+export async function revalidateBoardPost(boTable: BoTable, wrId: number, seoSlug = ''): Promise<boolean> {
+  return refreshBoardCache({ bo_table: boTable, wr_id: wrId, wr_seo_slug: seoSlug });
 }
 
-export async function revalidateBoardLists(boTable: BoTable, extraBoTables: BoTable[] = []): Promise<void> {
-  await fetch('/api/board/revalidate', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bo_table: boTable, wr_id: 0, extra_bo_tables: extraBoTables }),
-  }).catch(error => {
-    console.error('게시판 목록 캐시 갱신에 실패했습니다.', error);
-  });
+export async function revalidateBoardLists(boTable: BoTable, extraBoTables: BoTable[] = []): Promise<boolean> {
+  return refreshBoardCache({ bo_table: boTable, wr_id: 0, extra_bo_tables: extraBoTables });
 }
 
 export type BulkBoardAction = 'section' | 'move';
@@ -203,9 +190,7 @@ export async function bulkUpdateBoardPosts(
       action,
       wr_7: options.wr_7,
       wr_8: options.wr_8,
-      ...(action === 'move' && options.targetBoTable !== undefined
-        ? { target_bo_table: options.targetBoTable }
-        : {}),
+      ...(action === 'move' && options.targetBoTable !== undefined ? { target_bo_table: options.targetBoTable } : {}),
     }),
   });
   return parseJson<BulkBoardResult>(res);
@@ -217,6 +202,7 @@ export async function deleteBoardPost(boTable: BoTable, wrId: number): Promise<v
     credentials: 'include',
   });
   await parseJson(res);
+  await revalidateBoardPost(boTable, wrId);
 }
 
 export type BoardUploadResult = {

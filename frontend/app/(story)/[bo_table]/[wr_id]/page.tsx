@@ -6,7 +6,6 @@ import BoardCategoryTabs from '../../components/BoardCategoryTabs';
 import BoardAdminBar from '../../components/BoardAdminBar';
 import BoardJsonLd from '../../components/BoardJsonLd';
 import BoardViewSection from '../../components/BoardViewSection';
-import BoardSectionListPage from '../../components/BoardSectionListPage';
 import { BOARD_META, getBoardPathSlug, resolveBoTableFromPathSlug, SITE_NAME } from '../../constants/boardContent';
 import {
   buildBoardSectionListPath,
@@ -16,17 +15,20 @@ import {
   LEGACY_REAL_ESTATE_PARENT,
   LEGACY_REAL_ESTATE_SLUG,
 } from '../../constants/boardSections';
-import { fetchBoardView } from '../../lib/boardApi';
+import { BoardPostNotFoundError, fetchBoardView } from '../../lib/boardApi';
 import { buildBoardArticleSchema } from '../../lib/buildBoardArticleSchema';
-import { buildBoardPostHref, getBoardPostPathSegment } from '../../lib/boardPostPath';
-import type { BoardListSearchParams } from '../../lib/parseBoardListQuery';
+import { buildBoardPostHref, getBoardPostPathSegment, normalizeBoardPostKey } from '../../lib/boardPostPath';
 import { resolveBoardMetaDescription } from '../../lib/boardSeo';
 
 export const revalidate = 3600;
 
+// Category pages have dedicated dynamic routes so this route can stay static.
+export function generateStaticParams() {
+  return [];
+}
+
 type PageProps = {
   params: Promise<{ bo_table: string; wr_id: string }>;
-  searchParams: Promise<BoardListSearchParams>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -35,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!boTable || postKey.trim() === '') return {};
 
-  const trimmedKey = postKey.trim();
+  const trimmedKey = normalizeBoardPostKey(postKey);
 
   if (hasBoardSections(boTable) && isBoardSectionSlug(boTable, trimmedKey)) {
     const categoryLabel = getBoardSectionLabel(boTable, trimmedKey);
@@ -65,40 +67,41 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       alternates: { canonical },
     };
-  } catch {
-    return {};
+  } catch (error) {
+    if (error instanceof BoardPostNotFoundError) return {};
+    throw error;
   }
 }
 
-export default async function BoardViewPage({ params, searchParams }: PageProps) {
+export default async function BoardViewPage({ params }: PageProps) {
   const { bo_table: pathSlug, wr_id: postKey } = await params;
   const bo_table = resolveBoTableFromPathSlug(pathSlug);
 
   if (!bo_table || postKey.trim() === '') notFound();
 
-  const trimmedKey = postKey.trim();
+  const trimmedKey = normalizeBoardPostKey(postKey);
 
   if ((bo_table === 'success' || bo_table === 'column') && trimmedKey === LEGACY_REAL_ESTATE_SLUG) {
     permanentRedirect(`/${getBoardPathSlug(bo_table)}/${LEGACY_REAL_ESTATE_PARENT}/${LEGACY_REAL_ESTATE_SLUG}/`);
   }
 
   if (hasBoardSections(bo_table) && isBoardSectionSlug(bo_table, trimmedKey)) {
-    const resolvedSearchParams = await searchParams;
-
-    return <BoardSectionListPage boTable={bo_table} category={trimmedKey} searchParams={resolvedSearchParams} />;
+    // Known categories are served by their dedicated routes, never as articles.
+    notFound();
   }
 
   let post;
   try {
     post = await fetchBoardView(bo_table, postKey);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (error instanceof BoardPostNotFoundError) notFound();
+    throw error;
   }
 
   const canonicalHref = buildBoardPostHref(bo_table, post.wr_id, post.wr_seo_slug);
   const canonicalSegment = getBoardPostPathSegment(post.wr_id, post.wr_seo_slug);
 
-  if (postKey.trim() !== canonicalSegment) {
+  if (trimmedKey !== canonicalSegment) {
     permanentRedirect(canonicalHref);
   }
 

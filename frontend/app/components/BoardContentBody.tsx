@@ -1,4 +1,5 @@
 import { sanitizeLegacyBoardHtml } from '../admin/lib/sanitizeLegacyBoardHtml';
+import BoardContentMarkup from './BoardContentMarkup';
 
 type BoardContentBodyProps = {
   html: string;
@@ -6,20 +7,8 @@ type BoardContentBodyProps = {
   legacyLayout?: boolean;
 };
 
-/** 게시판 상세·관리자 미리보기 공통 본문 렌더 (board-content.css 적용) */
+/** 관리자 미리보기의 동기 정제. 공개 본문은 CachedBoardContentBody를 사용한다. */
 export default function BoardContentBody({ html, className = '', legacyLayout = false }: BoardContentBodyProps) {
-  const classes = [
-    'board-content',
-    legacyLayout ? 'board-content--legacy-layout' : '',
-    'min-h-[200px]',
-    'leading-[1.75]',
-    'text-[#333]',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   const safeHtml = sanitizeLegacyBoardHtml(html);
-
-  return <div className={classes} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
+  return <BoardContentMarkup safeHtml={safeHtml} className={className} legacyLayout={legacyLayout} />;
 }
