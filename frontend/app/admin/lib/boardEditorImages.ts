@@ -21,15 +21,6 @@ export function resolveEditorImageSrc(src: string): string {
   return normalizeEditorImageUrl(src);
 }
 
-export function normalizeEditorImageSourcesInHtml(html: string): string {
-  if (html === '') return html;
-
-  return html.replace(
-    /(<img[^>]*\ssrc=["'])([^"']+)(["'][^>]*>)/gi,
-    (_full, prefix: string, src: string, suffix: string) => `${prefix}${resolveEditorImageSrc(src)}${suffix}`,
-  );
-}
-
 export function isEditorThumbUrl(src: string): boolean {
   return EDITOR_THUMB_PATTERN.test(src.trim());
 }

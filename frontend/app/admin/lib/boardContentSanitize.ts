@@ -1,9 +1,9 @@
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 
-import { sanitizeLegacyBoardHtml, sanitizeLegacyBoardHtmlForSave } from './sanitizeLegacyBoardHtml';
+import { sanitizeLegacyBoardHtml } from './sanitizeLegacyBoardHtml';
 
 export function boardHtmlIsEmpty(html: string): boolean {
-  const text = DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
+  const text = sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} });
   return text.replace(/\u00a0/g, ' ').trim() === '';
 }
 
@@ -12,7 +12,7 @@ export function sanitizeContentForEditor(html: string): string {
 }
 
 export function sanitizeContentForSave(html: string): string {
-  return sanitizeLegacyBoardHtmlForSave(html);
+  return sanitizeLegacyBoardHtml(html);
 }
 
 export function contentIsEmpty(html: string): boolean {

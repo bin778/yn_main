@@ -11,6 +11,7 @@ const BOARD_API_BASE =
     : (process.env.BOARD_API_URL ?? 'https://lawfirmonly1.mycafe24.com/api/board');
 const DOWNLOAD_API = `${BOARD_API_BASE}/download_file.php`;
 const BOARD_LIST_PER_PAGE = 12;
+const BOARD_VIEW_REVALIDATE_SECONDS = 43200;
 
 export class BoardPostNotFoundError extends Error {
   constructor() {
@@ -70,7 +71,7 @@ export async function fetchBoardView(boTable: string, postKey: string): Promise<
   const url = `${BOARD_API_BASE}/get_view.php?${query}`;
   const res = await fetch(url, {
     next: {
-      revalidate: 3600,
+      revalidate: BOARD_VIEW_REVALIDATE_SECONDS,
       tags: [
         boardViewsCacheTag(boTable as BoTable),
         boardViewCacheTag(boTable as BoTable, isNumericPostKey(trimmed) ? Number(trimmed) : trimmed),

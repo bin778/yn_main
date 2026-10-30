@@ -99,7 +99,7 @@ await fs.writeFile(
   Object.defineProperty(performance, 'timeOrigin', { get: () => origin + offset() });
 `,
 );
-async function advanceClock(milliseconds = 3_601_000) {
+async function advanceClock(milliseconds = 43_201_000) {
   clockOffset += milliseconds;
   await fs.writeFile(offsetFile, String(clockOffset));
 }
@@ -272,7 +272,7 @@ try {
     assert.equal(await invalidate({ bo_table: 'news', wr_id: 101 }), 200);
     assert.equal((await page('/news/edited-slug/')).status, 404);
   });
-  await check('scheduled negative cache expires after one hour; cancellation invalidates immediately', async () => {
+  await check('scheduled negative cache expires after twelve hours; cancellation invalidates immediately', async () => {
     assert.equal((await page('/news/scheduled/')).status, 404);
     posts.set('news:102', post(102, 'scheduled'));
     assert.equal((await page('/news/scheduled/')).status, 404, 'cached 404 remains until expiry');

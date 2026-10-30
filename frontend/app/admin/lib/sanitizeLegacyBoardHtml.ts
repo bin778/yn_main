@@ -1,7 +1,6 @@
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 import { normalizeLegacyTableAttributes } from './boardSanitizeLegacyAttrs';
-import { normalizeEditorImageSourcesInHtml } from './boardEditorImages';
 import { buildLegacySafeInlineStyle, isSafeYnClass } from './boardSanitizeLegacyStyle';
 
 const ALLOWED_TAGS = [
@@ -64,50 +63,42 @@ const ALLOWED_ATTR = [
   'height',
 ];
 
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: ALLOWED_TAGS,
+  allowedAttributes: { '*': ALLOWED_ATTR },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  allowedSchemesByTag: { img: ['http', 'https', 'data'] },
+  allowProtocolRelative: false,
+  parseStyleAttributes: false,
+  transformTags: {
+    '*'(tagName, attribs) {
+      const nextAttribs = { ...attribs };
+      normalizeLegacyTableAttributes(tagName, nextAttribs);
+
+      if (nextAttribs.style !== undefined) {
+        const safeStyle = buildLegacySafeInlineStyle(nextAttribs.style);
+        if (safeStyle) {
+          nextAttribs.style = safeStyle;
+        } else {
+          delete nextAttribs.style;
+        }
+      }
+
+      if (nextAttribs.class !== undefined && !isSafeYnClass(nextAttribs.class)) {
+        delete nextAttribs.class;
+      }
+
+      return { tagName, attribs: nextAttribs };
+    },
+  },
+};
+
 function purifyLegacyHtml(html: string): string {
-  const withoutScripts = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-
-  const root = DOMPurify.sanitize(withoutScripts, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    FORBID_ATTR: ['id', 'face', 'size', 'color'],
-    RETURN_DOM: true,
-  }) as HTMLElement;
-
-  root.querySelectorAll('[style]').forEach(el => {
-    const safeStyle = buildLegacySafeInlineStyle(el.getAttribute('style') ?? '');
-    if (safeStyle) {
-      el.setAttribute('style', safeStyle);
-    } else {
-      el.removeAttribute('style');
-    }
-  });
-
-  normalizeLegacyTableAttributes(root);
-
-  root.querySelectorAll('[class]').forEach(el => {
-    const className = el.getAttribute('class') ?? '';
-    if (!isSafeYnClass(className)) {
-      el.removeAttribute('class');
-    }
-  });
-
-  root.querySelectorAll('a[href]').forEach(el => {
-    const href = (el.getAttribute('href') ?? '').trim();
-    if (/^javascript:/i.test(href)) {
-      el.removeAttribute('href');
-    }
-  });
-
-  return normalizeEditorImageSourcesInHtml(root.innerHTML);
+  return sanitizeHtml(html, SANITIZE_OPTIONS);
 }
 
 export function sanitizeLegacyBoardHtml(html: string): string {
   const trimmed = html.trim();
   if (trimmed === '') return '';
   return purifyLegacyHtml(trimmed);
-}
-
-export function sanitizeLegacyBoardHtmlForSave(html: string): string {
-  return sanitizeLegacyBoardHtml(html);
 }

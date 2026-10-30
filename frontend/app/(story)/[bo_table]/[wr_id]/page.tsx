@@ -20,7 +20,7 @@ import { buildBoardArticleSchema } from '../../lib/buildBoardArticleSchema';
 import { buildBoardPostHref, getBoardPostPathSegment, normalizeBoardPostKey } from '../../lib/boardPostPath';
 import { resolveBoardMetaDescription } from '../../lib/boardSeo';
 
-export const revalidate = 3600;
+export const revalidate = 43200;
 
 // Category pages have dedicated dynamic routes so this route can stay static.
 export function generateStaticParams() {
