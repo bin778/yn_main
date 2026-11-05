@@ -31,6 +31,7 @@ const STATIC_PAGES: readonly SitemapPageConfig[] = [
   { path: '/criminal/suspended-indictment/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/familylawcase/inheritance/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/overseas-koreans/', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/info/', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/about/', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/field/', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/people/', changeFrequency: 'monthly', priority: 0.8 },
