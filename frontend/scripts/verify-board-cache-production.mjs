@@ -56,6 +56,7 @@ const upstream = http.createServer((req, res) => {
   }
   if (url.pathname.endsWith('/get_list.php')) {
     lists.push(url.search);
+    if (outage) return json({ error: 'temporary outage' }, 503);
     const items = [...posts.entries()]
       .filter(([key, item]) => key.startsWith(`${table}:`) && !item.unpublished)
       .map(([, item]) => ({
@@ -126,12 +127,14 @@ function check(name, fn) {
       process.stdout.write(`PASS ${name}\n`);
     });
 }
-async function page(path) {
-  const response = await fetch(base + path, { redirect: 'manual' });
+async function page(path, headers) {
+  const response = await fetch(base + path, { redirect: 'manual', headers });
   return {
     status: response.status,
     cache: response.headers.get('x-nextjs-cache'),
     location: response.headers.get('location'),
+    contentType: response.headers.get('content-type'),
+    robots: response.headers.get('x-robots-tag'),
     html: await response.text(),
   };
 }
@@ -161,6 +164,74 @@ try {
   }
   assert.ok(ready, 'production server did not start');
 
+  await check('default lists reuse ISR for HTML, tracking URLs and App Router prefetches', async () => {
+    const first = await page('/news/');
+    assert.equal(first.status, 200);
+    assert.equal(first.cache, 'MISS');
+    assert.match(first.html, /Fixture 101/);
+    assert.match(first.html, /rel="canonical" href="https:\/\/www\.yeoon\.co\.kr\/news\/"/);
+    assert.equal(first.robots, null);
+
+    const reads = lists.length;
+    assert.equal((await page('/news/?utm_source=fixture')).cache, 'HIT');
+    const prefetch = await page('/news/?_rsc=fixture', {
+      RSC: '1',
+      'Next-Router-Prefetch': '1',
+      'Next-Router-Segment-Prefetch': '/_tree',
+    });
+    assert.equal(prefetch.status, 200);
+    assert.match(prefetch.contentType, /text\/x-component/);
+    assert.equal(prefetch.cache, 'HIT');
+    assert.equal(lists.length, reads);
+    assert.equal((await page('/board-list-isr/news/')).robots, 'noindex');
+  });
+  await check('list options still use the existing dynamic route', async () => {
+    const response = await page('/news/?page=2&q=fixture&sort=subject_asc&view=grid&sfl=subject');
+    assert.equal(response.status, 200);
+    assert.equal(response.cache, null);
+    assert.ok(lists.some(query => {
+      const params = new URLSearchParams(query);
+      return params.get('bo_table') === 'news' && params.get('page') === '2' &&
+        params.get('q') === 'fixture' && params.get('sort') === 'subject_asc' && params.get('sfl') === 'subject';
+    }));
+  });
+  await check('authorized list invalidation refreshes the default public URL', async () => {
+    posts.set('news:106', post(106, 'list-fixture'));
+    try {
+      assert.doesNotMatch((await page('/news/')).html, /Fixture 106/);
+      assert.equal(await invalidate({ bo_table: 'news' }), 200);
+      const fresh = await page('/news/');
+      assert.equal(fresh.status, 200);
+      assert.match(fresh.html, /Fixture 106/);
+      assert.equal((await page('/news/')).cache, 'HIT');
+    } finally {
+      posts.delete('news:106');
+    }
+  });
+  await check('failed list regeneration preserves the last successful page', async () => {
+    posts.set('review:107', post(107, 'review-fixture'));
+    const good = await page('/review/');
+    assert.equal(good.status, 200);
+    assert.match(good.html, /Fixture 107/);
+    assert.equal((await page('/review/')).cache, 'HIT');
+    outage = true;
+    try {
+      await advanceClock(3_601_000);
+      const reads = lists.length;
+      const stale = await page('/review/');
+      assert.equal(stale.status, 200);
+      assert.equal(stale.cache, 'STALE');
+      for (let i = 0; i < 30 && lists.length === reads; i++) await wait(100);
+      assert.ok(lists.length > reads, 'stale list must attempt background regeneration');
+      await wait(200);
+      const retained = await page('/review/');
+      assert.equal(retained.status, 200);
+      assert.match(retained.html, /Fixture 107/);
+    } finally {
+      outage = false;
+      posts.delete('review:107');
+    }
+  });
   await check('first render sanitized; second request HIT with no upstream read', async () => {
     const first = await page('/news/한글-사례/');
     assert.equal(first.status, 200, JSON.stringify({ views, excerpt: first.html.slice(-250) }));

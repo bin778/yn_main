@@ -86,7 +86,7 @@ function SearchToolbar({
               </select>
             }
           >
-            <BoardSortSelect current={sort} />
+            <BoardSortSelect current={sort} pathname={formAction} />
           </Suspense>
           <Link
             href={buildBoardListHref(boTable, 1, 'list', q, sfl, sort, sectionCategory, sectionSubcategory)}

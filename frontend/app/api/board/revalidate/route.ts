@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { ALLOWED_BO_TABLES, getBoardPathSlug } from '@/app/(story)/constants/boardContent';
 import { getBoardSections, hasBoardSections } from '@/app/(story)/constants/boardSections';
 import { boardListCacheTag, boardViewCacheTag, boardViewsCacheTag } from '@/app/(story)/lib/boardCache';
+import { getBoardListIsrPath } from '@/app/(story)/lib/boardListRoute';
 import { buildBoardPostHref } from '@/app/(story)/lib/boardPostPath';
 import type { BoTable } from '@/app/(story)/types/board';
 
@@ -22,6 +23,7 @@ function revalidateBoardList(boTable: BoTable) {
   // Includes old slugs, deleted posts, and neighbouring-post navigation.
   revalidateTag(boardViewsCacheTag(boTable), { expire: 0 });
   revalidatePath(`/${pathSlug}/`);
+  revalidatePath(getBoardListIsrPath(boTable));
   revalidatePath(`/${pathSlug}`, 'layout');
 
   if (!hasBoardSections(boTable)) return;

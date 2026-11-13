@@ -1,5 +1,8 @@
 import type { NextConfig } from 'next';
 
+import { ALLOWED_BO_TABLES, getBoardPathSlug } from './app/(story)/constants/boardContent';
+import { BOARD_LIST_ISR_PREFIX, BOARD_LIST_QUERY_KEYS, getBoardListIsrPath } from './app/(story)/lib/boardListRoute';
+
 const ONE_YEAR_CACHE = 'public, max-age=31536000, immutable';
 const CAFE24 = 'https://lawfirmonly1.mycafe24.com';
 const LANDING_NEW_ADMIN_LOGIN = '/landing_new/admin/admin/index.php';
@@ -87,6 +90,12 @@ const nextConfig: NextConfig = {
     return {
       // Next.js [bo_table]/[wr_id] 라우트보다 먼저 — criminal 게시판 slug와 충돌 방지
       beforeFiles: [
+        // The public URL stays the same for HTML and App Router prefetch requests.
+        ...ALLOWED_BO_TABLES.map(boTable => ({
+          source: `/${getBoardPathSlug(boTable)}/`,
+          destination: getBoardListIsrPath(boTable),
+          missing: BOARD_LIST_QUERY_KEYS.map(key => ({ type: 'query' as const, key })),
+        })),
         /** Sydney landing and PHP API — Cafe24 `/sydney/` */
         { source: '/sydney/', destination: `${CAFE24}/sydney/` },
         { source: '/sydney/:path*/', destination: `${CAFE24}/sydney/:path*/` },
@@ -271,6 +280,10 @@ const nextConfig: NextConfig = {
       {
         source: '/fonts/:path*',
         headers: [{ key: 'Cache-Control', value: ONE_YEAR_CACHE }],
+      },
+      {
+        source: `${BOARD_LIST_ISR_PREFIX}/:path*`,
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
       },
       // 어드민 페이지 캐시 완전 차단
       {

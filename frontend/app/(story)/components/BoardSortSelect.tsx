@@ -1,16 +1,16 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { BOARD_SORT_OPTIONS, DEFAULT_BOARD_SORT, type BoardListSort } from '../constants/boardSort';
 
 type BoardSortSelectProps = {
   current: BoardListSort;
+  pathname: string;
 };
 
-export default function BoardSortSelect({ current }: BoardSortSelectProps) {
+export default function BoardSortSelect({ current, pathname }: BoardSortSelectProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
