@@ -2,24 +2,44 @@ import { toMysqlDatetime, type BoardPostPayload } from './boardPostTypes';
 
 export type AttachmentDownloadMode = 'public' | 'password';
 
+type BoardPostFormFields = {
+  subject: string;
+  content: string;
+  notice: boolean;
+  thumbnailUrl: string;
+  seoTitle: string;
+  seoSlug: string;
+  seoDescription: string;
+  schema: string;
+  removeAttachment: boolean;
+  attachmentPassword: string;
+  downloadMode: AttachmentDownloadMode;
+  attachmentHasPassword: boolean;
+  wr7: string;
+  wr8: string;
+};
+
 export function buildBoardPostPayload(
-  subject: string,
-  content: string,
-  notice: boolean,
+  fields: BoardPostFormFields,
   wrDatetime: string,
-  thumbnailUrl: string,
-  seoTitle: string,
-  seoSlug: string,
-  seoDescription: string,
-  schema: string,
-  removeAttachment: boolean,
-  attachmentPassword: string,
-  downloadMode: AttachmentDownloadMode,
-  attachmentHasPassword: boolean,
-  wr7: string,
-  wr8: string,
   options?: { scheduled?: boolean },
 ): BoardPostPayload {
+  const {
+    subject,
+    content,
+    notice,
+    thumbnailUrl,
+    seoTitle,
+    seoSlug,
+    seoDescription,
+    schema,
+    removeAttachment,
+    attachmentPassword,
+    downloadMode,
+    attachmentHasPassword,
+    wr7,
+    wr8,
+  } = fields;
   const payload: BoardPostPayload = {
     wr_subject: subject.trim(),
     wr_content: content,

@@ -19,6 +19,7 @@ import { isPostFormDirty } from '../lib/adminPostFormDirty';
 import type { AdminPostInitial } from '../lib/adminPostFormTypes';
 import { buildBoardPostPayload, type AttachmentDownloadMode } from '../lib/buildBoardPostPayload';
 import { validateBoardAttachmentFile, validateBoardImageFile } from '../lib/boardAttachmentAccept';
+import { readBoardDraftFields } from '../lib/boardDraftForm';
 import { saveBoardDraft } from '../lib/boardDraftStorage';
 import {
   defaultDatetimeLocal,
@@ -194,8 +195,6 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
       }
     }
 
-    const cleanedContent = sanitizeContentForSave(contentRef.current);
-    const cleanedSchema = schema.trim();
     const wrDatetimeLocal =
       publishMode === 'scheduled'
         ? (scheduledLocal ?? '')
@@ -203,24 +202,7 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
           ? toDatetimeLocalValue(initial.wrDatetime) || initial.wrDatetime
           : defaultDatetimeLocal();
 
-    const payload = buildBoardPostPayload(
-      subject,
-      cleanedContent,
-      notice,
-      wrDatetimeLocal,
-      thumbnailUrl,
-      seoTitle,
-      seoSlug,
-      seoDescription,
-      cleanedSchema,
-      removeAttachment,
-      attachmentPassword,
-      downloadMode,
-      attachmentHasPassword,
-      wr7,
-      wr8,
-      publishMode === 'scheduled' ? { scheduled: true } : undefined,
-    );
+    const payload = buildCurrentPostPayload(wrDatetimeLocal, publishMode === 'scheduled');
 
     setLoading(true);
     setError(null);
@@ -299,16 +281,12 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
     return uploaded.url;
   }
 
-  function handleSaveDraft() {
-    flushDebouncedContent();
-    const cleaned = sanitizeContentForSave(contentRef.current);
-    saveBoardDraft(
-      boTable,
-      buildBoardPostPayload(
+  function buildCurrentPostPayload(wrDatetime: string, scheduled = false) {
+    return buildBoardPostPayload(
+      {
         subject,
-        cleaned,
+        content: sanitizeContentForSave(contentRef.current),
         notice,
-        '',
         thumbnailUrl,
         seoTitle,
         seoSlug,
@@ -320,32 +298,39 @@ export function useAdminPostForm({ boTable, mode, wrId, initial, onSaved, onDele
         attachmentHasPassword,
         wr7,
         wr8,
-      ),
+      },
+      wrDatetime,
+      { scheduled },
     );
+  }
+
+  function handleSaveDraft() {
+    flushDebouncedContent();
+    saveBoardDraft(boTable, buildCurrentPostPayload(''));
     setDraftRefreshKey(key => key + 1);
     window.alert('임시 저장되었습니다.');
   }
 
-  function loadDraft(draft: BoardPostPayload & { preview: string }) {
+  function loadDraft(draft: BoardPostPayload) {
     if (contentDebounceRef.current !== null) {
       clearTimeout(contentDebounceRef.current);
       contentDebounceRef.current = null;
     }
 
-    const draftContent = sanitizeContentForSave(draft.wr_content);
-    contentRef.current = draftContent;
-    setSubject(draft.wr_subject);
-    setContent(draftContent);
+    const fields = readBoardDraftFields(draft);
+    contentRef.current = fields.content;
+    setSubject(fields.subject);
+    setContent(fields.content);
     setContentVersion(version => version + 1);
-    setSchema(draft.wr_schema ?? '');
-    setNotice(draft.notice);
-    setThumbnailUrl(draft.wr_1);
-    setSeoTitle(draft.wr_seo_title);
-    setSeoSlug(draft.wr_seo_slug);
-    setSeoDescription(draft.wr_seo_description ?? '');
-    setWr7(draft.wr_7 ?? '');
-    setWr8(draft.wr_8 ?? '');
-    if (draft.wr_seo_slug !== '') setShowSlugInput(true);
+    setSchema(fields.schema);
+    setNotice(fields.notice);
+    setThumbnailUrl(fields.thumbnailUrl);
+    setSeoTitle(fields.seoTitle);
+    setSeoSlug(fields.seoSlug);
+    setSeoDescription(fields.seoDescription);
+    setWr7(fields.wr7);
+    setWr8(fields.wr8);
+    if (fields.seoSlug !== '') setShowSlugInput(true);
     setPendingAttachment(null);
     setRemoveAttachment(false);
   }

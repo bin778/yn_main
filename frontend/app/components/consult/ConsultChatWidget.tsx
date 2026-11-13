@@ -1,15 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { useConsultChat } from '@/app/components/consult/consultChatContext';
 import { useLazyReCaptcha } from '@/app/components/contact/lazyReCaptchaContext';
 import { CONSULT_CHAT_FORM_NAME, GA_EVENTS, GA_SOURCE_ATTR, GA_SOURCES } from '@/app/constants/analyticsEvents';
 import {
   INQUIRY_API_URL,
-  INQUIRY_FIELD_LIMITS,
   INQUIRY_STUB_MESSAGE,
   INQUIRY_VALIDATION_MESSAGES,
   RECAPTCHA_SITE_KEY,
@@ -29,15 +27,15 @@ import {
   getConsultInsight,
   getConsultLawyerForTopic,
   getConsultQuestionLawyer,
-  type ConsultInsight,
-  type ConsultInsightLawyer,
 } from '@/app/constants/consultInsights';
 import { getInquiryAttribution } from '@/app/lib/inquiryInflow';
 import { validateInquiryFields } from '@/app/lib/inquiryValidation';
 import { trackGaEvent } from '@/app/lib/trackGaEvent';
 
+import ConsultChatContactForm from './ConsultChatContactForm';
+import { BotMessage, LawyerHeader, QuestionTurn, TypingDots, UserMessage } from './ConsultChatMessages';
+
 const RECAPTCHA_ACTION = 'submit_consult';
-const AVATAR_SIZE = 36;
 const CONSULT_FALLBACK_OPTION = '그 외 기타 사안입니다.';
 const CONSULT_PHONE_HREF = 'tel:023182981';
 
@@ -53,28 +51,6 @@ function getInflowLabel(): string {
 
 function hasConsultAnswers(answers: ConsultAnswers): boolean {
   return Object.values(answers).some(value => Boolean(value));
-}
-
-function BotAvatar({ src, name }: { src: string; name: string }) {
-  return (
-    <Image
-      src={src}
-      alt={name}
-      width={AVATAR_SIZE}
-      height={AVATAR_SIZE}
-      className="h-9 w-9 shrink-0 rounded-full object-cover"
-    />
-  );
-}
-
-function TypingDots() {
-  return (
-    <div className="flex items-center gap-1 px-1 py-1" aria-label="입력 중">
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.2s]" />
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.1s]" />
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" />
-    </div>
-  );
 }
 
 export default function ConsultChatWidget() {
@@ -490,124 +466,19 @@ export default function ConsultChatWidget() {
           )}
 
           {showContact && (
-            <div className="shrink-0 border-t border-gray-100 px-3 py-2">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-                <input
-                  type="text"
-                  placeholder="성함"
-                  value={name}
-                  onFocus={handleFormInteraction}
-                  onChange={event => setName(event.target.value)}
-                  maxLength={INQUIRY_FIELD_LIMITS.name}
-                  disabled={isSubmitting}
-                  className={
-                    'w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 ' +
-                    'placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#023373]'
-                  }
-                />
-                <input
-                  type="tel"
-                  placeholder="전화번호 (- 제외)"
-                  value={tel}
-                  onFocus={handleFormInteraction}
-                  onChange={event => setTel(event.target.value.replace(/\D/g, ''))}
-                  maxLength={INQUIRY_FIELD_LIMITS.tel}
-                  disabled={isSubmitting}
-                  className={
-                    'w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 ' +
-                    'placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#023373]'
-                  }
-                />
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={event => setAgreed(event.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#023373] focus:ring-[#023373]"
-                  />
-                  <span className="text-xs text-gray-600">
-                    <Link href="/privacy" className="font-semibold text-[#023373] underline">
-                      개인정보취급방침
-                    </Link>{' '}
-                    동의
-                  </span>
-                </label>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full cursor-pointer rounded-xl py-3 text-sm font-bold text-white transition-colors ${
-                    isSubmitting ? 'cursor-not-allowed bg-[#01285c]' : 'bg-[#023373] hover:bg-[#01285c]'
-                  }`}
-                >
-                  {isSubmitting ? '접수 중...' : CONSULT_CHAT_COPY.contactSubmit}
-                </button>
-              </form>
-            </div>
+            <ConsultChatContactForm
+              name={name}
+              tel={tel}
+              agreed={agreed}
+              isSubmitting={isSubmitting}
+              onNameChange={setName}
+              onTelChange={setTel}
+              onAgreeChange={setAgreed}
+              onInteraction={handleFormInteraction}
+              onSubmit={handleSubmit}
+            />
           )}
         </div>
-      )}
-    </>
-  );
-}
-
-function LawyerHeader({ lawyer }: { lawyer: ConsultInsightLawyer }) {
-  return (
-    <p className="text-xs font-semibold text-gray-500">
-      {lawyer.name} {lawyer.title}
-      <span className="mt-0.5 ml-1 font-medium text-gray-400">· {lawyer.specialty}</span>
-    </p>
-  );
-}
-
-function BotMessage({
-  avatarSrc,
-  lawyerName,
-  children,
-}: {
-  avatarSrc: string;
-  lawyerName: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-2">
-      <BotAvatar src={avatarSrc} name={lawyerName} />
-      <div className="min-w-0 rounded-2xl rounded-tl-md bg-[#f3f5f9] px-3 py-2.5">{children}</div>
-    </div>
-  );
-}
-
-function UserMessage({ text }: { text: string }) {
-  return (
-    <div className="flex justify-end">
-      <p className="max-w-[85%] rounded-2xl rounded-tr-md bg-[#023373] px-3 py-2 text-sm break-keep text-white">
-        {text}
-      </p>
-    </div>
-  );
-}
-
-function QuestionTurn({
-  question,
-  selected,
-  insight,
-  lawyer,
-}: {
-  question: string;
-  selected: string;
-  insight: ConsultInsight | null;
-  lawyer: ConsultInsightLawyer;
-}) {
-  return (
-    <>
-      <BotMessage avatarSrc={lawyer.avatarSrc} lawyerName={lawyer.name}>
-        <p className="break-keep text-sm leading-relaxed font-medium text-[#023373]">{question}</p>
-      </BotMessage>
-      <UserMessage text={selected} />
-      {insight && (
-        <BotMessage avatarSrc={insight.lawyer.avatarSrc} lawyerName={insight.lawyer.name}>
-          <LawyerHeader lawyer={insight.lawyer} />
-          <p className="mt-1 break-keep text-sm leading-relaxed text-gray-800">{insight.message}</p>
-        </BotMessage>
       )}
     </>
   );
