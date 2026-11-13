@@ -107,15 +107,14 @@ export default async function BoardViewPage({ params }: PageProps) {
 
   const { label, heroBg, description: boardDescription } = BOARD_META[bo_table];
   const customSchema = post.wr_schema?.trim() ?? '';
-  const articleSchema =
-    bo_table === 'column'
-      ? buildBoardArticleSchema({
-          post,
-          canonicalHref,
-          description: resolveBoardMetaDescription(post.wr_seo_description, post.wr_content) || boardDescription,
-        })
-      : null;
-  const jsonLdSchema = customSchema !== '' ? customSchema : articleSchema;
+  let jsonLdSchema: string | Record<string, unknown> | null = customSchema || null;
+  if (jsonLdSchema === null && bo_table === 'column') {
+    jsonLdSchema = buildBoardArticleSchema({
+      post,
+      canonicalHref,
+      description: resolveBoardMetaDescription(post.wr_seo_description, post.wr_content) || boardDescription,
+    });
+  }
 
   return (
     <>
