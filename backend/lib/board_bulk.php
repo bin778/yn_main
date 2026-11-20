@@ -77,21 +77,11 @@ function board_next_wr_num(PDO $pdo, $write_table)
     return (int) $pdo->query($sql)->fetchColumn();
 }
 
-function board_rewrite_board_file_urls($value, $src_table, $dst_table)
-{
-    if (!is_string($value) || $value === '' || $src_table === $dst_table) {
-        return $value;
-    }
-
-    return str_replace(
-        array('/board/data/file/' . $src_table . '/', '/data/file/' . $src_table . '/'),
-        array('/board/data/file/' . $dst_table . '/', '/data/file/' . $dst_table . '/'),
-        $value
-    );
-}
-
 /**
- * @return array<string, string> old stored name => new stored name
+ * g5_board_file에 등록된 첨부파일만 목적지 게시판으로 복사한다.
+ *
+ * 썸네일(wr_1)과 본문 이미지는 g5_board_file에 기록되지 않는 단순 정적 파일이므로
+ * 복사하지 않고, 해당 URL도 바꾸지 않는다. URL이 원본 게시판 폴더를 그대로 가리켜야 이미지가 유지된다.
  */
 function board_copy_post_files(PDO $pdo, $src_table, $src_wr_id, $dst_table, $dst_wr_id)
 {
@@ -99,7 +89,6 @@ function board_copy_post_files(PDO $pdo, $src_table, $src_wr_id, $dst_table, $ds
         'SELECT * FROM g5_board_file WHERE bo_table = :bo_table AND wr_id = :wr_id ORDER BY bf_no ASC'
     );
     $stmt->execute(array('bo_table' => $src_table, 'wr_id' => $src_wr_id));
-    $renames = array();
 
     while ($file = $stmt->fetch(PDO::FETCH_ASSOC)) {
         if (!is_array($file)) {
@@ -126,7 +115,6 @@ function board_copy_post_files(PDO $pdo, $src_table, $src_wr_id, $dst_table, $ds
                 if (!@copy($src_path, $dst_path)) {
                     throw new RuntimeException('첨부 파일을 복사하지 못했습니다.');
                 }
-                $renames[$old_name] = $new_name;
             }
         }
 
@@ -135,23 +123,6 @@ function board_copy_post_files(PDO $pdo, $src_table, $src_wr_id, $dst_table, $ds
         $file['bf_file'] = $new_name;
         board_insert_assoc_row($pdo, 'g5_board_file', $file);
     }
-
-    return $renames;
-}
-
-function board_apply_file_renames($value, array $renames)
-{
-    if (!is_string($value) || $value === '' || count($renames) === 0) {
-        return $value;
-    }
-
-    foreach ($renames as $old_name => $new_name) {
-        if ($old_name !== $new_name) {
-            $value = str_replace($old_name, $new_name, $value);
-        }
-    }
-
-    return $value;
 }
 
 /**
@@ -187,7 +158,6 @@ function board_move_single_post(PDO $pdo, $src_table, $src_wr_id, $dst_table, $w
     $post['wr_2'] = $slug;
     $post['wr_7'] = $wr_7;
     $post['wr_8'] = $wr_8;
-    $post['wr_1'] = board_rewrite_board_file_urls((string) ($post['wr_1'] ?? ''), $src_table, $dst_table);
 
     board_insert_assoc_row($pdo, $dst_write, $post, array('wr_id'));
     $new_wr_id = (int) $pdo->lastInsertId();
@@ -198,12 +168,7 @@ function board_move_single_post(PDO $pdo, $src_table, $src_wr_id, $dst_table, $w
     $pdo->prepare("UPDATE `{$dst_write}` SET wr_parent = :wr_parent WHERE wr_id = :wr_id")
         ->execute(array('wr_parent' => $new_wr_id, 'wr_id' => $new_wr_id));
 
-    $renames = board_copy_post_files($pdo, $src_table, $src_wr_id, $dst_table, $new_wr_id);
-    if (count($renames) > 0) {
-        $thumb = board_apply_file_renames((string) ($post['wr_1'] ?? ''), $renames);
-        $pdo->prepare("UPDATE `{$dst_write}` SET wr_1 = :wr_1 WHERE wr_id = :wr_id")
-            ->execute(array('wr_1' => $thumb, 'wr_id' => $new_wr_id));
-    }
+    board_copy_post_files($pdo, $src_table, $src_wr_id, $dst_table, $new_wr_id);
 
     $comment_stmt = $pdo->prepare(
         "SELECT * FROM `{$src_write}` WHERE wr_parent = :wr_parent AND wr_is_comment = 1"
