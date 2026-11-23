@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-import NavAccordionItem from '@/app/components/nav/NavAccordionItem';
+import { NavAccordionList } from '@/app/components/nav/NavAccordionItem';
 import { FIELD_NAV_CHILDREN, FIELD_NAV_HREF, FIELD_NAV_LABEL } from '@/app/constants/navContent';
 
 type DesktopFieldMenuProps = {
@@ -38,11 +38,7 @@ export default function DesktopFieldMenu({ labelClassName }: DesktopFieldMenuPro
         className={`absolute left-0 top-full z-[110] w-[220px] pt-2 transition-all duration-200 ${PANEL_VISIBILITY_CLASS}`}
       >
         <ul key={panelResetKey} className="border border-gray-100 bg-white shadow-xl">
-          {FIELD_NAV_CHILDREN.map(item => (
-            <li key={item.label}>
-              <NavAccordionItem item={item} depth={0} variant="dropdown" />
-            </li>
-          ))}
+          <NavAccordionList items={FIELD_NAV_CHILDREN} depth={0} variant="dropdown" />
         </ul>
       </div>
     </div>
