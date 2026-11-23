@@ -1,164 +1,35 @@
-'use client';
-
 import Link from 'next/link';
-import { useState } from 'react';
 
+import NavAccordionItem from '@/app/components/nav/NavAccordionItem';
 import {
-  CONSULTATION_NAV_LABEL,
-  CONSULTATION_SUBLINKS,
   CONTACT_NAV_HREF,
   CONTACT_NAV_LABEL,
-  FAMILY_LAWCASE_NAV_LABEL,
-  FAMILY_LAWCASE_SUBLINKS,
+  FIELD_NAV_MOBILE_ITEM,
   MAIN_NAV_LINKS,
-  OVERSEAS_KOREANS_HREF,
-  OVERSEAS_KOREANS_NAV_LABEL,
-  SHOW_CONSULTATION_NAV,
-  SHOW_FAMILY_LAWCASE_NAV,
-  STORY_NAV_LABEL,
-  STORY_SUBLINKS,
+  STORY_NAV_ITEM,
 } from '@/app/constants/navContent';
 
-export default function FooterMobileNav() {
-  const [consultationOpen, setConsultationOpen] = useState(false);
-  const [familyLawcaseOpen, setFamilyLawcaseOpen] = useState(false);
-  const [storyOpen, setStoryOpen] = useState(false);
+const FOOTER_LINK_CLASS = 'block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]';
 
+export default function FooterMobileNav() {
   return (
     <nav className="border-b border-black/5 pb-2 md:pb-6 lg:hidden" aria-label="사이트 메뉴">
       <ul className="flex flex-col">
-        <li className="border-t border-gray-100">
-          <a
-            href={OVERSEAS_KOREANS_HREF}
-            className="block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]"
-            onClick={event => {
-              event.preventDefault();
-              window.location.assign(OVERSEAS_KOREANS_HREF);
-            }}
-          >
-            {OVERSEAS_KOREANS_NAV_LABEL}
-          </a>
-        </li>
-        {SHOW_CONSULTATION_NAV ? (
-          <li className="border-t border-gray-100">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between px-1 py-3.5 text-left text-[14px] md:text-[16px] font-bold text-[#121212]"
-              onClick={() => setConsultationOpen(open => !open)}
-              aria-expanded={consultationOpen}
-            >
-              {CONSULTATION_NAV_LABEL}
-              <span
-                aria-hidden
-                className={`text-xs text-gray-500 transition-transform duration-200 ${consultationOpen ? 'rotate-180' : ''}`}
-              >
-                ▼
-              </span>
-            </button>
-            {consultationOpen ? (
-              <ul className="border-t border-gray-100 bg-[#f5f5f5]">
-                {CONSULTATION_SUBLINKS.map(item => (
-                  <li key={item.label}>
-                    {item.href ? (
-                      <a
-                        href={item.href}
-                        className="block px-4 py-2 md:py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white"
-                        onClick={event => {
-                          event.preventDefault();
-                          window.location.assign(item.href!);
-                        }}
-                      >
-                        {item.label}
-                      </a>
-                    ) : (
-                      <span className="block px-4 py-2 md:py-3 text-[14px] text-[#121212]/40">{item.label}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </li>
-        ) : null}
-        {SHOW_FAMILY_LAWCASE_NAV ? (
-          <li className="border-t border-gray-100">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between px-1 py-3.5 text-left text-[14px] md:text-[16px] font-bold text-[#121212]"
-              onClick={() => setFamilyLawcaseOpen(open => !open)}
-              aria-expanded={familyLawcaseOpen}
-            >
-              {FAMILY_LAWCASE_NAV_LABEL}
-              <span
-                aria-hidden
-                className={`text-xs text-gray-500 transition-transform duration-200 ${familyLawcaseOpen ? 'rotate-180' : ''}`}
-              >
-                ▼
-              </span>
-            </button>
-            {familyLawcaseOpen ? (
-              <ul className="border-t border-gray-100 bg-[#f5f5f5]">
-                {FAMILY_LAWCASE_SUBLINKS.map(item => (
-                  <li key={item.label}>
-                    {item.href ? (
-                      <a
-                        href={item.href}
-                        className="block px-4 py-2 md:py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white"
-                        onClick={event => {
-                          event.preventDefault();
-                          window.location.assign(item.href!);
-                        }}
-                      >
-                        {item.label}
-                      </a>
-                    ) : (
-                      <span className="block px-4 py-2 md:py-3 text-[14px] text-[#121212]/40">{item.label}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </li>
-        ) : null}
         {MAIN_NAV_LINKS.map(item => (
           <li key={item.href} className="border-t border-gray-100">
-            <Link
-              href={item.href}
-              className="block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]"
-            >
+            <Link href={item.href} className={FOOTER_LINK_CLASS}>
               {item.label}
             </Link>
           </li>
         ))}
         <li className="border-t border-gray-100">
-          <button
-            type="button"
-            className="flex w-full items-center justify-between px-1 py-3.5 text-left text-[14px] md:text-[16px] font-bold text-[#121212]"
-            onClick={() => setStoryOpen(open => !open)}
-            aria-expanded={storyOpen}
-          >
-            {STORY_NAV_LABEL}
-            <span className="text-sm text-gray-500">{storyOpen ? '−' : '+'}</span>
-          </button>
-          {storyOpen ? (
-            <ul className="border-t border-gray-100 bg-[#f5f5f5]">
-              {STORY_SUBLINKS.map(item => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="block px-4 py-2 md:py-3 text-[14px] text-[#121212] hover:bg-[#1a3151] hover:text-white"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <NavAccordionItem item={FIELD_NAV_MOBILE_ITEM} depth={0} variant="footer" />
         </li>
         <li className="border-t border-gray-100">
-          <Link
-            href={CONTACT_NAV_HREF}
-            className="block px-1 py-3 md:py-4 text-[14px] md:text-[16px] font-bold text-[#121212]"
-          >
+          <NavAccordionItem item={STORY_NAV_ITEM} depth={0} variant="footer" />
+        </li>
+        <li className="border-t border-gray-100">
+          <Link href={CONTACT_NAV_HREF} className={FOOTER_LINK_CLASS}>
             {CONTACT_NAV_LABEL}
           </Link>
         </li>
